@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Table,
   TableBody,
@@ -11,13 +12,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
+import { PlusCircle, Trash2 } from "lucide-react"
 
-import { assets } from "@/lib/data"
+import { assets as initialAssets } from "@/lib/data"
 import { useCurrency } from "@/hooks/use-currency"
 
 export default function AssetsPage() {
   const { format } = useCurrency()
+  const [assets, setAssets] = useState(initialAssets)
+
+  const handleDelete = (id: string) => {
+    setAssets(assets.filter((asset) => asset.id !== id))
+  }
 
   return (
     <Card>
@@ -40,6 +46,7 @@ export default function AssetsPage() {
               <TableHead>Type</TableHead>
               <TableHead className="text-right">Rental Income (Monthly)</TableHead>
               <TableHead className="text-right">Market Value</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,6 +61,12 @@ export default function AssetsPage() {
                 <TableCell>{asset.type}</TableCell>
                 <TableCell className="text-right">{format(asset.rentalIncome)}</TableCell>
                 <TableCell className="text-right">{format(asset.marketValue)}</TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(asset.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
