@@ -54,7 +54,7 @@ export default function LiabilitiesPage() {
                   <TableRow key={liability.id}>
                     <TableCell className="font-medium">{liability.name}</TableCell>
                     <TableCell>{liability.type}</TableCell>
-                    <TableCell>{new Date(liability.dueDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(liability.dueDate).toLocaleDateString('en-CA')}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Progress value={progress} className="w-32" />
