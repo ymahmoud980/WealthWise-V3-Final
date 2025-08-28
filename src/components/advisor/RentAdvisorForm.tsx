@@ -22,6 +22,7 @@ import { Lightbulb, Loader2, TrendingUp } from "lucide-react";
 
 import { suggestOptimalRentIncreases, type SuggestOptimalRentIncreasesOutput } from "@/ai/flows/suggest-optimal-rent-increases";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/hooks/use-currency";
 
 const formSchema = z.object({
   propertyLocation: z.string().min(2, "Location is required."),
@@ -36,6 +37,7 @@ export function RentAdvisorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<SuggestOptimalRentIncreasesOutput | null>(null);
   const { toast } = useToast();
+  const { currency, rates } = useCurrency();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -52,6 +54,9 @@ export function RentAdvisorForm() {
     setSuggestion(null);
 
     try {
+      // The AI flow expects the value in USD, so we convert it from the currently selected currency.
+      const valueInUsd = values.currentMarketValue / rates[currency];
+
       // Dummy conversion of string to structured data
       const historicalRentalIncome = values.historicalRentalIncome.split('\n').map(line => {
         const [year, income] = line.split(':');
@@ -66,6 +71,7 @@ export function RentAdvisorForm() {
 
       const result = await suggestOptimalRentIncreases({
         ...values,
+        currentMarketValue: valueInUsd,
         localRegulations: values.localRegulations || 'None',
         historicalRentalIncome,
       });
@@ -104,7 +110,7 @@ export function RentAdvisorForm() {
             name="currentMarketValue"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current Market Value (USD)</FormLabel>
+                <FormLabel>Current Market Value ({currency})</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="150000" {...field} />
                 </FormControl>
