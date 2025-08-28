@@ -64,15 +64,17 @@ export function AppSidebar() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                as={Link}
-                href={item.href}
-                isActive={pathname === item.href}
-                tooltip={{ children: item.label }}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </SidebarMenuButton>
+              <Link href={item.href} passHref>
+                <SidebarMenuButton
+                  as="a"
+                  href={item.href}
+                  isActive={pathname === item.href}
+                  tooltip={{ children: item.label }}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -80,16 +82,20 @@ export function AppSidebar() {
       <SidebarFooter>
          <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton as={Link} href="#" tooltip={{ children: 'Settings' }}>
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
+              <Link href="#" passHref>
+                <SidebarMenuButton as="a" href="#" tooltip={{ children: 'Settings' }}>
+                  <Settings />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton as={Link} href="#" tooltip={{ children: 'Logout' }}>
-                <LogOut />
-                <span>Logout</span>
-              </SidebarMenuButton>
+              <Link href="#" passHref>
+                <SidebarMenuButton as="a" href="#" tooltip={{ children: 'Logout' }}>
+                  <LogOut />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>
