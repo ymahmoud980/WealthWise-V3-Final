@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import wav from 'wav';
 
 const ExtractLiabilityDetailsInputSchema = z.object({
   documentDataUri: z
@@ -33,7 +32,6 @@ export async function extractLiabilityDetails(input: ExtractLiabilityDetailsInpu
 const prompt = ai.definePrompt({
   name: 'extractLiabilityDetailsPrompt',
   input: {schema: ExtractLiabilityDetailsInputSchema},
-  output: {schema: ExtractLiabilityDetailsOutputSchema},
   prompt: `You are an expert financial analyst. Your task is to extract liability details from uploaded documents, such as contracts, invoices, and payment plans.
 
 Analyze the following document and extract key details. Focus on identifying:
@@ -43,7 +41,7 @@ Analyze the following document and extract key details. Focus on identifying:
 - Any applicable interest rates.
 - The name of the creditor or project.
 
-Provide a clear and concise summary of these details. If the document is not a financial document or the details cannot be found, state that clearly.
+Provide a clear and concise summary of these details as a single block of text. If the document is not a financial document or the details cannot be found, state that clearly.
 Document: {{media url=documentDataUri}}`,
 });
 
@@ -54,7 +52,10 @@ const extractLiabilityDetailsFlow = ai.defineFlow(
     outputSchema: ExtractLiabilityDetailsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const response = await ai.generate({
+        prompt: await prompt.render(input),
+    });
+    
+    return { details: response.text };
   }
 );
