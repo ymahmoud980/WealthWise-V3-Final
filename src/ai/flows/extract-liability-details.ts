@@ -32,6 +32,7 @@ export async function extractLiabilityDetails(input: ExtractLiabilityDetailsInpu
 const prompt = ai.definePrompt({
   name: 'extractLiabilityDetailsPrompt',
   input: {schema: ExtractLiabilityDetailsInputSchema},
+  output: {schema: ExtractLiabilityDetailsOutputSchema},
   prompt: `You are an expert financial analyst. Your task is to extract liability details from uploaded documents, such as contracts, invoices, and payment plans.
 
 Analyze the following document and extract key details. Focus on identifying:
@@ -52,10 +53,7 @@ const extractLiabilityDetailsFlow = ai.defineFlow(
     outputSchema: ExtractLiabilityDetailsOutputSchema,
   },
   async input => {
-    const {output} = await ai.generate({
-        prompt: await prompt.renderText(input),
-    });
-    
-    return { details: output! };
+    const {output} = await prompt(input);
+    return output!;
   }
 );
