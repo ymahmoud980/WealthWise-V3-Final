@@ -125,7 +125,9 @@ export function RentAdvisorForm() {
               <FormItem>
                 <FormLabel>Historical Rental Income</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="2022: 600&#x0a;2023: 650&#x0a;2024: 700" {...field} />
+                  <Textarea placeholder="2022: 600
+2023: 650
+2024: 700" {...field} />
                 </FormControl>
                 <FormDescription>
                   Enter each year on a new line, formatted as 'YYYY: amount'.

@@ -115,6 +115,8 @@ export function calculateMetrics(data: FinancialData, displayCurrency: Currency)
         totalAssets,
         totalLiabilities,
         netCashFlow,
+        totalIncome,
+        totalExpenses,
         assets: assetsBreakdown,
         liabilities: liabilitiesBreakdown,
         income: incomeBreakdown,

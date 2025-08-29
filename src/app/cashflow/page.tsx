@@ -1,15 +1,21 @@
 
 "use client"
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { useCurrency } from "@/hooks/use-currency"
 import { calculateMetrics } from "@/lib/calculations"
 import { useFinancialData } from "@/contexts/FinancialDataContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import type { FinancialData } from "@/lib/types";
 
 export default function CashFlowPage() {
     const { currency, format } = useCurrency();
-    const { data } = useFinancialData();
+    const { data, setData } = useFinancialData();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
 
     const metrics = calculateMetrics(data, currency);
     const { income, totalIncome, expenses, totalExpenses, netCashFlow } = metrics;
@@ -19,8 +25,53 @@ export default function CashFlowPage() {
         { name: 'Expenses', Loans: expenses.loans, Household: expenses.household, Installments: expenses.installmentsAvg }
     ];
 
+    const handleEditClick = () => {
+        setEditableData(JSON.parse(JSON.stringify(data)));
+        setIsEditing(true);
+    };
+
+    const handleSaveClick = () => {
+        setData(editableData);
+        setIsEditing(false);
+    };
+    
+    const handleCancelClick = () => {
+        setEditableData(JSON.parse(JSON.stringify(data)));
+        setIsEditing(false);
+    };
+
+    const handleSalaryChange = (value: string) => {
+        const numericValue = parseFloat(value) || 0;
+        const newData = { ...editableData };
+        newData.assets.salary.amount = numericValue;
+        setEditableData(newData);
+    };
+
+    const handleHouseholdChange = (id: string, value: string) => {
+        const numericValue = parseFloat(value) || 0;
+        const newData = { ...editableData };
+        const expense = newData.monthlyExpenses.household.find(h => h.id === id);
+        if (expense) {
+            expense.amount = numericValue;
+            setEditableData(newData);
+        }
+    };
+    
+    const currentData = isEditing ? editableData : data;
+    const currentMetrics = calculateMetrics(currentData, currency);
+
     return (
         <div className="space-y-8">
+            <div className="flex justify-end gap-2">
+                 {isEditing ? (
+                  <>
+                    <Button onClick={handleSaveClick}>Save Changes</Button>
+                    <Button variant="outline" onClick={handleCancelClick}>Cancel</Button>
+                  </>
+                ) : (
+                  <Button onClick={handleEditClick}>Edit</Button>
+                )}
+            </div>
             <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                     <CardHeader><CardTitle>Total Income</CardTitle></CardHeader>
@@ -54,23 +105,53 @@ export default function CashFlowPage() {
                         <div className="p-3 bg-green-100/60 rounded-lg">
                             <div className="flex justify-between items-center font-semibold text-green-800">
                                 <span>Total Income</span>
-                                <span className="text-base font-bold text-green-900">{format(totalIncome)}</span>
+                                <span className="text-base font-bold text-green-900">{format(currentMetrics.totalIncome)}</span>
                             </div>
                             <div className="pl-4 mt-2 space-y-1">
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Salary</span><span>{format(income.salary)}</span></div>
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span>{format(income.rent)}</span></div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Salary</span>
+                                    {isEditing ? (
+                                        <div className="flex items-center gap-2">
+                                             <Input 
+                                                type="number" 
+                                                value={currentData.assets.salary.amount}
+                                                onChange={(e) => handleSalaryChange(e.target.value)}
+                                                className="h-8 max-w-[120px]"
+                                            />
+                                            <span>{currentData.assets.salary.currency}</span>
+                                        </div>
+                                    ) : (
+                                        <span>{format(currentMetrics.income.salary)}</span>
+                                    )}
+                                </div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span>{format(currentMetrics.income.rent)}</span></div>
                             </div>
                         </div>
 
                          <div className="p-3 bg-red-100/60 rounded-lg">
                             <div className="flex justify-between items-center font-semibold text-red-800">
                                 <span>Total Monthly Expenses</span>
-                                <span className="text-base font-bold text-red-900">{format(totalExpenses)}</span>
+                                <span className="text-base font-bold text-red-900">{format(currentMetrics.totalExpenses)}</span>
                             </div>
                             <div className="pl-4 mt-2 space-y-1">
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span>{format(expenses.loans)}</span></div>
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Household Expenses</span><span>{format(expenses.household)}</span></div>
-                                <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span>{format(expenses.installmentsAvg)}</span></div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span>{format(currentMetrics.expenses.loans)}</span></div>
+                                {currentData.monthlyExpenses.household.map(h => (
+                                     <div key={h.id} className="flex justify-between items-center"><span className="text-muted-foreground">{h.description}</span>
+                                        {isEditing ? (
+                                            <div className="flex items-center gap-2">
+                                                <Input 
+                                                    type="number" 
+                                                    value={h.amount}
+                                                    onChange={(e) => handleHouseholdChange(h.id, e.target.value)}
+                                                    className="h-8 max-w-[120px]"
+                                                />
+                                                <span>{h.currency}</span>
+                                            </div>
+                                        ) : (
+                                            <span>{format(calculateMetrics({ ...data, monthlyExpenses: { household: [h]}}, currency).totalExpenses)}</span>
+                                        )}
+                                     </div>
+                                ))}
+                                <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span>{format(currentMetrics.expenses.installmentsAvg)}</span></div>
                             </div>
                         </div>
 
