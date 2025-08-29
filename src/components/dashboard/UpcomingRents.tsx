@@ -8,6 +8,7 @@ import { useCurrency } from '@/hooks/use-currency';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { RealEstateAsset } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface UpcomingRentsProps {
     rents: RealEstateAsset[];
@@ -15,7 +16,7 @@ interface UpcomingRentsProps {
 
 export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
   const [rents, setRents] = useState(initialRents.filter(r => r.monthlyRent > 0).sort((a,b) => new Date(a.nextRentDueDate).getTime() - new Date(b.nextRentDueDate).getTime()));
-  const { format } = useCurrency();
+  const { format: formatCurrency } = useCurrency();
 
   const handleCheckChange = (id: string) => {
     // In a real app, this would trigger a database update.
@@ -54,6 +55,7 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
                       <div className="flex-1 grid grid-cols-3 gap-2 items-center text-sm">
                         <div className='col-span-2'>
                             <p className="font-medium truncate">{rent.name}</p>
+                            <p className="text-xs text-muted-foreground">{format(new Date(rent.nextRentDueDate), 'MMM yyyy')}</p>
                             <p className={cn("text-xs", status.className)}>{status.text}</p>
                         </div>
                         <span className="font-semibold text-right text-green-600">
