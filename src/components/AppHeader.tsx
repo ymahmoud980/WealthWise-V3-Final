@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -29,6 +30,7 @@ const pageTitles: { [key: string]: string } = {
   "/cashflow": "Cash Flow Management",
   "/advisor": "AI Financial Advisor",
   "/calculator": "Calculation Engine",
+  "/breakdown": "Calculation Breakdown",
 };
 
 export function AppHeader() {

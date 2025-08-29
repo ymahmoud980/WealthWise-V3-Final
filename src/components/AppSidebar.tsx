@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   Settings,
   X,
   CircleAlert,
+  FileText,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
@@ -33,6 +35,7 @@ const navItems = [
   { href: "/cashflow", label: "Cash Flow", icon: <Wallet /> },
   { href: "/advisor", label: "AI Advisor", icon: <BrainCircuit /> },
   { href: "/calculator", label: "Calculator", icon: <Calculator /> },
+  { href: "/breakdown", label: "Breakdown", icon: <FileText /> },
 ];
 
 export function AppSidebar() {
