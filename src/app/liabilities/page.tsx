@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import type { FinancialData } from "@/lib/types";
+import { LiabilityUploader } from "@/components/liabilities/LiabilityUploader";
 
 export default function LiabilitiesPage() {
   const { data, setData } = useFinancialData();
@@ -56,6 +57,7 @@ export default function LiabilitiesPage() {
 
   return (
     <div className="space-y-8">
+      <LiabilityUploader />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
