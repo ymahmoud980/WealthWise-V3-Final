@@ -1,75 +1,48 @@
 
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Save } from "lucide-react"
-
-import { initialFinancialData } from "@/lib/data"
-import type { FinancialData } from "@/lib/types"
+import { useFinancialData } from "@/contexts/FinancialDataContext"
 
 export default function AssetsPage() {
-  const [data, setData] = useState<FinancialData>(initialFinancialData);
-  const [isEditing, setIsEditing] = useState(false);
+  const { data, setData } = useFinancialData();
 
   const handleRealEstateChange = (id: string, key: 'currentValue' | 'monthlyRent', value: string) => {
     const numericValue = parseFloat(value) || 0;
-    setData(prevData => ({
-      ...prevData,
-      assets: {
-        ...prevData.assets,
-        realEstate: prevData.assets.realEstate.map(asset =>
-          asset.id === id ? { ...asset, [key]: numericValue } : asset
-        ),
-      },
-    }));
+    const newData = { ...data };
+    const asset = newData.assets.realEstate.find(a => a.id === id);
+    if (asset) {
+      asset[key] = numericValue;
+      setData(newData);
+    }
   };
 
   const handleOtherAssetChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
-    setData(prevData => ({
-        ...prevData,
-        assets: {
-            ...prevData.assets,
-            otherAssets: prevData.assets.otherAssets.map(asset =>
-                asset.id === id ? { ...asset, value: numericValue } : asset
-            )
-        }
-    }));
+    const newData = { ...data };
+    const asset = newData.assets.otherAssets.find(a => a.id === id);
+    if (asset) {
+      asset.value = numericValue;
+      setData(newData);
+    }
   };
   
     const handleCashChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
-    setData(prevData => ({
-        ...prevData,
-        assets: {
-            ...prevData.assets,
-            cash: prevData.assets.cash.map(asset =>
-                asset.id === id ? { ...asset, amount: numericValue } : asset
-            )
-        }
-    }));
+    const newData = { ...data };
+    const asset = newData.assets.cash.find(a => a.id === id);
+    if (asset) {
+      asset.amount = numericValue;
+      setData(newData);
+    }
   };
 
   const handleGoldChange = (value: string) => {
     const numericValue = parseFloat(value) || 0;
-    setData(prevData => ({
-        ...prevData,
-        assets: {
-            ...prevData.assets,
-            gold: [{ ...prevData.assets.gold[0], grams: numericValue }]
-        }
-    }));
-  };
-
-  const handleSave = () => {
-    // In a real app, this would send the updated `data` to a server/API
-    console.log("Saving data:", data);
-    setIsEditing(false); 
-    // For now, we just reflect the changes in the local state.
-    // You could add a toast notification here for user feedback.
+    const newData = { ...data };
+    newData.assets.gold[0].grams = numericValue;
+    setData(newData);
   };
 
   const { realEstate, cash, gold, otherAssets } = data.assets;
@@ -81,12 +54,8 @@ export default function AssetsPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Asset Overview</CardTitle>
-            <CardDescription>Detailed breakdown of all your assets.</CardDescription>
+            <CardDescription>Detailed breakdown of all your assets. Changes are saved automatically.</CardDescription>
           </div>
-          <Button onClick={handleSave} size="sm">
-            <Save className="mr-2 h-4 w-4" />
-            Save Changes
-          </Button>
         </CardHeader>
         <CardContent className="space-y-8">
             <div>

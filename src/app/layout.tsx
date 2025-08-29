@@ -1,9 +1,11 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { AppHeader } from '@/components/AppHeader';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { FinancialDataProvider } from '@/contexts/FinancialDataContext';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
@@ -25,13 +27,15 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <CurrencyProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen">
-              <AppHeader />
-              <main className="p-4 md:p-6 lg:p-8">{children}</main>
-            </SidebarInset>
-          </SidebarProvider>
+          <FinancialDataProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset className="min-h-screen">
+                <AppHeader />
+                <main className="p-4 md:p-6 lg:p-8">{children}</main>
+              </SidebarInset>
+            </SidebarProvider>
+          </FinancialDataProvider>
         </CurrencyProvider>
         <Toaster />
       </body>

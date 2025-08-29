@@ -13,18 +13,14 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
-import { initialFinancialData } from "@/lib/data";
 import { calculateMetrics } from "@/lib/calculations";
 import { useCurrency } from "@/hooks/use-currency";
-import { useState, useEffect } from "react";
-import type { FinancialData } from "@/lib/types";
+import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 export default function DashboardPage() {
-  const [data, setData] = useState<FinancialData>(initialFinancialData);
-  const { currency, format } = useCurrency();
+  const { data } = useFinancialData();
+  const { currency } = useCurrency();
   
-  // In a real app, you'd fetch this data or get it from a state manager
-  // For now, we'll just use the initial data
   const metrics = calculateMetrics(data, currency);
 
   return (

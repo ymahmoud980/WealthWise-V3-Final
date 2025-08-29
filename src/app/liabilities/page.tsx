@@ -1,51 +1,34 @@
 
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Save } from "lucide-react"
-
-import { initialFinancialData } from "@/lib/data"
-import type { FinancialData } from "@/lib/types"
+import { useFinancialData } from "@/contexts/FinancialDataContext"
 
 export default function LiabilitiesPage() {
-  const [data, setData] = useState<FinancialData>(initialFinancialData)
+  const { data, setData } = useFinancialData();
 
   const handleLoanChange = (id: string, key: 'remaining' | 'monthlyPayment', value: string) => {
     const numericValue = parseFloat(value) || 0;
-    setData(prevData => ({
-      ...prevData,
-      liabilities: {
-        ...prevData.liabilities,
-        loans: prevData.liabilities.loans.map(loan =>
-          loan.id === id ? { ...loan, [key]: numericValue } : loan
-        ),
-      },
-    }));
+    const newData = { ...data };
+    const loan = newData.liabilities.loans.find(l => l.id === id);
+    if (loan) {
+      loan[key] = numericValue;
+      setData(newData);
+    }
   };
 
   const handleInstallmentChange = (id: string, key: 'total' | 'paid' | 'amount', value: string) => {
     const numericValue = parseFloat(value) || 0;
-    setData(prevData => ({
-      ...prevData,
-      liabilities: {
-        ...prevData.liabilities,
-        installments: prevData.liabilities.installments.map(inst =>
-          inst.id === id ? { ...inst, [key]: numericValue } : inst
-        ),
-      },
-    }));
+    const newData = { ...data };
+    const installment = newData.liabilities.installments.find(i => i.id === id);
+    if (installment) {
+      installment[key] = numericValue;
+      setData(newData);
+    }
   };
   
-  const handleSave = () => {
-    // In a real app, this would send the updated `data` to a server/API
-    console.log("Saving data:", data);
-    // You could add a toast notification here for user feedback.
-  };
-
   const { loans, installments } = data.liabilities;
 
   return (
@@ -54,12 +37,8 @@ export default function LiabilitiesPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Liability Overview</CardTitle>
-            <CardDescription>Track your installments and loans.</CardDescription>
+            <CardDescription>Track your installments and loans. Changes are saved automatically.</CardDescription>
           </div>
-           <Button onClick={handleSave} size="sm">
-            <Save className="mr-2 h-4 w-4" />
-            Save Changes
-          </Button>
         </CardHeader>
         <CardContent className="space-y-8">
             <div>

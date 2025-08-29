@@ -3,15 +3,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { initialFinancialData } from "@/lib/data"
 import { useCurrency } from "@/hooks/use-currency"
 import { calculateMetrics } from "@/lib/calculations"
-import { useState } from "react"
-import type { FinancialData } from "@/lib/types"
+import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 export default function CashFlowPage() {
     const { currency, format } = useCurrency();
-    const [data, setData] = useState<FinancialData>(initialFinancialData);
+    const { data } = useFinancialData();
 
     const metrics = calculateMetrics(data, currency);
     const { income, totalIncome, expenses, totalExpenses, netCashFlow } = metrics;

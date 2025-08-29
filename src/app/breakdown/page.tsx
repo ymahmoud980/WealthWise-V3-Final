@@ -4,15 +4,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { TrendingUp, TrendingDown, Wallet, DollarSign } from "lucide-react"
-import { useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
-import { initialFinancialData } from "@/lib/data";
-import { calculateMetrics, convert, rates } from "@/lib/calculations";
-import type { FinancialData } from "@/lib/types";
+import { calculateMetrics } from "@/lib/calculations";
+import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 export default function BreakdownPage() {
   const { currency, format } = useCurrency();
-  const [data, setData] = useState<FinancialData>(initialFinancialData);
+  const { data } = useFinancialData();
 
   const metrics = calculateMetrics(data, currency);
 
