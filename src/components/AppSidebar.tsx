@@ -24,6 +24,7 @@ import {
   X,
   CircleAlert,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
@@ -33,9 +34,10 @@ const navItems = [
   { href: "/assets", label: "Assets", icon: <Home /> },
   { href: "/liabilities", label: "Liabilities", icon: <Landmark /> },
   { href: "/cashflow", label: "Cash Flow", icon: <Wallet /> },
-  { href: "/advisor", label: "AI Advisor", icon: <BrainCircuit /> },
-  { href: "/calculator", label: "Calculator", icon: <Calculator /> },
   { href: "/breakdown", label: "Breakdown", icon: <FileText /> },
+  { href: "/advisor", label: "AI Advisor", icon: <BrainCircuit /> },
+  { href: "/insights", label: "AI Insights", icon: <Sparkles /> },
+  { href: "/calculator", label: "Calculator", icon: <Calculator /> },
 ];
 
 export function AppSidebar() {

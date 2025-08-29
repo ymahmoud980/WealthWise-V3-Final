@@ -29,6 +29,7 @@ const pageTitles: { [key: string]: string } = {
   "/liabilities": "Liability Tracking",
   "/cashflow": "Cash Flow Management",
   "/advisor": "AI Financial Advisor",
+  "/insights": "AI Document Insights",
   "/calculator": "Calculation Engine",
   "/breakdown": "Calculation Breakdown",
 };
