@@ -57,7 +57,7 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
                         <p className="font-medium truncate">{payment.project}</p>
                         <p className={cn("text-xs", status.className)}>{status.text}</p>
                     </div>
-                    <span className="font-semibold text-right">{new Intl.NumberFormat('en-US').format(payment.amount)} {payment.currency}</span>
+                    <span className="font-semibold text-right">{payment.amount.toLocaleString()} {payment.currency}</span>
                   </div>
                 </div>
               )})

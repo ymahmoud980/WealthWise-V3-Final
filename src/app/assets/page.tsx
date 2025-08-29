@@ -83,7 +83,6 @@ export default function AssetsPage() {
                                 value={p.monthlyRent}
                                 onChange={(e) => handleRealEstateChange(p.id, 'monthlyRent', e.target.value)}
                                 className="h-8"
-                                disabled={p.monthlyRent === 0}
                              />
                           </div>
                       </div>
