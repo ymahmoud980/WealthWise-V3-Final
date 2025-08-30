@@ -32,7 +32,7 @@ import {
 import type { Loan } from "@/lib/types"
 
 
-const liabilitySchema = z.object({
+const loanSchema = z.object({
   lender: z.string().min(2, { message: "Lender name must be at least 2 characters." }),
   initial: z.coerce.number().min(1, { message: "Initial amount is required." }),
   remaining: z.coerce.number().min(1, { message: "Remaining amount is required." }),
@@ -48,8 +48,8 @@ interface AddLiabilityDialogProps {
 }
 
 export function AddLiabilityDialog({ isOpen, onClose, onAddLiability }: AddLiabilityDialogProps) {
-  const form = useForm<z.infer<typeof liabilitySchema>>({
-    resolver: zodResolver(liabilitySchema),
+  const form = useForm<z.infer<typeof loanSchema>>({
+    resolver: zodResolver(loanSchema),
     defaultValues: {
       lender: "",
       initial: 0,
@@ -60,7 +60,7 @@ export function AddLiabilityDialog({ isOpen, onClose, onAddLiability }: AddLiabi
     },
   })
 
-  function onSubmit(values: z.infer<typeof liabilitySchema>) {
+  function onSubmit(values: z.infer<typeof loanSchema>) {
     onAddLiability(values)
     form.reset()
     onClose();
@@ -171,7 +171,7 @@ export function AddLiabilityDialog({ isOpen, onClose, onAddLiability }: AddLiabi
               />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-              <Button type="submit">Save Liability</Button>
+              <Button type="submit">Save Loan</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -179,5 +179,3 @@ export function AddLiabilityDialog({ isOpen, onClose, onAddLiability }: AddLiabi
     </Dialog>
   )
 }
-
-    

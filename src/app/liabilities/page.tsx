@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
-import type { FinancialData, Loan } from "@/lib/types";
+import type { FinancialData, Loan, Installment } from "@/lib/types";
 import { LiabilityUploader } from "@/components/liabilities/LiabilityUploader";
 import { Trash2 } from "lucide-react";
 import {
@@ -21,13 +21,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
+import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
+
 
 export default function LiabilitiesPage() {
   const { data, setData } = useFinancialData();
   const [isEditing, setIsEditing] = useState(false);
   const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
-  const [isAddLiabilityDialogOpen, setIsAddLiabilityDialogOpen] = useState(false);
+  const [isAddLoanDialogOpen, setIsAddLoanDialogOpen] = useState(false);
+  const [isAddInstallmentDialogOpen, setIsAddInstallmentDialogOpen] = useState(false);
 
 
   const handleEditClick = () => {
@@ -81,7 +84,7 @@ export default function LiabilitiesPage() {
     setDeleteTarget(null);
   };
   
-  const handleAddLiability = (newLoan: Omit<Loan, 'id'>) => {
+  const handleAddLoan = (newLoan: Omit<Loan, 'id'>) => {
     const fullLoan: Loan = {
       ...newLoan,
       id: `l${new Date().getTime()}`,
@@ -95,7 +98,24 @@ export default function LiabilitiesPage() {
       },
     };
     setData(updatedData);
-    setIsAddLiabilityDialogOpen(false);
+    setIsAddLoanDialogOpen(false);
+  }
+  
+  const handleAddInstallment = (newInstallment: Omit<Installment, 'id'>) => {
+    const fullInstallment: Installment = {
+      ...newInstallment,
+      id: `i${new Date().getTime()}`,
+    };
+
+    const updatedData = {
+      ...data,
+      liabilities: {
+        ...data.liabilities,
+        installments: [...data.liabilities.installments, fullInstallment],
+      },
+    };
+    setData(updatedData);
+    setIsAddInstallmentDialogOpen(false);
   }
 
   const formatNumber = (num: number) => num.toLocaleString();
@@ -114,7 +134,6 @@ export default function LiabilitiesPage() {
               <CardDescription>Track your installments and loans. Click "Edit" to make changes.</CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => setIsAddLiabilityDialogOpen(true)}>Add New Liability</Button>
               {isEditing ? (
                 <>
                   <Button onClick={handleSaveClick}>Save Changes</Button>
@@ -127,7 +146,10 @@ export default function LiabilitiesPage() {
           </CardHeader>
           <CardContent className="space-y-8">
               <div>
-                <h3 className="text-xl font-semibold mb-4">Project Installments</h3>
+                 <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold">Project Installments</h3>
+                    <Button variant="outline" size="sm" onClick={() => setIsAddInstallmentDialogOpen(true)}>Add Project Installment</Button>
+                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {installments.map(p => {
                       const progress = (p.paid / p.total) * 100;
@@ -172,7 +194,10 @@ export default function LiabilitiesPage() {
               </div>
               
               <div>
-                  <h3 className="text-xl font-semibold mb-4">Loans</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold">Loans</h3>
+                    <Button variant="outline" size="sm" onClick={() => setIsAddLoanDialogOpen(true)}>Add Loan</Button>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {loans.map(l => {
                       const paid = l.initial - l.remaining;
@@ -207,9 +232,14 @@ export default function LiabilitiesPage() {
         </Card>
       </div>
       <AddLiabilityDialog
-        isOpen={isAddLiabilityDialogOpen}
-        onClose={() => setIsAddLiabilityDialogOpen(false)}
-        onAddLiability={handleAddLiability}
+        isOpen={isAddLoanDialogOpen}
+        onClose={() => setIsAddLoanDialogOpen(false)}
+        onAddLiability={handleAddLoan}
+      />
+      <AddInstallmentDialog
+        isOpen={isAddInstallmentDialogOpen}
+        onClose={() => setIsAddInstallmentDialogOpen(false)}
+        onAddInstallment={handleAddInstallment}
       />
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
@@ -228,5 +258,3 @@ export default function LiabilitiesPage() {
     </>
   )
 }
-
-    
