@@ -8,12 +8,25 @@ import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import type { FinancialData, RealEstateAsset } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 
 export default function AssetsPage() {
   const { data, setData } = useFinancialData();
   const [isEditing, setIsEditing] = useState(false);
   const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
   const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
 
 
   const handleEditClick = () => {
@@ -88,6 +101,26 @@ export default function AssetsPage() {
     setIsAddAssetDialogOpen(false);
   };
 
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+
+    const { type, id } = deleteTarget;
+    const updatedData = JSON.parse(JSON.stringify(data));
+
+    if (type === 'realEstate') {
+        updatedData.assets.realEstate = updatedData.assets.realEstate.filter((item: any) => item.id !== id);
+    } else if (type === 'cash') {
+        updatedData.assets.cash = updatedData.assets.cash.filter((item: any) => item.id !== id);
+    } else if (type === 'gold') {
+        updatedData.assets.gold = updatedData.assets.gold.filter((item: any) => item.id !== id);
+    } else if (type === 'other') {
+        updatedData.assets.otherAssets = updatedData.assets.otherAssets.filter((item: any) => item.id !== id);
+    }
+
+    setData(updatedData);
+    setDeleteTarget(null);
+  };
+
   const formatNumber = (num: number) => num.toLocaleString();
 
   const currentData = isEditing ? editableData : data;
@@ -119,7 +152,12 @@ export default function AssetsPage() {
               <h3 className="text-xl font-semibold mb-4">Real Estate (Existing)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {realEstate.map(p => (
-                      <div key={p.id} className="p-4 bg-secondary rounded-lg space-y-2">
+                      <div key={p.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
+                          {isEditing && (
+                            <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'realEstate', id: p.id })}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                           <div>
                             <p className="font-bold">{p.name}</p>
                             <p className="text-sm text-muted-foreground">{p.location}</p>
@@ -173,7 +211,12 @@ export default function AssetsPage() {
                 <h3 className="text-xl font-semibold mb-4">Cash, Gold & Other Assets</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {cash.map(c => (
-                        <div key={c.id} className="p-4 bg-secondary rounded-lg space-y-2">
+                        <div key={c.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
+                           {isEditing && (
+                            <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'cash', id: c.id })}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                            <p className="font-bold">Cash <span className="font-normal text-muted-foreground">- {c.location}</span></p>
                            <div className="space-y-1">
                              <label className="text-xs font-medium">Amount ({c.currency})</label>
@@ -190,24 +233,36 @@ export default function AssetsPage() {
                            </div>
                         </div>
                     ))}
-                    <div className="p-4 bg-secondary rounded-lg space-y-2">
-                        <p className="font-bold">Gold Bars</p>
-                         <div className="space-y-1">
-                             <label className="text-xs font-medium">Grams</label>
-                             {isEditing ? (
-                               <Input 
-                                  type="number" 
-                                  defaultValue={gold[0].grams}
-                                  onBlur={(e) => handleGoldChange(e.target.value)}
-                                  className="h-8"
+                    {gold.map(g => (
+                      <div key={g.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
+                          {isEditing && (
+                            <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: g.id })}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <p className="font-bold">Gold Bars</p>
+                          <div className="space-y-1">
+                              <label className="text-xs font-medium">Grams</label>
+                              {isEditing ? (
+                                <Input 
+                                    type="number" 
+                                    defaultValue={g.grams}
+                                    onBlur={(e) => handleGoldChange(e.target.value)}
+                                    className="h-8"
                                 />
-                             ) : (
-                               <p className="font-medium">{formatNumber(gold[0].grams)}</p>
-                             )}
-                           </div>
-                    </div>
+                              ) : (
+                                <p className="font-medium">{formatNumber(g.grams)}</p>
+                              )}
+                            </div>
+                      </div>
+                    ))}
                     {otherAssets.map(o => (
-                         <div key={o.id} className="p-4 bg-secondary rounded-lg space-y-2">
+                         <div key={o.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
+                            {isEditing && (
+                              <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'other', id: o.id })}>
+                                  <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                             <p className="font-bold">{o.description}</p>
                             <div className="space-y-1">
                                 <label className="text-xs font-medium">Value ({o.currency})</label>
@@ -233,6 +288,20 @@ export default function AssetsPage() {
         onClose={() => setIsAddAssetDialogOpen(false)}
         onAddAsset={handleAddAsset}
       />
+       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this asset from your records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
