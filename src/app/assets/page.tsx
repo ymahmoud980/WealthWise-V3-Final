@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
-import type { FinancialData } from "@/lib/types";
+import type { FinancialData, RealEstateAsset } from "@/lib/types";
+import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
 
 export default function AssetsPage() {
   const { data, setData } = useFinancialData();
   const [isEditing, setIsEditing] = useState(false);
   const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
+  const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
+
 
   const handleEditClick = () => {
     setEditableData(JSON.parse(JSON.stringify(data)));
@@ -65,6 +68,26 @@ export default function AssetsPage() {
     setEditableData(newData);
   };
   
+  const handleAddAsset = (newAsset: Omit<RealEstateAsset, 'id' | 'rentDueDay' | 'rentFrequency' | 'nextRentDueDate'>) => {
+    const fullAsset: RealEstateAsset = {
+      ...newAsset,
+      id: `re${new Date().getTime()}`,
+      rentDueDay: 1,
+      rentFrequency: 'monthly',
+      nextRentDueDate: new Date().toISOString().split('T')[0],
+    };
+
+    const updatedData = {
+      ...data,
+      assets: {
+        ...data.assets,
+        realEstate: [...data.assets.realEstate, fullAsset],
+      },
+    };
+    setData(updatedData);
+    setIsAddAssetDialogOpen(false);
+  };
+
   const formatNumber = (num: number) => num.toLocaleString();
 
   const currentData = isEditing ? editableData : data;
@@ -80,6 +103,7 @@ export default function AssetsPage() {
             <CardDescription>Detailed breakdown of all your assets. Click "Edit" to make changes.</CardDescription>
           </div>
           <div className="flex gap-2">
+             <Button onClick={() => setIsAddAssetDialogOpen(true)}>Add New Asset</Button>
             {isEditing ? (
               <>
                 <Button onClick={handleSaveClick}>Save Changes</Button>
@@ -105,8 +129,8 @@ export default function AssetsPage() {
                             {isEditing ? (
                               <Input 
                                   type="number" 
-                                  value={p.currentValue}
-                                  onChange={(e) => handleRealEstateChange(p.id, 'currentValue', e.target.value)}
+                                  defaultValue={p.currentValue}
+                                  onBlur={(e) => handleRealEstateChange(p.id, 'currentValue', e.target.value)}
                                   className="h-8"
                               />
                             ) : (
@@ -118,9 +142,10 @@ export default function AssetsPage() {
                             {isEditing ? (
                                <Input 
                                   type="number" 
-                                  value={p.monthlyRent}
-                                  onChange={(e) => handleRealEstateChange(p.id, 'monthlyRent', e.target.value)}
+                                  defaultValue={p.monthlyRent}
+                                  onBlur={(e) => handleRealEstateChange(p.id, 'monthlyRent', e.target.value)}
                                   className="h-8"
+                                  disabled={p.monthlyRent === 0 && !isEditing}
                                />
                             ) : (
                                <p className="font-medium">{formatNumber(p.monthlyRent)}</p>
@@ -155,8 +180,8 @@ export default function AssetsPage() {
                              {isEditing ? (
                                <Input 
                                   type="number" 
-                                  value={c.amount}
-                                  onChange={(e) => handleCashChange(c.id, e.target.value)}
+                                  defaultValue={c.amount}
+                                  onBlur={(e) => handleCashChange(c.id, e.target.value)}
                                   className="h-8"
                                 />
                              ) : (
@@ -172,8 +197,8 @@ export default function AssetsPage() {
                              {isEditing ? (
                                <Input 
                                   type="number" 
-                                  value={gold[0].grams}
-                                  onChange={(e) => handleGoldChange(e.target.value)}
+                                  defaultValue={gold[0].grams}
+                                  onBlur={(e) => handleGoldChange(e.target.value)}
                                   className="h-8"
                                 />
                              ) : (
@@ -189,8 +214,8 @@ export default function AssetsPage() {
                                 {isEditing ? (
                                   <Input 
                                       type="number" 
-                                      value={o.value}
-                                      onChange={(e) => handleOtherAssetChange(o.id, e.target.value)}
+                                      defaultValue={o.value}
+                                      onBlur={(e) => handleOtherAssetChange(o.id, e.target.value)}
                                       className="h-8"
                                   />
                                 ) : (
@@ -203,6 +228,11 @@ export default function AssetsPage() {
             </div>
         </CardContent>
       </Card>
+      <AddAssetDialog
+        isOpen={isAddAssetDialogOpen}
+        onClose={() => setIsAddAssetDialogOpen(false)}
+        onAddAsset={handleAddAsset}
+      />
     </>
   )
 }

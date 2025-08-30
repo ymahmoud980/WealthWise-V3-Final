@@ -29,20 +29,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { Asset } from "@/lib/types"
+import type { RealEstateAsset, Currency } from "@/lib/types"
 
 const assetSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  location: z.enum(["Egypt", "Turkey"]),
-  type: z.enum(["Apartment", "Villa", "Chalet"]),
-  rentalIncome: z.coerce.number().min(0, { message: "Rental income must be a positive number." }),
-  marketValue: z.coerce.number().min(1, { message: "Market value is required." }),
+  location: z.string().min(2, { message: "Location is required." }),
+  currentValue: z.coerce.number().min(1, { message: "Market value is required." }),
+  currency: z.enum(["EGP", "USD", "KWD", "TRY"]),
+  monthlyRent: z.coerce.number().min(0, { message: "Rental income must be a positive number." }),
+  rentCurrency: z.enum(["EGP", "USD", "KWD", "TRY"]).optional(),
 })
 
 interface AddAssetDialogProps {
   isOpen: boolean
   onClose: () => void
-  onAddAsset: (asset: Omit<Asset, "id">) => void
+  onAddAsset: (asset: Omit<RealEstateAsset, 'id' | 'rentDueDay' | 'rentFrequency' | 'nextRentDueDate'>) => void
 }
 
 export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogProps) {
@@ -50,16 +51,17 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     resolver: zodResolver(assetSchema),
     defaultValues: {
       name: "",
-      location: "Egypt",
-      type: "Apartment",
-      rentalIncome: 0,
-      marketValue: 0,
+      location: "",
+      currentValue: 0,
+      currency: "USD",
+      monthlyRent: 0,
     },
   })
 
   function onSubmit(values: z.infer<typeof assetSchema>) {
     onAddAsset(values)
     form.reset()
+    onClose();
   }
 
   return (
@@ -68,11 +70,11 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
         <DialogHeader>
           <DialogTitle>Add New Asset</DialogTitle>
           <DialogDescription>
-            Enter the details of your new property below. Click save when you're done.
+            Enter the details of your new real estate asset below.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -80,7 +82,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
                 <FormItem>
                   <FormLabel>Property Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Mountain View iCity" {...field} />
+                    <Input placeholder="e.g., Downtown Apartment" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -92,70 +94,92 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a location" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Egypt">Egypt</SelectItem>
-                      <SelectItem value="Turkey">Turkey</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a property type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Apartment">Apartment</SelectItem>
-                      <SelectItem value="Villa">Villa</SelectItem>
-                      <SelectItem value="Chalet">Chalet</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="rentalIncome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rental Income (Monthly)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 600" {...field} />
+                    <Input placeholder="e.g., New Cairo, Egypt" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="marketValue"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Market Value</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 120000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+               <FormField
+                control={form.control}
+                name="currentValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Market Value</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="150000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Currency</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EGP">EGP</SelectItem>
+                        <SelectItem value="KWD">KWD</SelectItem>
+                        <SelectItem value="TRY">TRY</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+               <FormField
+                control={form.control}
+                name="monthlyRent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monthly Rent</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="1200" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="rentCurrency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rent Currency</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EGP">EGP</SelectItem>
+                        <SelectItem value="KWD">KWD</SelectItem>
+                        <SelectItem value="TRY">TRY</SelectItem>
+                      </SelectContent>
+                    </Select>
+                     <FormDescription className="text-xs">Optional. If blank, uses Market Value currency.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
               <Button type="submit">Save Asset</Button>
             </DialogFooter>
           </form>
