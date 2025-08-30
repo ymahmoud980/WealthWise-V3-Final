@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
-import type { FinancialData, RealEstateAsset } from "@/lib/types";
+import type { FinancialData, RealEstateAsset, CashAsset, GoldAsset, OtherAsset } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
 import { Trash2 } from "lucide-react";
 import {
@@ -74,29 +74,31 @@ export default function AssetsPage() {
     }
   };
 
-  const handleGoldChange = (value: string) => {
+  const handleGoldChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
     const newData = { ...editableData };
-    newData.assets.gold[0].grams = numericValue;
-    setEditableData(newData);
+    const asset = newData.assets.gold.find(a => a.id === id);
+    if (asset) {
+      asset.grams = numericValue;
+      setEditableData(newData);
+    }
   };
   
-  const handleAddAsset = (newAsset: Omit<RealEstateAsset, 'id' | 'rentDueDay' | 'rentFrequency' | 'nextRentDueDate'>) => {
-    const fullAsset: RealEstateAsset = {
-      ...newAsset,
-      id: `re${new Date().getTime()}`,
-      rentDueDay: 1,
-      rentFrequency: 'monthly',
-      nextRentDueDate: new Date().toISOString().split('T')[0],
-    };
+  const handleAddAsset = (newAsset: any, type: string) => {
+    const updatedData = JSON.parse(JSON.stringify(data));
+    const newId = `${type.substring(0,2)}${new Date().getTime()}`;
+    const assetWithId = { ...newAsset, id: newId };
 
-    const updatedData = {
-      ...data,
-      assets: {
-        ...data.assets,
-        realEstate: [...data.assets.realEstate, fullAsset],
-      },
-    };
+    if (type === 'realEstate') {
+      updatedData.assets.realEstate.push(assetWithId as RealEstateAsset);
+    } else if (type === 'cash') {
+      updatedData.assets.cash.push(assetWithId as CashAsset);
+    } else if (type === 'gold') {
+      updatedData.assets.gold.push(assetWithId as GoldAsset);
+    } else if (type === 'other') {
+      updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
+    }
+
     setData(updatedData);
     setIsAddAssetDialogOpen(false);
   };
@@ -240,14 +242,14 @@ export default function AssetsPage() {
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          <p className="font-bold">Gold Bars</p>
+                          <p className="font-bold">{g.description}</p>
                           <div className="space-y-1">
                               <label className="text-xs font-medium">Grams</label>
                               {isEditing ? (
                                 <Input 
                                     type="number" 
                                     defaultValue={g.grams}
-                                    onBlur={(e) => handleGoldChange(e.target.value)}
+                                    onBlur={(e) => handleGoldChange(g.id, e.target.value)}
                                     className="h-8"
                                 />
                               ) : (
@@ -305,3 +307,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
