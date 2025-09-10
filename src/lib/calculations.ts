@@ -75,7 +75,10 @@ export function calculateMetrics(data: FinancialData, displayCurrency: Currency)
         if (p.rentFrequency === 'semi-annual') {
             return sum + (rentInDisplayCurrency / 6);
         }
-        return sum + rentInDisplayCurrency;
+        if (p.rentFrequency === 'monthly') {
+          return sum + rentInDisplayCurrency;
+        }
+        return sum;
     }, 0);
     const totalIncome = salaryIncome + rentIncome;
 
