@@ -8,13 +8,12 @@ import { useCurrency } from "@/hooks/use-currency";
 import { calculateMetrics, convert, rates } from "@/lib/calculations";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 
-const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false, isGrandTotal = false, format }: { label: string, value: number, isSub?: boolean, isNegative?: boolean, isTotal?: boolean, isGrandTotal?: boolean, format: (value: number) => string }) => {
-    return (
-      <div className={`flex justify-between items-center text-sm ${isSub ? 'pl-4 text-xs' : ''} ${isTotal ? 'font-semibold pt-2 mt-2 border-t' : ''} ${isGrandTotal ? 'font-bold text-lg pt-2 border-t' : ''}`}>
-          <span className={isTotal || isGrandTotal ? '' : 'text-muted-foreground'}>{label}</span>
-          <span className={`${isGrandTotal ? 'text-primary' : ''} ${isNegative ? 'text-destructive' : ''}`}>{isNegative && '- '}{format(value)}</span>
-      </div>
-  )};
+const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false, isGrandTotal = false, format }: { label: string, value: number, isSub?: boolean, isNegative?: boolean, isTotal?: boolean, isGrandTotal?: boolean, format: (value: number) => string }) => (
+  <div className={`flex justify-between items-center text-sm ${isSub ? 'pl-4 text-xs' : ''} ${isTotal ? 'font-semibold pt-2 mt-2 border-t' : ''} ${isGrandTotal ? 'font-bold text-lg pt-2 border-t' : ''}`}>
+      <span className={isTotal || isGrandTotal ? '' : 'text-muted-foreground'}>{label}</span>
+      <span className={`${isGrandTotal ? 'text-primary' : ''} ${isNegative ? 'text-destructive' : ''}`}>{isNegative && '- '}{format(value)}</span>
+  </div>
+);
 
 export default function BreakdownPage() {
   const { currency, format } = useCurrency();
@@ -85,7 +84,7 @@ export default function BreakdownPage() {
         <Card>
            <CardHeader>
             <CardTitle className="flex items-center gap-2"><TrendingDown className="h-6 w-6 text-red-500" /><span>Liabilities Details</span></CardTitle>
-          </Header>
+          </CardHeader>
           <CardContent className="space-y-2">
             <Row label="Loans" value={metrics.liabilities.loans} isTotal isNegative format={format} />
             {data.liabilities.loans.map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.remaining, l.currency, currency, rates)} isSub isNegative format={format} />)}
