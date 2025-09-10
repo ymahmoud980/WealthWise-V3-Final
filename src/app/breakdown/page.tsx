@@ -122,7 +122,7 @@ export default function BreakdownPage() {
         <Card>
           <CardHeader>
             <CardTitle>Monthly Expense Details</CardTitle>
-          </Header>
+          </CardHeader>
           <CardContent className="space-y-2">
              <Row label="Loan Payments" value={metrics.expenses.loans} isTotal isNegative format={format} />
              {data.liabilities.loans.map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.monthlyPayment, l.currency, currency, rates)} isSub isNegative format={format} />)}
@@ -148,5 +148,3 @@ export default function BreakdownPage() {
     </div>
   )
 }
-
-    
