@@ -2,11 +2,8 @@
 "use client";
 
 import { createContext, useState, useEffect, useContext, useMemo, type ReactNode } from 'react';
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import type { FinancialData } from '@/lib/types';
 import { initialFinancialData } from '@/lib/data';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
 
 interface FinancialDataContextType {
   data: FinancialData;
@@ -14,63 +11,34 @@ interface FinancialDataContextType {
   loading: boolean;
 }
 
+const LOCAL_STORAGE_KEY = 'financialData';
+
 export const FinancialDataContext = createContext<FinancialDataContextType | undefined>(undefined);
 
 export function FinancialDataProvider({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
   const [data, setDataState] = useState<FinancialData>(initialFinancialData);
   const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (authLoading) {
-      setLoading(true);
-      return;
-    }
-    if (!user) {
-      setDataState(initialFinancialData);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    const docRef = doc(db, 'users', user.uid);
-
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const dbData = docSnap.data() as FinancialData;
-        if (!isSaving) { // Prevent overwriting local state while a save is in progress
-          setDataState(dbData);
-        }
-      } else {
-        // If no document exists, create one with the initial data
-        setDoc(docRef, initialFinancialData).then(() => {
-          setDataState(initialFinancialData);
-        });
+    // This effect runs once on component mount on the client side.
+    try {
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedData) {
+        setDataState(JSON.parse(storedData));
       }
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching data from Firestore:", error);
-      setLoading(false);
-    });
+    } catch (error) {
+      console.error("Failed to load data from localStorage", error);
+    }
+    setLoading(false);
+  }, []);
 
-    return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
-
-  const setData = async (newData: FinancialData) => {
-    setDataState(newData); // Optimistic update
-    if (user) {
-      setIsSaving(true);
-      const docRef = doc(db, 'users', user.uid);
-      try {
-        await setDoc(docRef, newData, { merge: true });
-      } catch (error) {
-        console.error("Error saving data to Firestore:", error);
-        // Optionally, revert the optimistic update here or show a toast
-      } finally {
-        setIsSaving(false);
-      }
+  const setData = (newData: FinancialData) => {
+    try {
+      const json = JSON.stringify(newData);
+      localStorage.setItem(LOCAL_STORAGE_KEY, json);
+      setDataState(newData);
+    } catch (error) {
+      console.error("Failed to save data to localStorage", error);
     }
   };
 
@@ -78,7 +46,7 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
     data,
     setData,
     loading,
-  }), [data, setData, loading]);
+  }), [data, loading]);
 
   return (
     <FinancialDataContext.Provider value={value}>
