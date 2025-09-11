@@ -14,14 +14,16 @@ import * as admin from 'firebase-admin';
 import type {FinancialData} from '@/lib/types';
 import {initialFinancialData} from '@/lib/data';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
-
-const db = admin.firestore();
+// Do not initialize here.
 
 const FinancialDataSchema = z.any();
+
+function initializeFirebase() {
+  if (!admin.apps.length) {
+    admin.initializeApp();
+  }
+  return admin.firestore();
+}
 
 export const getFinancialDataFlow = ai.defineFlow(
   {
@@ -30,6 +32,7 @@ export const getFinancialDataFlow = ai.defineFlow(
     outputSchema: FinancialDataSchema,
   },
   async () => {
+    const db = initializeFirebase();
     const docRef = db.collection('financialData').doc('shared');
     const docSnap = await docRef.get();
 
@@ -50,6 +53,7 @@ export const setFinancialDataFlow = ai.defineFlow(
     outputSchema: z.object({success: z.boolean()}),
   },
   async (data) => {
+    const db = initializeFirebase();
     const docRef = db.collection('financialData').doc('shared');
     await docRef.set(data);
     return { success: true };
