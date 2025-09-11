@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview A flow to manage financial data in Firestore.
+ * @fileOverview A flow to manage financial data in Firestore using the Firebase Admin SDK.
  *
  * - getFinancialData - A function that retrieves the shared financial data document.
  * - setFinancialData - A function that saves the shared financial data document.
@@ -10,13 +10,10 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {doc, getDoc, setDoc} from 'firebase/firestore';
-import {db} from '@/lib/firebase';
+import {db} from '@/lib/firebase-admin';
 import type {FinancialData} from '@/lib/types';
 import {initialFinancialData} from '@/lib/data';
 
-// Define a Zod schema for FinancialData for validation if needed, or use z.any() for simplicity.
-// For this use case, we'll trust the input from our own front-end.
 const FinancialDataSchema = z.any();
 
 export const getFinancialDataFlow = ai.defineFlow(
@@ -26,14 +23,14 @@ export const getFinancialDataFlow = ai.defineFlow(
     outputSchema: FinancialDataSchema,
   },
   async () => {
-    const docRef = doc(db, 'financialData', 'shared');
-    const docSnap = await getDoc(docRef);
+    const docRef = db.collection('financialData').doc('shared');
+    const docSnap = await docRef.get();
 
-    if (docSnap.exists()) {
+    if (docSnap.exists) {
       return docSnap.data() as FinancialData;
     } else {
       // If no document exists, create one with the initial data and return it
-      await setDoc(docRef, initialFinancialData);
+      await docRef.set(initialFinancialData);
       return initialFinancialData;
     }
   }
@@ -46,8 +43,8 @@ export const setFinancialDataFlow = ai.defineFlow(
     outputSchema: z.object({success: z.boolean()}),
   },
   async (data) => {
-    const docRef = doc(db, 'financialData', 'shared');
-    await setDoc(docRef, data);
+    const docRef = db.collection('financialData').doc('shared');
+    await docRef.set(data);
     return { success: true };
   }
 );
