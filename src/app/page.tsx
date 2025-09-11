@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Loader2 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
@@ -16,12 +16,37 @@ import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import { calculateMetrics } from "@/lib/calculations";
 import { useCurrency } from "@/hooks/use-currency";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
+import { useAuth } from "@/hooks/use-auth";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
-  const { data } = useFinancialData();
+  const { data, loading: dataLoading } = useFinancialData();
   const { currency } = useCurrency();
+  const { user, loading: authLoading } = useAuth();
   
   const metrics = calculateMetrics(data, currency);
+  const isLoading = dataLoading || authLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <h2 className="text-2xl font-bold mb-2">Welcome to Wealth Navigator</h2>
+        <p className="text-muted-foreground mb-4">Please sign in to manage your financial portfolio.</p>
+        <Button asChild>
+          <Link href="/login">Sign In</Link>
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">

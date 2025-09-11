@@ -26,9 +26,13 @@ import {
   FileText,
   Sparkles,
   HeartPulse,
+  LogIn,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { getAuth, signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: <LayoutDashboard /> },
@@ -45,6 +49,14 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const [showIssue, setShowIssue] = useState(true);
+  const { user } = useAuth();
+  const auth = getAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  }
 
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -73,7 +85,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {navItems.map((item) => (
+          {user && navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
@@ -90,15 +102,18 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
          <SidebarMenu>
-            <SidebarMenuItem>
-              <Link href="#">
-                <SidebarMenuButton tooltip={{ children: 'Settings' }}>
-                  <Settings />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-            {showIssue && (
+            { user && (
+              <SidebarMenuItem>
+                <Link href="#">
+                  <SidebarMenuButton tooltip={{ children: 'Settings' }} disabled>
+                    <Settings />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            )}
+            
+            {user && showIssue && (
               <SidebarMenuItem>
                 <div className="flex items-center justify-between w-full text-sm font-medium text-destructive-foreground bg-destructive rounded-md p-2 group-data-[collapsible=icon]:hidden">
                     <div className="flex items-center gap-2">
@@ -116,13 +131,21 @@ export function AppSidebar() {
                 </div>
               </SidebarMenuItem>
             )}
+            
             <SidebarMenuItem>
-              <Link href="#">
-                <SidebarMenuButton tooltip={{ children: 'Logout' }}>
+              {user ? (
+                <SidebarMenuButton tooltip={{ children: 'Logout' }} onClick={handleLogout}>
                   <LogOut />
                   <span>Logout</span>
                 </SidebarMenuButton>
-              </Link>
+              ) : (
+                <Link href="/login">
+                  <SidebarMenuButton tooltip={{ children: 'Login' }} isActive={pathname === '/login'}>
+                    <LogIn />
+                    <span>Login</span>
+                  </SidebarMenuButton>
+                </Link>
+              )}
             </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>

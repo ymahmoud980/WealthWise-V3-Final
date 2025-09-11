@@ -1,7 +1,8 @@
 
 "use client";
 
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Select,
@@ -22,6 +23,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCurrency } from "@/hooks/use-currency";
 import type { Currency } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
+import { getAuth, signOut } from "firebase/auth";
 
 const pageTitles: { [key: string]: string } = {
   "/": "Dashboard",
@@ -33,11 +36,20 @@ const pageTitles: { [key: string]: string } = {
   "/calculator": "Currency Calculator",
   "/breakdown": "Calculation Breakdown",
   "/health": "Financial Health Analysis",
+  "/login": "Login",
 };
 
 export function AppHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const { currency, setCurrency } = useCurrency();
+  const { user } = useAuth();
+  const auth = getAuth();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  }
 
   const title = pageTitles[pathname] || "Wealth Navigator";
 
@@ -49,35 +61,41 @@ export function AppHeader() {
       <h1 className="text-xl font-semibold md:text-2xl">{title}</h1>
 
       <div className="ml-auto flex items-center gap-4">
-        <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
-          <SelectTrigger className="w-[100px]">
-            <SelectValue placeholder="Currency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="USD">USD</SelectItem>
-            <SelectItem value="EGP">EGP</SelectItem>
-            <SelectItem value="KWD">KWD</SelectItem>
-            <SelectItem value="TRY">TRY</SelectItem>
-          </SelectContent>
-        </Select>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="https://picsum.photos/100" alt="User" data-ai-hint="profile picture" />
-                <AvatarFallback>YM</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {user && (
+          <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Currency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="EGP">EGP</SelectItem>
+              <SelectItem value="KWD">KWD</SelectItem>
+              <SelectItem value="TRY">TRY</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user.photoURL || "https://picsum.photos/100"} alt="User" data-ai-hint="profile picture" />
+                  <AvatarFallback>{user.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>Profile</DropdownMenuItem>
+              <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+           pathname !== '/login' && <Button asChild><Link href="/login">Login</Link></Button>
+        )}
       </div>
     </header>
   );
