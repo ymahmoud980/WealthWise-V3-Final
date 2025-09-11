@@ -36,18 +36,6 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <h2 className="text-2xl font-bold mb-2">Welcome to Wealth Navigator</h2>
-        <p className="text-muted-foreground mb-4">Please sign in to manage your financial portfolio.</p>
-        <Button asChild>
-          <Link href="/login">Sign In</Link>
-        </Button>
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col gap-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

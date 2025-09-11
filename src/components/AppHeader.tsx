@@ -61,19 +61,17 @@ export function AppHeader() {
       <h1 className="text-xl font-semibold md:text-2xl">{title}</h1>
 
       <div className="ml-auto flex items-center gap-4">
-        {user && (
-          <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Currency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="EGP">EGP</SelectItem>
-              <SelectItem value="KWD">KWD</SelectItem>
-              <SelectItem value="TRY">TRY</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+        <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
+          <SelectTrigger className="w-[100px]">
+            <SelectValue placeholder="Currency" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="USD">USD</SelectItem>
+            <SelectItem value="EGP">EGP</SelectItem>
+            <SelectItem value="KWD">KWD</SelectItem>
+            <SelectItem value="TRY">TRY</SelectItem>
+          </SelectContent>
+        </Select>
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

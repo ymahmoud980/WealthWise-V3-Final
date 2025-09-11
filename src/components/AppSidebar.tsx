@@ -85,7 +85,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {user && navItems.map((item) => (
+          {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
@@ -102,18 +102,16 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
          <SidebarMenu>
-            { user && (
-              <SidebarMenuItem>
-                <Link href="#">
-                  <SidebarMenuButton tooltip={{ children: 'Settings' }} disabled>
-                    <Settings />
-                    <span>Settings</span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            )}
+            <SidebarMenuItem>
+              <Link href="#">
+                <SidebarMenuButton tooltip={{ children: 'Settings' }} disabled>
+                  <Settings />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
             
-            {user && showIssue && (
+            {showIssue && (
               <SidebarMenuItem>
                 <div className="flex items-center justify-between w-full text-sm font-medium text-destructive-foreground bg-destructive rounded-md p-2 group-data-[collapsible=icon]:hidden">
                     <div className="flex items-center gap-2">
