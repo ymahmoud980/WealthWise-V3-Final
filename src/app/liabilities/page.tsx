@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 
 
 export default function LiabilitiesPage() {
@@ -126,7 +126,9 @@ export default function LiabilitiesPage() {
       if (remaining <= 0 || p.amount <= 0) return "Completed";
 
       const paymentsRemaining = Math.ceil(remaining / p.amount);
-      const today = new Date();
+      const dueDate = new Date(p.nextDueDate);
+      if (!isValid(dueDate)) return "Invalid Date";
+
       let completionDate = new Date(p.nextDueDate);
 
       let monthsToAdd = 0;
