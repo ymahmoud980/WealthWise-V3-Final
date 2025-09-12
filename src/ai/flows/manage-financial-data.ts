@@ -14,8 +14,6 @@ import * as admin from 'firebase-admin';
 import type {FinancialData} from '@/lib/types';
 import {initialFinancialData} from '@/lib/data';
 
-// Do not initialize here.
-
 const FinancialDataSchema = z.any();
 
 function initializeFirebase() {
