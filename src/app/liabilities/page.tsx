@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
-import { format, isValid } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 
 export default function LiabilitiesPage() {
@@ -180,6 +180,8 @@ export default function LiabilitiesPage() {
                   {installments.map(p => {
                       const progress = (p.paid / p.total) * 100;
                       const remaining = p.total - p.paid;
+                      const nextDueDate = new Date(p.nextDueDate);
+                      const formattedDueDate = isValid(nextDueDate) ? format(nextDueDate, 'MMMM d, yyyy') : 'Invalid Date';
                       return (
                       <div key={p.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                           {isEditing && (
@@ -211,7 +213,7 @@ export default function LiabilitiesPage() {
                               </div>
                               <div>
                                   <p className="text-muted-foreground">Next Due Date</p>
-                                  <p className="font-medium">{new Date(p.nextDueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} ({p.frequency})</p>
+                                  <p className="font-medium">{formattedDueDate} ({p.frequency})</p>
                               </div>
                               <div>
                                 <p className="text-muted-foreground">Est. Completion</p>
