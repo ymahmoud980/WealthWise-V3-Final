@@ -20,19 +20,27 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
       const dateParts = dueDate.split('-').map(part => parseInt(part, 10));
       const due = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
 
+      if (!isValidDate(due)) {
+        return { className: 'text-gray-500', text: 'Invalid date' };
+      }
+
       const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
       if (diffDays < 0) return { className: 'text-red-700', text: `Overdue by ${-diffDays} days` };
       if (diffDays <= 30) return { className: 'text-amber-600', text: `${diffDays} days away` };
-      if (diffDays <= 90) return { className: 'text-yellow-600', text: `${diffDays} days away` };
-      return { className: 'text-gray-500', text: `${diffDays} days away` };
+      return { className: 'text-gray-500', text: `Due in ${diffDays} days` };
+  }
+
+  const isValidDate = (d: Date) => d instanceof Date && !isNaN(d.getTime());
+
+  const parseDate = (dateString: string) => {
+    const parts = dateString.split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
   }
   
-  const sortedPayments = [...initialPayments].sort((a, b) => {
-    const dateA = a.nextDueDate.split('-').map(Number);
-    const dateB = b.nextDueDate.split('-').map(Number);
-    return new Date(dateA[0], dateA[1] - 1, dateA[2]).getTime() - new Date(dateB[0], dateB[1] - 1, dateB[2]).getTime();
-  });
+  const sortedPayments = [...initialPayments]
+    .filter(p => p.paid < p.total) // Only show active installments
+    .sort((a, b) => parseDate(a.nextDueDate).getTime() - parseDate(b.nextDueDate).getTime());
 
   return (
     <>
@@ -54,8 +62,6 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
               {sortedPayments.length > 0 ? (
                 sortedPayments.map((payment) => {
                   const status = getStatus(payment.nextDueDate);
-                  const isPaid = payment.paid >= payment.total;
-                  if (isPaid) return null;
                   return (
                   <div key={payment.id} className="flex items-center gap-4">
                     <div className={cn("flex-1 grid grid-cols-3 gap-2 items-center text-sm")}>
