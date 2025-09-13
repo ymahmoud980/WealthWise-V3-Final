@@ -49,7 +49,7 @@ export default function LiabilitiesPage() {
     setIsEditing(false);
   };
 
-  const handleLoanChange = (id: string, key: 'remaining' | 'monthlyPayment', value: string) => {
+  const handleLoanChange = (id: string, key: 'initial' | 'remaining' | 'monthlyPayment', value: string) => {
     const numericValue = parseFloat(value) || 0;
     const newData = { ...editableData };
     const loan = newData.liabilities.loans.find(l => l.id === id);
@@ -249,6 +249,10 @@ export default function LiabilitiesPage() {
                           </div>
                           <Progress value={progress} className="my-2 h-2" />
                           <div className="grid grid-cols-2 text-sm gap-2 mt-2">
+                               <div>
+                                  <label className="text-xs font-medium">Initial Amount ({l.currency})</label>
+                                  {isEditing ? <Input type="number" defaultValue={l.initial} onChange={e => handleLoanChange(l.id, 'initial', e.target.value)} className="h-8"/> : <p className="font-medium">{formatNumber(l.initial)}</p>}
+                              </div>
                               <div>
                                   <label className="text-xs font-medium">Remaining ({l.currency})</label>
                                   {isEditing ? <Input type="number" defaultValue={l.remaining} onChange={e => handleLoanChange(l.id, 'remaining', e.target.value)} className="h-8"/> : <p className="font-medium">{formatNumber(l.remaining)}</p>}

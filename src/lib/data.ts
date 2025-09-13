@@ -44,9 +44,9 @@ export const initialFinancialData: FinancialData = {
     },
     liabilities: {
         loans: [
-            { id: 'l1', lender: "Gulf Bank", initial: 20000, remaining: 17404, currency: "KWD", monthlyPayment: 395.860, finalPayment: "2029-10-01" },
-            { id: 'l2', lender: "Gulf Bank", initial: 6238, remaining: 4970, currency: "KWD", monthlyPayment: 124.258, finalPayment: "2029-05-01" },
-            { id: 'l3', lender: "Gulf Bank", initial: 23000, remaining: 22398, currency: "KWD", monthlyPayment: 456.543, finalPayment: "2030-05-01" },
+            { id: 'l1', lender: "Gulf Bank", initial: 20000, remaining: 16815, currency: "KWD", monthlyPayment: 395.860, finalPayment: "2029-10-01" },
+            { id: 'l2', lender: "Gulf Bank", initial: 6238, remaining: 4781, currency: "KWD", monthlyPayment: 124.258, finalPayment: "2029-05-01" },
+            { id: 'l3', lender: "Gulf Bank", initial: 23000, remaining: 21745.423, currency: "KWD", monthlyPayment: 456.543, finalPayment: "2030-05-01" },
             { id: 'l4', lender: "KOC Company", initial: 12396, remaining: 700, currency: "KWD", monthlyPayment: 344, finalPayment: "2025-10-22" },
         ],
         installments: [
