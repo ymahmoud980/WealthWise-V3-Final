@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
-import { format, isValid, parseISO } from "date-fns";
+import { format, isValid, parseISO, addMonths, addYears } from "date-fns";
 
 
 export default function LiabilitiesPage() {
@@ -126,21 +126,23 @@ export default function LiabilitiesPage() {
       if (remaining <= 0 || p.amount <= 0) return "Completed";
 
       const paymentsRemaining = Math.ceil(remaining / p.amount);
-      const dueDate = new Date(p.nextDueDate);
+      
+      // Handle non-standard date formats
+      const dateParts = p.nextDueDate.split('-').map(part => parseInt(part, 10));
+      const dueDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+
       if (!isValid(dueDate)) return "Invalid Date";
 
-      let completionDate = new Date(p.nextDueDate);
+      let completionDate;
 
-      let monthsToAdd = 0;
       if (p.frequency === 'Quarterly') {
-          monthsToAdd = paymentsRemaining * 3;
-          completionDate.setMonth(completionDate.getMonth() + monthsToAdd);
+          completionDate = addMonths(dueDate, (paymentsRemaining -1) * 3);
       } else if (p.frequency === 'Semi-Annual') {
-          monthsToAdd = paymentsRemaining * 6;
-          completionDate.setMonth(completionDate.getMonth() + monthsToAdd);
+          completionDate = addMonths(dueDate, (paymentsRemaining - 1) * 6);
       } else if (p.frequency === 'Annual') {
-          monthsToAdd = paymentsRemaining * 12;
-          completionDate.setFullYear(completionDate.getFullYear() + monthsToAdd);
+          completionDate = addYears(dueDate, paymentsRemaining - 1);
+      } else {
+          return "Invalid Frequency";
       }
       
       return format(completionDate, 'MMM yyyy');
@@ -180,7 +182,8 @@ export default function LiabilitiesPage() {
                   {installments.map(p => {
                       const progress = (p.paid / p.total) * 100;
                       const remaining = p.total - p.paid;
-                      const nextDueDate = new Date(p.nextDueDate);
+                      const dateParts = p.nextDueDate.split('-').map(part => parseInt(part, 10));
+                      const nextDueDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                       const formattedDueDate = isValid(nextDueDate) ? format(nextDueDate, 'MMMM d, yyyy') : 'Invalid Date';
                       return (
                       <div key={p.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
