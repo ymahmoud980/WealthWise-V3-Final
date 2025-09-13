@@ -7,13 +7,17 @@ import type { Installment } from '@/lib/types';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useFinancialData } from "@/contexts/FinancialDataContext";
+import { addMonths, addYears, format, isValid, parse } from "date-fns";
 
 interface UpcomingPaymentsProps {
     payments: Installment[];
 }
 
 export function UpcomingPayments({ payments: initialPayments }: UpcomingPaymentsProps) {
-  
+  const { data, setData } = useFinancialData();
+
   const getStatus = (dueDate: string) => {
       const today = new Date();
       // Handle non-standard date formats
@@ -26,15 +30,50 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
 
       const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
-      if (diffDays < 0) return { className: 'text-red-700', text: `Overdue by ${-diffDays} days` };
+      if (diffDays < 0) return { className: 'text-red-700 font-bold', text: `Overdue by ${-diffDays} days` };
       if (diffDays <= 30) return { className: 'text-amber-600', text: `${diffDays} days away` };
       return { className: 'text-gray-500', text: `Due in ${diffDays} days` };
   }
+
+  const handleMarkAsPaid = (installmentId: string) => {
+    const updatedData = JSON.parse(JSON.stringify(data));
+    const installment = updatedData.liabilities.installments.find((i: Installment) => i.id === installmentId);
+
+    if (installment) {
+      // Increment paid amount
+      installment.paid += installment.amount;
+      
+      // Ensure paid amount does not exceed total
+      if (installment.paid > installment.total) {
+        installment.paid = installment.total;
+      }
+      
+      // Calculate and format the next due date
+      const currentDueDate = parse(installment.nextDueDate, 'yyyy-MM-dd', new Date());
+      let nextDate: Date;
+
+      if (installment.frequency === 'Quarterly') {
+        nextDate = addMonths(currentDueDate, 3);
+      } else if (installment.frequency === 'Semi-Annual') {
+        nextDate = addMonths(currentDueDate, 6);
+      } else if (installment.frequency === 'Annual') {
+        nextDate = addYears(currentDueDate, 1);
+      } else {
+        nextDate = currentDueDate; // Should not happen
+      }
+      
+      installment.nextDueDate = format(nextDate, 'yyyy-MM-dd');
+      
+      setData(updatedData);
+    }
+  };
+
 
   const isValidDate = (d: Date) => d instanceof Date && !isNaN(d.getTime());
 
   const parseDate = (dateString: string) => {
     const parts = dateString.split('-').map(Number);
+    // Note: months are 0-indexed in JS Date
     return new Date(parts[0], parts[1] - 1, parts[2]);
   }
   
@@ -62,8 +101,18 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
               {sortedPayments.length > 0 ? (
                 sortedPayments.map((payment) => {
                   const status = getStatus(payment.nextDueDate);
+                  const isChecked = false; // Checkbox is always initially unchecked
                   return (
                   <div key={payment.id} className="flex items-center gap-4">
+                    <Checkbox
+                        id={`payment-${payment.id}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                            if (checked) {
+                            handleMarkAsPaid(payment.id);
+                            }
+                        }}
+                    />
                     <div className={cn("flex-1 grid grid-cols-3 gap-2 items-center text-sm")}>
                       <div className="col-span-2">
                           <p className="font-medium truncate">{payment.project}</p>
@@ -82,3 +131,5 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
     </>
   );
 }
+
+    
