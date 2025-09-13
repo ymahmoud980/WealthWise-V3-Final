@@ -235,8 +235,7 @@ export default function LiabilitiesPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {loans.map(l => {
-                      const paid = l.initial - l.remaining;
-                      const progress = (paid / l.initial) * 100;
+                      const progress = l.initial > 0 ? ((l.initial - l.remaining) / l.initial) * 100 : 0;
                       return (
                       <div key={l.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                           {isEditing && (

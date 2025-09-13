@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
-import type { FinancialData, RealEstateAsset, UnderDevelopmentAsset, CashAsset, GoldAsset, OtherAsset } from "@/lib/types";
+import type { FinancialData, RealEstateAsset, UnderDevelopmentAsset, CashAsset, GoldAsset, OtherAsset, Installment } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
 import { Trash2 } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Progress } from "@/components/ui/progress";
 
 
 export default function AssetsPage() {
@@ -141,6 +142,7 @@ export default function AssetsPage() {
 
   const currentData = isEditing ? editableData : data;
   const { realEstate, underDevelopment, cash, gold, otherAssets } = currentData.assets;
+  const { installments } = currentData.liabilities;
 
   return (
     <>
@@ -212,45 +214,56 @@ export default function AssetsPage() {
             <div>
               <h3 className="text-xl font-semibold mb-4">Real Estate (Under Development)</h3>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {underDevelopment.map(p => (
+                  {underDevelopment.map(p => {
+                    const linkedInstallment = installments.find(i => i.id === p.linkedInstallmentId);
+                    const progress = linkedInstallment ? (linkedInstallment.paid / p.purchasePrice) * 100 : 0;
+                    
+                    return (
                       <div key={p.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                           {isEditing && (
                             <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'underDevelopment', id: p.id })}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          <div>
-                            <p className="font-bold">{p.name}</p>
-                            <p className="text-sm text-muted-foreground">{p.location}</p>
+                          <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-bold">{p.name}</p>
+                                    <p className="text-sm text-muted-foreground">{p.location}</p>
+                                </div>
+                                <span className="text-sm font-semibold text-green-700">{progress.toFixed(1)}%</span>
                           </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium">Purchase Price ({p.currency})</label>
-                             {isEditing ? (
-                              <Input 
-                                  type="number" 
-                                  defaultValue={p.purchasePrice}
-                                  onBlur={(e) => handleUnderDevelopmentChange(p.id, 'purchasePrice', e.target.value)}
-                                  className="h-8"
-                              />
-                            ) : (
-                              <p className="font-medium">{formatNumber(p.purchasePrice)}</p>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                             <label className="text-xs font-medium">Current Value ({p.currency})</label>
-                             {isEditing ? (
-                              <Input 
-                                  type="number" 
-                                  defaultValue={p.currentValue}
-                                  onBlur={(e) => handleUnderDevelopmentChange(p.id, 'currentValue', e.target.value)}
-                                  className="h-8"
-                              />
-                            ) : (
-                              <p className="font-medium">{formatNumber(p.currentValue)}</p>
-                            )}
+                          <Progress value={progress} className="my-2 h-2" />
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium">Purchase Price ({p.currency})</label>
+                                {isEditing ? (
+                                <Input 
+                                    type="number" 
+                                    defaultValue={p.purchasePrice}
+                                    onBlur={(e) => handleUnderDevelopmentChange(p.id, 'purchasePrice', e.target.value)}
+                                    className="h-8"
+                                />
+                                ) : (
+                                <p className="font-medium">{formatNumber(p.purchasePrice)}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium">Current Value ({p.currency})</label>
+                                {isEditing ? (
+                                <Input 
+                                    type="number" 
+                                    defaultValue={p.currentValue}
+                                    onBlur={(e) => handleUnderDevelopmentChange(p.id, 'currentValue', e.target.value)}
+                                    className="h-8"
+                                />
+                                ) : (
+                                <p className="font-medium">{formatNumber(p.currentValue)}</p>
+                                )}
+                            </div>
                           </div>
                       </div>
-                  ))}
+                    )
+                  })}
               </div>
             </div>
 
