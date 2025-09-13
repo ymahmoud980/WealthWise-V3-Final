@@ -23,6 +23,7 @@ import {
   FileText,
   Sparkles,
   HeartPulse,
+  AreaChart
 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/liabilities", label: "Liabilities", icon: <Landmark /> },
   { href: "/cashflow", label: "Cash Flow", icon: <Wallet /> },
   { href: "/breakdown", label: "Calculation Breakdown", icon: <FileText /> },
+  { href: "/trends", label: "Trends", icon: <AreaChart /> },
   { href: "/health", label: "Financial Health", icon: <HeartPulse /> },
   { href: "/advisor", label: "AI Advisor", icon: <BrainCircuit /> },
   { href: "/insights", label: "AI Insights", icon: <Sparkles /> },

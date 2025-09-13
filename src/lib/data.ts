@@ -64,5 +64,6 @@ export const initialFinancialData: FinancialData = {
             { id: 'he2', description: "Kuwait Household", amount: 350, currency: "KWD" }
         ]
     },
+    history: [],
     lastUpdated: "2024-08-01T12:00:00.000Z"
 };

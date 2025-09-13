@@ -100,9 +100,18 @@ export interface MonthlyExpenses {
     household: HouseholdExpense[];
 }
 
+export interface HistoryEntry {
+  date: string; // ISO string
+  netWorth: number;
+  totalAssets: number;
+  totalLiabilities: number;
+  netCashFlow: number;
+}
+
 export interface FinancialData {
     assets: Assets;
     liabilities: Liabilities;
     monthlyExpenses: MonthlyExpenses;
+    history: HistoryEntry[];
     lastUpdated?: any;
 }

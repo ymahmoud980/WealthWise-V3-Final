@@ -11,12 +11,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrency } from "@/hooks/use-currency";
-import type { Currency, FinancialData } from "@/lib/types";
+import type { Currency, FinancialData, HistoryEntry } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, Save } from "lucide-react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useToast } from "@/hooks/use-toast";
 import { useRef } from "react";
+import { calculateMetrics } from "@/lib/calculations";
 
 const pageTitles: { [key: string]: string } = {
   "/": "Dashboard",
@@ -28,11 +29,13 @@ const pageTitles: { [key: string]: string } = {
   "/calculator": "Currency Calculator",
   "/breakdown": "Calculation Breakdown",
   "/health": "Financial Health Analysis",
+  "/trends": "Financial Trends",
 };
 
 export function AppHeader() {
   const pathname = usePathname();
-  const { currency, setCurrency } = useCurrency();
+  const { currency } = useCurrency();
+  const { setCurrency } = useCurrency();
   const { data, setData } = useFinancialData();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +50,7 @@ export function AppHeader() {
     a.href = url;
     a.download = `wealth-navigator-data-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
-a.click();
+    a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({
@@ -72,7 +75,11 @@ a.click();
             throw new Error("File is not valid text");
         }
         const importedData = JSON.parse(text);
-        // Basic validation can be done here if needed
+        
+        if (!importedData.history) {
+          importedData.history = [];
+        }
+
         setData(importedData as FinancialData);
         toast({
           title: "Import Successful",
@@ -88,10 +95,31 @@ a.click();
       }
     };
     reader.readAsText(file);
-    // Reset file input to allow importing the same file again
     if(event.target) {
         event.target.value = '';
     }
+  };
+
+  const handleSaveSnapshot = () => {
+    const metrics = calculateMetrics(data, currency);
+    const newSnapshot: HistoryEntry = {
+      date: new Date().toISOString(),
+      netWorth: metrics.netWorth,
+      totalAssets: metrics.totalAssets,
+      totalLiabilities: metrics.totalLiabilities,
+      netCashFlow: metrics.netCashFlow,
+    };
+
+    const updatedData = {
+      ...data,
+      history: [...(data.history || []), newSnapshot]
+    };
+    setData(updatedData);
+
+    toast({
+      title: "Snapshot Saved",
+      description: `Financial snapshot for ${new Date().toLocaleDateString()} has been saved.`,
+    });
   };
 
 
@@ -110,6 +138,10 @@ a.click();
           onChange={handleFileImport}
           accept="application/json"
         />
+        <Button variant="outline" size="sm" onClick={handleSaveSnapshot}>
+          <Save className="mr-2 h-4 w-4" />
+          Save Snapshot
+        </Button>
         <Button variant="outline" size="sm" onClick={handleImportClick}>
           <Upload className="mr-2 h-4 w-4" />
           Import
