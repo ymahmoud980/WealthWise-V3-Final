@@ -52,7 +52,11 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
     }
   };
   
-  const sortedPayments = [...initialPayments].sort((a,b) => new Date(a.nextDueDate).getTime() - new Date(b.nextDueDate).getTime());
+  const sortedPayments = [...initialPayments].sort((a, b) => {
+    const dateA = a.nextDueDate.split('-').map(Number);
+    const dateB = b.nextDueDate.split('-').map(Number);
+    return new Date(dateA[0], dateA[1] - 1, dateA[2]).getTime() - new Date(dateB[0], dateB[1] - 1, dateB[2]).getTime();
+  });
 
   return (
     <>
