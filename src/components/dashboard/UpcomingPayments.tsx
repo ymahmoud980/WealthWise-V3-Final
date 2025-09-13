@@ -8,8 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Installment } from '@/lib/types';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "../ui/button";
+import { addMonths, addYears, format } from "date-fns";
 
 interface UpcomingPaymentsProps {
     payments: Installment[];
@@ -17,7 +16,6 @@ interface UpcomingPaymentsProps {
 
 export function UpcomingPayments({ payments: initialPayments }: UpcomingPaymentsProps) {
   const { data, setData } = useFinancialData();
-  const { toast } = useToast();
   
   const getStatus = (dueDate: string) => {
       const today = new Date();
@@ -34,27 +32,23 @@ export function UpcomingPayments({ payments: initialPayments }: UpcomingPayments
   }
 
   const handleMarkAsPaid = (paymentToMark: Installment) => {
-    const originalData = JSON.parse(JSON.stringify(data)); // Deep copy for undo
-    
     const updatedData = JSON.parse(JSON.stringify(data));
     const installment = updatedData.liabilities.installments.find((p: Installment) => p.id === paymentToMark.id);
 
     if (installment) {
       installment.paid += installment.amount;
+      
+      let nextDate = new Date(installment.nextDueDate.split('-').map((p:string) => parseInt(p, 10))[0], installment.nextDueDate.split('-').map((p:string) => parseInt(p, 10))[1]-1, installment.nextDueDate.split('-').map((p:string) => parseInt(p, 10))[2]);
+      if (installment.frequency === 'Quarterly') {
+        nextDate = addMonths(nextDate, 3);
+      } else if (installment.frequency === 'Semi-Annual') {
+        nextDate = addMonths(nextDate, 6);
+      } else if (installment.frequency === 'Annual') {
+        nextDate = addYears(nextDate, 1);
+      }
+      installment.nextDueDate = format(nextDate, 'yyyy-MM-dd');
+      
       setData(updatedData);
-
-      toast({
-        title: "Installment Paid",
-        description: `Marked payment for ${installment.project} as paid.`,
-        action: (
-          <Button variant="secondary" size="sm" onClick={() => {
-            setData(originalData);
-            toast({ description: "Action undone." });
-          }}>
-            Undo
-          </Button>
-        ),
-      });
     }
   };
   

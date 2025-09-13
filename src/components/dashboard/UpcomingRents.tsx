@@ -8,8 +8,6 @@ import { cn } from '@/lib/utils';
 import { format, addMonths } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "../ui/button";
 
 interface UpcomingRentsProps {
     rents: RealEstateAsset[];
@@ -17,7 +15,6 @@ interface UpcomingRentsProps {
 
 export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
   const { data, setData } = useFinancialData();
-  const { toast } = useToast();
 
   const getStatus = (dueDate: string) => {
       const today = new Date();
@@ -33,13 +30,11 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
   }
 
   const handleMarkAsReceived = (rentToReceive: RealEstateAsset) => {
-    const originalData = JSON.parse(JSON.stringify(data)); // Deep copy for undo
-    
     const updatedData = JSON.parse(JSON.stringify(data));
     const rentAsset = updatedData.assets.realEstate.find((r: RealEstateAsset) => r.id === rentToReceive.id);
 
     if (rentAsset) {
-      let nextDate = new Date(rentAsset.nextRentDueDate);
+      let nextDate = new Date(rentAsset.nextRentDueDate.split('-').map((p:string) => parseInt(p, 10))[0], rentAsset.nextRentDueDate.split('-').map((p:string) => parseInt(p, 10))[1]-1, rentAsset.nextRentDueDate.split('-').map((p:string) => parseInt(p, 10))[2]);
       if (rentAsset.rentFrequency === 'monthly') {
         nextDate = addMonths(nextDate, 1);
       } else if (rentAsset.rentFrequency === 'semi-annual') {
@@ -47,19 +42,6 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
       }
       rentAsset.nextRentDueDate = format(nextDate, 'yyyy-MM-dd');
       setData(updatedData);
-
-      toast({
-        title: "Rent Received",
-        description: `Marked rent for ${rentAsset.name} as received.`,
-        action: (
-           <Button variant="secondary" size="sm" onClick={() => {
-            setData(originalData);
-            toast({ description: "Action undone." });
-          }}>
-            Undo
-          </Button>
-        )
-      });
     }
   };
   
@@ -92,7 +74,7 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
                         <div className="flex-1 grid grid-cols-3 gap-2 items-center text-sm">
                           <div className='col-span-2'>
                               <p className="font-medium truncate">{rent.name}</p>
-                              <p className="text-xs text-muted-foreground">{format(new Date(rent.nextRentDueDate), 'MMM dd, yyyy')}</p>
+                              <p className="text-xs text-muted-foreground">{format(new Date(rent.nextRentDueDate.split('-').map((p:string) => parseInt(p, 10))[0], rent.nextRentDueDate.split('-').map((p:string) => parseInt(p, 10))[1]-1, rent.nextRentDueDate.split('-').map((p:string) => parseInt(p, 10))[2]), 'MMM dd, yyyy')}</p>
                               <p className={cn("text-xs", status.className)}>{status.text}</p>
                           </div>
                           <span className="font-semibold text-right text-green-600">
