@@ -63,12 +63,17 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
         let savedData = JSON.parse(savedDataString);
         // Apply the targeted correction here
         savedData = applyOneTimeCorrection(savedData);
+        
+        // **Resetting the history as requested**
+        savedData.history = [];
+
         setDataState(savedData);
         // Save the corrected data back to local storage immediately
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedData));
       } else {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialFinancialData));
-        setDataState(initialFinancialData);
+        const initialDataWithEmptyHistory = { ...initialFinancialData, history: [] };
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialDataWithEmptyHistory));
+        setDataState(initialDataWithEmptyHistory);
       }
     } catch (error) {
       console.error("Error reading from localStorage:", error);
