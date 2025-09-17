@@ -199,7 +199,7 @@ export default function LiabilitiesPage() {
                           <Progress value={progress} className="my-2 h-2" />
                           <div className="grid grid-cols-2 text-sm gap-x-4 gap-y-2 mt-2">
                               <div>
-                                  <label className="text-xs font-medium">Total ({p.currency})</label>
+                                  <label className="text-xs font-medium">Total ({p.currency}) (incl. Maint.)</label>
                                   {isEditing ? <Input type="number" defaultValue={p.total} onChange={e => handleInstallmentChange(p.id, 'total', e.target.value)} className="h-8"/> : <p className="font-medium">{formatNumber(p.total)}</p>}
                               </div>
                               <div>
@@ -296,3 +296,5 @@ export default function LiabilitiesPage() {
     </>
   )
 }
+
+    
