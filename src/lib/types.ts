@@ -83,7 +83,6 @@ export interface Installment {
   nextDueDate: string;
   amount: number;
   frequency: 'Annual' | 'Semi-Annual' | 'Quarterly';
-  paymentPlanDataUri?: string;
 }
 
 export interface Liabilities {

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import type { FinancialData, Loan, Installment } from "@/lib/types";
 import { LiabilityUploader } from "@/components/liabilities/LiabilityUploader";
-import { Trash2, Upload, Eye } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,19 +23,15 @@ import {
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
 import { format, isValid, parseISO, addMonths, addYears } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
 
 
 export default function LiabilitiesPage() {
   const { data, setData } = useFinancialData();
-  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
   const [isAddLoanDialogOpen, setIsAddLoanDialogOpen] = useState(false);
   const [isAddInstallmentDialogOpen, setIsAddInstallmentDialogOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
 
 
   const handleEditClick = () => {
@@ -123,56 +119,6 @@ export default function LiabilitiesPage() {
     setIsAddInstallmentDialogOpen(false);
   }
 
-  const handleUploadClick = (installmentId: string) => {
-    setUploadTargetId(installmentId);
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !uploadTargetId) return;
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const dataUri = reader.result as string;
-
-      const updateInstallment = (d: FinancialData) => {
-          const newData = JSON.parse(JSON.stringify(d));
-          const installment = newData.liabilities.installments.find((i: Installment) => i.id === uploadTargetId);
-          if (installment) {
-              installment.paymentPlanDataUri = dataUri;
-          }
-          return newData;
-      }
-
-      const updatedMainData = updateInstallment(data);
-      setData(updatedMainData);
-      
-      // Also update editableData if in editing mode
-      if (isEditing) {
-          const updatedEditableData = updateInstallment(editableData);
-          setEditableData(updatedEditableData);
-      }
-
-      toast({
-        title: "Upload Successful",
-        description: `Payment plan has been saved.`,
-      });
-      
-      setUploadTargetId(null);
-      if(event.target) event.target.value = '';
-    };
-    reader.onerror = () => {
-      toast({
-        title: "Upload Failed",
-        description: "There was an error reading the file.",
-        variant: "destructive",
-      });
-      setUploadTargetId(null);
-    };
-  };
-
   const formatNumber = (num: number) => num.toLocaleString();
   
   const calculateCompletionDate = (p: Installment) => {
@@ -207,13 +153,6 @@ export default function LiabilitiesPage() {
 
   return (
     <>
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        onChange={handleFileChange}
-        accept="application/pdf,image/*,.doc,.docx"
-      />
       <div className="space-y-8">
         <LiabilityUploader />
         <Card>
@@ -241,8 +180,6 @@ export default function LiabilitiesPage() {
                  </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {installments.map(p => {
-                      const savedInstallment = data.liabilities.installments.find(i => i.id === p.id);
-                      const paymentPlanDataUri = savedInstallment?.paymentPlanDataUri;
                       const progress = (p.paid / p.total) * 100;
                       const remaining = p.total - p.paid;
                       const dateParts = p.nextDueDate.split('-').map(part => parseInt(part, 10));
@@ -258,16 +195,6 @@ export default function LiabilitiesPage() {
                           <div className="flex justify-between items-start">
                               <div>
                                 <p className="font-bold">{p.project} <span className="font-normal text-muted-foreground">- {p.developer}</span></p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {paymentPlanDataUri && (
-                                  <Button variant="outline" size="sm" onClick={() => window.open(paymentPlanDataUri, '_blank')}>
-                                    <Eye className="h-4 w-4 mr-1"/> View
-                                  </Button>
-                                )}
-                                <Button variant="outline" size="sm" onClick={() => handleUploadClick(p.id)}>
-                                    <Upload className="h-4 w-4 mr-1"/> Upload
-                                </Button>
                               </div>
                           </div>
                           <div className="flex items-center gap-4">
@@ -374,5 +301,3 @@ export default function LiabilitiesPage() {
     </>
   )
 }
-
-    
