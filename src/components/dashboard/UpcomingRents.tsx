@@ -78,7 +78,7 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
                               <p className={cn("text-xs", status.className)}>{status.text}</p>
                           </div>
                           <span className="font-semibold text-right text-green-600">
-                              {rent.monthlyRent.toLocaleString()} {rent.rentCurrency || rent.currency}
+                              + {rent.monthlyRent.toLocaleString()} {rent.rentCurrency || rent.currency}
                           </span>
                         </div>
                       </div>

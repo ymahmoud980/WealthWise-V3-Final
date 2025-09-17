@@ -11,7 +11,7 @@ import { useFinancialData } from "@/contexts/FinancialDataContext";
 const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false, isGrandTotal = false, format }: { label: string, value: number, isSub?: boolean, isNegative?: boolean, isTotal?: boolean, isGrandTotal?: boolean, format: (value: number) => string }) => (
   <div className={`flex justify-between items-center text-sm ${isSub ? 'pl-4 text-xs' : ''} ${isTotal ? 'font-semibold pt-2 mt-2 border-t' : ''} ${isGrandTotal ? 'font-bold text-lg pt-2 border-t' : ''}`}>
       <span className={isTotal || isGrandTotal ? '' : 'text-muted-foreground'}>{label}</span>
-      <span className={`${isGrandTotal ? 'text-primary' : ''} ${isNegative ? 'text-destructive' : ''}`}>{isNegative && '- '}{format(value)}</span>
+      <span className={`${isGrandTotal ? 'text-primary' : ''} ${isNegative ? 'text-destructive' : 'text-green-600'}`}>{isNegative && '- '}{format(value)}</span>
   </div>
 );
 
@@ -50,7 +50,7 @@ export default function BreakdownPage() {
             <Row label="Total Monthly Income" value={metrics.totalIncome} format={format} />
             <Row label="Total Monthly Expenses" value={metrics.totalExpenses} isNegative={true} format={format} />
             <Separator />
-            <Row label="Avg. Net Cash Flow" value={metrics.netCashFlow} isGrandTotal={true} format={format} />
+            <Row label="Avg. Net Cash Flow" value={metrics.netCashFlow > 0 ? metrics.netCashFlow : -metrics.netCashFlow} isGrandTotal={true} format={format} isNegative={metrics.netCashFlow < 0} />
           </CardContent>
         </Card>
 

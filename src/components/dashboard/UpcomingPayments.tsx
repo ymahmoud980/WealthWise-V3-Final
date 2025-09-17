@@ -102,7 +102,7 @@ export function UpcomingPayments() {
                         <p className="font-medium truncate">{payment.project}</p>
                         <p className={cn("text-xs", status.className)}>{status.text}</p>
                     </div>
-                    <span className="font-semibold text-right">{payment.amount.toLocaleString()} {payment.currency}</span>
+                    <span className="font-semibold text-right text-destructive">- {payment.amount.toLocaleString()} {payment.currency}</span>
                   </div>
                 </div>
               )})

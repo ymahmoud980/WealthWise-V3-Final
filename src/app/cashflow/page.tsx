@@ -59,6 +59,7 @@ export default function CashFlowPage() {
     
     const currentData = isEditing ? editableData : data;
     const currentMetrics = calculateMetrics(currentData, currency);
+    const currentNetCashFlow = currentMetrics.netCashFlow;
 
     return (
         <div className="space-y-8">
@@ -87,11 +88,11 @@ export default function CashFlowPage() {
                         <p className="text-xs text-muted-foreground">per month (incl. avg. installments)</p>
                     </CardContent>
                 </Card>
-                <Card className="bg-primary text-primary-foreground">
+                <Card className={currentNetCashFlow >= 0 ? "bg-green-100" : "bg-red-100"}>
                     <CardHeader><CardTitle>Net Cash Flow</CardTitle></CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-bold">{format(netCashFlow)}</p>
-                        <p className="text-xs text-primary-foreground/80">per month</p>
+                        <p className={`text-3xl font-bold ${currentNetCashFlow >= 0 ? "text-green-800" : "text-red-800"}`}>{format(currentNetCashFlow)}</p>
+                        <p className={`text-xs ${currentNetCashFlow >= 0 ? "text-green-700" : "text-red-700"}`}>per month</p>
                     </CardContent>
                 </Card>
             </div>
@@ -120,10 +121,10 @@ export default function CashFlowPage() {
                                             <span>{currentData.assets.salary.currency}</span>
                                         </div>
                                     ) : (
-                                        <span>{format(currentMetrics.income.salary)}</span>
+                                        <span className="text-green-700">{format(currentMetrics.income.salary)}</span>
                                     )}
                                 </div>
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span>{format(currentMetrics.income.rent)}</span></div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span className="text-green-700">{format(currentMetrics.income.rent)}</span></div>
                             </div>
                         </div>
 
@@ -133,7 +134,7 @@ export default function CashFlowPage() {
                                 <span className="text-base font-bold text-red-900">{format(currentMetrics.totalExpenses)}</span>
                             </div>
                             <div className="pl-4 mt-2 space-y-1">
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span>{format(currentMetrics.expenses.loans)}</span></div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span className="text-red-700">{format(currentMetrics.expenses.loans)}</span></div>
                                 {currentData.monthlyExpenses.household.map(h => (
                                      <div key={h.id} className="flex justify-between items-center"><span className="text-muted-foreground">{h.description}</span>
                                         {isEditing ? (
@@ -147,11 +148,11 @@ export default function CashFlowPage() {
                                                 <span>{h.currency}</span>
                                             </div>
                                         ) : (
-                                            <span>{format(convert(h.amount, h.currency, currency, rates))}</span>
+                                            <span className="text-red-700">{format(convert(h.amount, h.currency, currency, rates))}</span>
                                         )}
                                      </div>
                                 ))}
-                                <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span>{format(currentMetrics.expenses.installmentsAvg)}</span></div>
+                                <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span className="text-red-700">{format(currentMetrics.expenses.installmentsAvg)}</span></div>
                             </div>
                         </div>
 
@@ -169,11 +170,11 @@ export default function CashFlowPage() {
                                 <YAxis tickFormatter={(value) => format(value).replace(/[^0-9-]/g, '')}/>
                                 <Tooltip formatter={(value: number) => format(value)} />
                                 <Legend />
-                                <Bar dataKey="Salary" stackId="a" fill="hsl(var(--chart-1))" />
-                                <Bar dataKey="Rentals" stackId="a" fill="hsl(var(--chart-2))" />
+                                <Bar dataKey="Salary" stackId="a" fill="hsl(var(--chart-2))" />
+                                <Bar dataKey="Rentals" stackId="a" fill="hsl(var(--chart-4))" />
                                 <Bar dataKey="Loans" stackId="b" fill="hsl(var(--chart-3))" />
-                                <Bar dataKey="Household" stackId="b" fill="hsl(var(--chart-4))" />
-                                <Bar dataKey="Installments" stackId="b" fill="hsl(var(--chart-5))" />
+                                <Bar dataKey="Household" stackId="b" fill="hsl(var(--chart-5))" />
+                                <Bar dataKey="Installments" stackId="b" fill="#F87171" />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>

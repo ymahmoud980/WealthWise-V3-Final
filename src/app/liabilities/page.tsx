@@ -209,7 +209,7 @@ export default function LiabilitiesPage() {
                               </div>
                               <div>
                                   <label className="text-xs font-medium">Paid ({p.currency})</label>
-                                  {isEditing ? <Input type="number" defaultValue={p.paid} onChange={e => handleInstallmentChange(p.id, 'paid', e.target.value)} className="h-8"/> : <p className="font-medium">{formatNumber(p.paid)}</p>}
+                                  {isEditing ? <Input type="number" defaultValue={p.paid} onChange={e => handleInstallmentChange(p.id, 'paid', e.target.value)} className="h-8"/> : <p className="font-medium text-green-600">{formatNumber(p.paid)}</p>}
                               </div>
                               <div>
                                   <p className="text-muted-foreground">Remaining</p>
@@ -260,7 +260,7 @@ export default function LiabilitiesPage() {
                               </div>
                               <div>
                                   <label className="text-xs font-medium">Remaining ({l.currency})</label>
-                                  {isEditing ? <Input type="number" defaultValue={l.remaining} onChange={e => handleLoanChange(l.id, 'remaining', e.target.value)} className="h-8"/> : <p className="font-medium">{formatNumber(l.remaining)}</p>}
+                                  {isEditing ? <Input type="number" defaultValue={l.remaining} onChange={e => handleLoanChange(l.id, 'remaining', e.target.value)} className="h-8"/> : <p className="font-medium text-destructive">{formatNumber(l.remaining)}</p>}
                               </div>
                               <div>
                                   <label className="text-xs font-medium">Monthly Payment ({l.currency})</label>
