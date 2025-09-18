@@ -4,7 +4,7 @@ import type { FinancialData } from './types';
 export const initialFinancialData: FinancialData = {
     assets: {
         realEstate: [
-            { id: 're1-apt1', name: "Building Apt 1 (GF)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', documents: [] },
+            { id: 're1-apt1', name: "Building Apt 1 (GF)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', documents: [{name: "contract.pdf"}] },
             { id: 're1-apt2', name: "Building Apt 2 (1F)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 0, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', documents: [] },
             { id: 're1-apt3', name: "Building Apt 3 (2F)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 11000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-11-01', documents: [] },
             { id: 're1-apt4', name: "Building Apt 4 (3F)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 10000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-10-01', documents: [] },

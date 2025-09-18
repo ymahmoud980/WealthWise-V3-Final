@@ -7,7 +7,8 @@ export type ExchangeRates = {
 
 export interface Document {
   name: string;
-  url: string;
+  // The 'url' property is no longer needed for the file-based approach.
+  // The path will be constructed dynamically: /documents/{itemId}/{fileName}
 }
 
 export interface RealEstateAsset {

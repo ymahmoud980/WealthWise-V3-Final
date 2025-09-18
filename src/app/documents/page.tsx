@@ -3,18 +3,20 @@
 
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderKanban, Info } from "lucide-react";
+import { FolderKanban, ExternalLink, Info } from "lucide-react";
+import type { RealEstateAsset, UnderDevelopmentAsset, Installment, Loan, Document } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { RealEstateAsset, UnderDevelopmentAsset, Installment, Loan } from "@/lib/types";
-import { DocumentManager } from "@/components/documents/DocumentManager";
+import { Button } from "@/components/ui/button";
+
 
 type DocumentedItem = (RealEstateAsset | UnderDevelopmentAsset | Installment | Loan) & { 
   name: string;
   type: 'asset' | 'liability';
+  documents?: Document[];
 };
 
 export default function DocumentsPage() {
-  const { data, setData } = useFinancialData();
+  const { data } = useFinancialData();
 
   const allItems: DocumentedItem[] = [
     ...data.assets.realEstate.map(a => ({ ...a, name: `Asset: ${a.name}`, type: 'asset' as 'asset' })),
@@ -22,43 +24,6 @@ export default function DocumentsPage() {
     ...data.liabilities.installments.map(i => ({ ...i, name: `Liability: ${i.project}`, type: 'liability' as 'liability' })),
     ...data.liabilities.loans.map(l => ({ ...l, name: `Liability: ${l.lender} Loan`, type: 'liability' as 'liability' })),
   ];
-
-  // This function will be passed to the DocumentManager to handle updates
-  const handleUpdateDocuments = (itemId: string, itemType: 'asset' | 'liability', newDocuments: { name: string, url: string }[]) => {
-      const updatedData = JSON.parse(JSON.stringify(data));
-
-      let itemFound = false;
-      if (itemType === 'asset') {
-          for (const key in updatedData.assets) {
-              const assetCategory = updatedData.assets[key as keyof typeof updatedData.assets];
-              if (Array.isArray(assetCategory)) {
-                  const item = assetCategory.find((i: any) => i.id === itemId);
-                  if (item) {
-                      item.documents = newDocuments;
-                      itemFound = true;
-                      break;
-                  }
-              }
-          }
-      } else { // liability
-          for (const key in updatedData.liabilities) {
-              const liabilityCategory = updatedData.liabilities[key as keyof typeof updatedData.liabilities];
-              if (Array.isArray(liabilityCategory)) {
-                  const item = liabilityCategory.find((i: any) => i.id === itemId);
-                  if (item) {
-                      item.documents = newDocuments;
-                      itemFound = true;
-                      break;
-                  }
-              }
-          }
-      }
-
-      if (itemFound) {
-          setData(updatedData);
-      }
-  };
-
 
   return (
     <div className="space-y-8">
@@ -69,16 +34,21 @@ export default function DocumentsPage() {
         <div>
             <h1 className="text-3xl font-bold">Document Library</h1>
             <p className="text-muted-foreground">
-                Upload, view, and manage documents for your assets and liabilities.
+                View documents for your assets and liabilities.
             </p>
         </div>
       </div>
 
-      <Alert>
+       <Alert>
         <Info className="h-4 w-4" />
-        <AlertTitle>Document Management powered by Firebase</AlertTitle>
+        <AlertTitle>How to Manage Documents</AlertTitle>
         <AlertDescription>
-         Your documents are securely stored in Firebase Storage. You can now upload, view, and delete files directly for each item below.
+          <ol className="list-decimal list-inside space-y-1 mt-2">
+            <li>In your project files, find the `public/documents/` folder.</li>
+            <li>Inside `documents`, create a new folder with the ID of the item (e.g., `re1-apt1`).</li>
+            <li>Place your PDF or image files inside that newly created folder.</li>
+            <li>To link them, you must edit the `src/lib/data.ts` file and add the filenames to the `documents` array for the corresponding item.</li>
+          </ol>
         </AlertDescription>
       </Alert>
 
@@ -86,7 +56,7 @@ export default function DocumentsPage() {
         <CardHeader>
           <CardTitle>All Assets & Liabilities</CardTitle>
           <CardDescription>
-            Manage the documents linked to each item.
+            Documents linked to each item are listed below.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -95,14 +65,27 @@ export default function DocumentsPage() {
                     <div>
                         <p className="font-medium">{item.name}</p>
                         <p className="text-xs text-muted-foreground">
-                        ID for reference: <span className="font-mono bg-muted px-1 py-0.5 rounded">{item.id}</span>
+                          Required Folder Path: <span className="font-mono bg-muted px-1 py-0.5 rounded">public/documents/{item.id}/</span>
                         </p>
                     </div>
                     <div className="mt-2 pl-4 border-l-2 border-primary/20">
-                        <DocumentManager 
-                            item={item} 
-                            onUpdate={(newDocs) => handleUpdateDocuments(item.id, item.type, newDocs)}
-                        />
+                       <div className="space-y-2 py-2">
+                          {(item.documents && item.documents.length > 0) ? (
+                            item.documents.map((doc, index) => (
+                              <div key={index} className="flex items-center justify-between">
+                                <span className="text-sm">{doc.name}</span>
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a href={`/documents/${item.id}/${doc.name}`} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="mr-2 h-4 w-4"/>
+                                    View
+                                  </a>
+                                </Button>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-xs text-muted-foreground italic">No documents linked. Edit `data.ts` to add file names.</p>
+                          )}
+                       </div>
                     </div>
                 </div>
             ))}
