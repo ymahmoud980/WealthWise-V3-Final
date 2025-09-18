@@ -16,6 +16,7 @@ export interface RealEstateAsset {
   rentDueDay: number;
   rentFrequency: 'monthly' | 'semi-annual';
   nextRentDueDate: string;
+  documents?: string[];
 }
 
 export interface UnderDevelopmentAsset {
@@ -26,6 +27,7 @@ export interface UnderDevelopmentAsset {
   currentValue: number;
   currency: Currency;
   linkedInstallmentId: string;
+  documents?: string[];
 }
 
 export interface CashAsset {
@@ -33,12 +35,14 @@ export interface CashAsset {
   location: string;
   amount: number;
   currency: Currency;
+  documents?: string[];
 }
 
 export interface GoldAsset {
   id: string;
   description: string;
   grams: number;
+  documents?: string[];
 }
 
 export interface OtherAsset {
@@ -46,6 +50,7 @@ export interface OtherAsset {
   description: string;
   value: number;
   currency: Currency;
+  documents?: string[];
 }
 
 export interface Salary {
@@ -71,6 +76,7 @@ export interface Loan {
   currency: Currency;
   monthlyPayment: number;
   finalPayment: string;
+  documents?: string[];
 }
 
 export interface Installment {
@@ -83,6 +89,7 @@ export interface Installment {
   nextDueDate: string;
   amount: number;
   frequency: 'Annual' | 'Semi-Annual' | 'Quarterly';
+  documents?: string[];
 }
 
 export interface Liabilities {

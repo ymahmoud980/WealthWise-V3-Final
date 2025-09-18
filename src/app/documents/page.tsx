@@ -4,44 +4,57 @@
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FolderKanban, ExternalLink } from "lucide-react";
+import { FolderKanban, ExternalLink, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import type { RealEstateAsset, UnderDevelopmentAsset, Installment, Loan } from "@/lib/types";
 
-const DocumentRow = ({ item }: { item: { id: string; name: string } }) => {
-  const openDocument = () => {
-    // We try a few common extensions. User needs to name the file correctly.
-    const extensions = ['pdf', 'png', 'jpg', 'jpeg', 'docx'];
-    let found = false;
-    // Check for file existence by trying to open it. A bit of a hack for client-side.
-    // A better approach would be a server endpoint that checks for file existence.
-    // For now, we just link to the most likely one (pdf).
-    window.open(`/documents/${item.id}.pdf`, '_blank');
+type DocumentedItem = (RealEstateAsset | UnderDevelopmentAsset | Installment | Loan) & { name: string };
+
+const DocumentRow = ({ item }: { item: DocumentedItem }) => {
+
+  const openDocument = (filename: string) => {
+    window.open(`/documents/${filename}`, '_blank');
   };
 
   return (
-    <div className="flex items-center justify-between p-3 bg-secondary rounded-md">
+    <div className="p-3 bg-secondary rounded-md">
       <div>
         <p className="font-medium">{item.name}</p>
-        <p className="text-xs text-muted-foreground">Required filename: <span className="font-mono bg-muted px-1 py-0.5 rounded">{item.id}.pdf</span></p>
+        <p className="text-xs text-muted-foreground">
+          ID for reference: <span className="font-mono bg-muted px-1 py-0.5 rounded">{item.id}</span>
+        </p>
       </div>
-      <Button variant="outline" size="sm" onClick={openDocument}>
-        <ExternalLink className="mr-2 h-4 w-4" />
-        View Document
-      </Button>
+      <div className="mt-2 pl-4 border-l-2 border-primary/20">
+        {item.documents && item.documents.length > 0 ? (
+          <div className="space-y-2">
+            {item.documents.map((doc, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-sm font-mono text-muted-foreground">{doc}</span>
+                <Button variant="outline" size="sm" onClick={() => openDocument(doc)}>
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">
+            No documents listed. Export your data, add filenames to the 'documents' array for this item, and re-import.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
 
-
 export default function DocumentsPage() {
   const { data } = useFinancialData();
 
-  const allItems = [
-    ...data.assets.realEstate.map(a => ({ id: a.id, name: `Asset: ${a.name}` })),
-    ...data.assets.underDevelopment.map(a => ({ id: a.id, name: `Asset: ${a.name}` })),
-    ...data.liabilities.installments.map(i => ({ id: i.id, name: `Liability: ${i.project}` })),
-    ...data.liabilities.loans.map(l => ({ id: l.id, name: `Liability: ${l.lender} Loan` })),
+  const allItems: DocumentedItem[] = [
+    ...data.assets.realEstate.map(a => ({ ...a, name: `Asset: ${a.name}` })),
+    ...data.assets.underDevelopment.map(a => ({ ...a, name: `Asset: ${a.name}` })),
+    ...data.liabilities.installments.map(i => ({ ...i, name: `Liability: ${i.project}` })),
+    ...data.liabilities.loans.map(l => ({ ...l, name: `Liability: ${l.lender} Loan` })),
   ];
 
   return (
@@ -60,9 +73,15 @@ export default function DocumentsPage() {
 
       <Alert>
         <Info className="h-4 w-4" />
-        <AlertTitle>How to Add Documents</AlertTitle>
+        <AlertTitle>How to Link Documents</AlertTitle>
         <AlertDescription>
-          To add a document, find the required filename for an item below (e.g., <span className="font-mono bg-background px-1 rounded">ud1.pdf</span>). Then, place your file with that exact name inside the <span className="font-mono bg-background px-1 rounded">public/documents/</span> folder in your project. The "View Document" button will then open that file.
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Place your document (e.g., <span className="font-mono bg-background px-1 rounded">my-contract.pdf</span>) inside the <span className="font-mono bg-background px-1 rounded">public/documents/</span> folder.</li>
+            <li>Export your current data using the "Export" button in the header.</li>
+            <li>Open the exported JSON file and find the asset or liability you want to link (using its ID).</li>
+            <li>Add the filename to its <span className="font-mono bg-background px-1 rounded">"documents"</span> array. For example: <span className="font-mono bg-background px-1 rounded">"documents": ["my-contract.pdf"]</span>.</li>
+            <li>Save the JSON file and import it back into the application. The document will now appear below.</li>
+          </ol>
         </AlertDescription>
       </Alert>
 
@@ -70,7 +89,7 @@ export default function DocumentsPage() {
         <CardHeader>
           <CardTitle>All Assets & Liabilities</CardTitle>
           <CardDescription>
-            Use the ID shown below to name your document file. Currently, only PDF files are supported.
+            Manage and view the documents linked to each item.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
