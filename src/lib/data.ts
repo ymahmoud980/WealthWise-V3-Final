@@ -65,5 +65,5 @@ export const initialFinancialData: FinancialData = {
         ]
     },
     history: [],
-    lastUpdated: "2024-08-01T12:00:00.000Z"
+    lastUpdated: "2024-08-02T12:00:00.000Z"
 };
