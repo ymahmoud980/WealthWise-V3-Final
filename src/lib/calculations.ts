@@ -16,8 +16,17 @@ export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM', to
     if (typeof amount !== 'number' || isNaN(amount)) return 0;
     if (fromCurrency === toCurrency) return amount;
     
-    const amountInUsd = amount / exchangeRates[fromCurrency];
-    return amountInUsd * exchangeRates[toCurrency];
+    // The user wants a direct conversion, but exchange rates are typically quoted against a base currency (like USD).
+    // A direct conversion rate (e.g., EGP to KWD) is calculated as (EGP_to_USD) * (USD_to_KWD).
+    // The current logic correctly implements this by converting to a common base (USD) first.
+    // Let's simplify the function signature but keep the reliable calculation method.
+    const rateFrom = exchangeRates[fromCurrency];
+    const rateTo = exchangeRates[toCurrency];
+
+    if (!rateFrom || !rateTo) return 0;
+
+    const amountInUsd = amount / rateFrom;
+    return amountInUsd * rateTo;
 }
 
 export function calculateMetrics(data: FinancialData, displayCurrency: Currency) {
