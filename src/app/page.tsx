@@ -13,16 +13,11 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
-import { calculateMetrics } from "@/lib/calculations";
-import { useCurrency } from "@/hooks/use-currency";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 export default function DashboardPage() {
-  const { data, loading: dataLoading } = useFinancialData();
-  const { currency } = useCurrency();
+  const { data, loading: dataLoading, metrics } = useFinancialData();
   
-  const metrics = calculateMetrics(data, currency);
-
   if (dataLoading) {
     return (
       <div className="flex justify-center items-center h-64">

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { useCurrency } from "@/hooks/use-currency"
-import { calculateMetrics, convert, rates } from "@/lib/calculations"
+import { convert, rates } from "@/lib/calculations"
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,11 +13,10 @@ import type { FinancialData } from "@/lib/types";
 
 export default function CashFlowPage() {
     const { currency, format } = useCurrency();
-    const { data, setData } = useFinancialData();
+    const { data, setData, metrics } = useFinancialData();
     const [isEditing, setIsEditing] = useState(false);
     const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
 
-    const metrics = calculateMetrics(data, currency);
     const { income, totalIncome, expenses, totalExpenses, netCashFlow } = metrics;
     
     const chartData = [
@@ -58,8 +57,7 @@ export default function CashFlowPage() {
     };
     
     const currentData = isEditing ? editableData : data;
-    const currentMetrics = calculateMetrics(currentData, currency);
-    const currentNetCashFlow = currentMetrics.netCashFlow;
+    const currentNetCashFlow = netCashFlow;
 
     return (
         <div className="space-y-8">
@@ -106,7 +104,7 @@ export default function CashFlowPage() {
                         <div className="p-3 bg-green-100/60 rounded-lg">
                             <div className="flex justify-between items-center font-semibold text-green-800">
                                 <span>Total Income</span>
-                                <span className="text-base font-bold text-green-900">{format(currentMetrics.totalIncome)}</span>
+                                <span className="text-base font-bold text-green-900">{format(totalIncome)}</span>
                             </div>
                             <div className="pl-4 mt-2 space-y-1">
                                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Salary</span>
@@ -121,20 +119,20 @@ export default function CashFlowPage() {
                                             <span>{currentData.assets.salary.currency}</span>
                                         </div>
                                     ) : (
-                                        <span className="text-green-700">{format(currentMetrics.income.salary)}</span>
+                                        <span className="text-green-700">{format(income.salary)}</span>
                                     )}
                                 </div>
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span className="text-green-700">{format(currentMetrics.income.rent)}</span></div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span className="text-green-700">{format(income.rent)}</span></div>
                             </div>
                         </div>
 
                          <div className="p-3 bg-red-100/60 rounded-lg">
                             <div className="flex justify-between items-center font-semibold text-red-800">
                                 <span>Total Monthly Expenses</span>
-                                <span className="text-base font-bold text-red-900">{format(currentMetrics.totalExpenses)}</span>
+                                <span className="text-base font-bold text-red-900">{format(totalExpenses)}</span>
                             </div>
                             <div className="pl-4 mt-2 space-y-1">
-                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span className="text-red-700">{format(currentMetrics.expenses.loans)}</span></div>
+                                <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span className="text-red-700">{format(expenses.loans)}</span></div>
                                 {currentData.monthlyExpenses.household.map(h => (
                                      <div key={h.id} className="flex justify-between items-center"><span className="text-muted-foreground">{h.description}</span>
                                         {isEditing ? (
@@ -152,7 +150,7 @@ export default function CashFlowPage() {
                                         )}
                                      </div>
                                 ))}
-                                <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span className="text-red-700">{format(currentMetrics.expenses.installmentsAvg)}</span></div>
+                                <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span className="text-red-700">{format(expenses.installmentsAvg)}</span></div>
                             </div>
                         </div>
 

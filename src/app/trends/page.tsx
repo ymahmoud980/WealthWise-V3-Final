@@ -7,7 +7,6 @@ import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, L
 import { useCurrency } from "@/hooks/use-currency";
 import { format as formatDate, parseISO } from 'date-fns';
 import { AreaChart } from "lucide-react";
-import { calculateMetrics, convert, rates } from "@/lib/calculations";
 import type { HistoryEntry } from "@/lib/types";
 
 
@@ -29,11 +28,6 @@ export default function TrendsPage() {
 
     // This is a simplified conversion. Ideally, the currency of the snapshot would be stored with it.
     // For now, we assume all history is stored as USD equivalent at the time of snapshot.
-    const metrics = calculateMetrics(data, currency);
-
-    // Let's re-calculate what the values would be in the current currency
-    // This is not perfect, as rates change, but it's better than showing raw numbers
-    // A better approach would be to store the rate at time of snapshot, but for now this will work.
     
     // The history entries already store the calculated values. We just need to format the date.
     // The values are calculated in the currency that was active when the snapshot was taken.

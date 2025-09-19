@@ -17,7 +17,6 @@ import { Upload, Download, Save } from "lucide-react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useToast } from "@/hooks/use-toast";
 import { useRef } from "react";
-import { calculateMetrics } from "@/lib/calculations";
 
 const pageTitles: { [key: string]: string } = {
   "/": "Dashboard",
@@ -35,7 +34,7 @@ export function AppHeader() {
   const pathname = usePathname();
   const { currency } = useCurrency();
   const { setCurrency } = useCurrency();
-  const { data, setData } = useFinancialData();
+  const { data, setData, metrics } = useFinancialData();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -100,7 +99,6 @@ export function AppHeader() {
   };
 
   const handleSaveSnapshot = () => {
-    const metrics = calculateMetrics(data, currency);
     const newSnapshot: HistoryEntry = {
       date: new Date().toISOString(),
       netWorth: metrics.netWorth,

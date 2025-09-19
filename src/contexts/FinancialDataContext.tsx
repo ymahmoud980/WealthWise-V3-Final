@@ -1,15 +1,17 @@
 
-
 "use client";
 
 import { createContext, useState, useEffect, useContext, useMemo, type ReactNode, useCallback } from 'react';
 import type { FinancialData } from '@/lib/types';
 import { initialFinancialData } from '@/lib/data';
+import { calculateMetrics } from '@/lib/calculations';
+import { useCurrency } from '@/hooks/use-currency';
 
 interface FinancialDataContextType {
   data: FinancialData;
   setData: (data: FinancialData) => void;
   loading: boolean;
+  metrics: ReturnType<typeof calculateMetrics>;
 }
 
 const FinancialDataContext = createContext<FinancialDataContextType | undefined>(undefined);
@@ -19,6 +21,7 @@ const LOCAL_STORAGE_KEY = 'financialData';
 export function FinancialDataProvider({ children }: { children: ReactNode }) {
   const [data, setDataState] = useState<FinancialData>(initialFinancialData);
   const [loading, setLoading] = useState(true);
+  const { currency } = useCurrency(); // Get the currency to calculate metrics
 
   useEffect(() => {
     setLoading(true);
@@ -45,7 +48,8 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialFinancialData));
         setDataState(initialFinancialData);
       }
-    } catch (error) {
+    } catch (error)
+     {
       console.error("Error reading from localStorage:", error);
       setDataState(initialFinancialData);
     } finally {
@@ -63,11 +67,15 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Memoize the metrics calculation
+  const metrics = useMemo(() => calculateMetrics(data, currency), [data, currency]);
+
   const value = useMemo(() => ({
     data,
     setData,
     loading,
-  }), [data, loading, setData]);
+    metrics,
+  }), [data, loading, setData, metrics]);
 
   return (
     <FinancialDataContext.Provider value={value}>

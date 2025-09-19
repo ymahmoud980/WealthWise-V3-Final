@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { TrendingUp, TrendingDown, Wallet, DollarSign } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency";
-import { calculateMetrics, convert, rates } from "@/lib/calculations";
+import { convert, rates } from "@/lib/calculations";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false, isGrandTotal = false, format }: { label: string, value: number, isSub?: boolean, isNegative?: boolean, isTotal?: boolean, isGrandTotal?: boolean, format: (value: number) => string }) => (
@@ -17,9 +17,7 @@ const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false,
 
 export default function BreakdownPage() {
   const { currency, format } = useCurrency();
-  const { data } = useFinancialData();
-
-  const metrics = calculateMetrics(data, currency);
+  const { data, metrics } = useFinancialData();
 
   return (
     <div className="space-y-8">
