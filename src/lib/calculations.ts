@@ -9,7 +9,7 @@ export const rates: ExchangeRates = {
     EGP: 48.30,
     KWD: 0.307,
     TRY: 32.85,
-    GOLD_GRAM: 118.42
+    GOLD_GRAM: 75.50 // Price per gram in USD
 };
 
 export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM', toCurrency: Currency, exchangeRates: ExchangeRates): number {
