@@ -1,11 +1,9 @@
 rules_version = '2';
 
-// Set the `service` to `firebase.storage`.
 service firebase.storage {
-  // `match` clauses specify the Cloud Storage bucket and the file path.
   match /b/{bucket}/o {
-    // `match` clauses can be nested to specify rules for different file paths.
-    // This rule allows anyone with access to the bucket to read and write files.
+    // Allow read and write access for development purposes.
+    // In a production app, you would restrict this to authenticated users.
     match /{allPaths=**} {
       allow read, write;
     }
