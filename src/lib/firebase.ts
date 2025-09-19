@@ -1,8 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration - NOTE: Storage is no longer used for documents.
+// Your web app's Firebase configuration
 const firebaseConfig = {
   projectId: "wealthwise-03-09692965-e2a36",
   appId: "1:598104639129:web:d7a13196e6e0136feb5a08",
@@ -21,6 +22,7 @@ if (!getApps().length) {
 }
 
 const db: Firestore = getFirestore(app);
+const storage = getStorage(app);
 
 
-export { app, db };
+export { app, db, storage };

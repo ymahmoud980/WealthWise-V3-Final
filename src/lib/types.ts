@@ -5,10 +5,11 @@ export type ExchangeRates = {
   [key in Currency | 'GOLD_GRAM']: number;
 };
 
+// Document type is no longer a simple string.
+// It will be an object when we fetch it from Storage.
 export interface Document {
   name: string;
-  // The 'url' property is no longer needed for the file-based approach.
-  // The path will be constructed dynamically: /documents/{itemId}/{fileName}
+  url: string;
 }
 
 export interface RealEstateAsset {
@@ -22,7 +23,6 @@ export interface RealEstateAsset {
   rentDueDay: number;
   rentFrequency: 'monthly' | 'semi-annual';
   nextRentDueDate: string;
-  documents?: Document[];
 }
 
 export interface UnderDevelopmentAsset {
@@ -33,7 +33,6 @@ export interface UnderDevelopmentAsset {
   currentValue: number;
   currency: Currency;
   linkedInstallmentId: string;
-  documents?: Document[];
 }
 
 export interface CashAsset {
@@ -41,14 +40,12 @@ export interface CashAsset {
   location: string;
   amount: number;
   currency: Currency;
-  documents?: Document[];
 }
 
 export interface GoldAsset {
   id: string;
   description: string;
   grams: number;
-  documents?: Document[];
 }
 
 export interface OtherAsset {
@@ -56,7 +53,6 @@ export interface OtherAsset {
   description: string;
   value: number;
   currency: Currency;
-  documents?: Document[];
 }
 
 export interface Salary {
@@ -82,7 +78,6 @@ export interface Loan {
   currency: Currency;
   monthlyPayment: number;
   finalPayment: string;
-  documents?: Document[];
 }
 
 export interface Installment {
@@ -95,7 +90,6 @@ export interface Installment {
   nextDueDate: string;
   amount: number;
   frequency: 'Annual' | 'Semi-Annual' | 'Quarterly';
-  documents?: Document[];
 }
 
 export interface Liabilities {
@@ -128,3 +122,8 @@ export interface FinancialData {
     history: HistoryEntry[];
     lastUpdated?: any;
 }
+
+export interface DocumentedItem { 
+  id: string;
+  name: string;
+};
