@@ -11,7 +11,8 @@ const firebaseConfig = {
   storageBucket: "wealthwise-03-09692965-e2a36.appspot.com",
   apiKey: "AIzaSyAW1NOjMUD3cWYDDzTImM0d4T9JxEEPLsE",
   authDomain: "wealthwise-03-09692965-e2a36.firebaseapp.com",
-  messagingSenderId: "598104639129"
+  messagingSenderId: "598104639129",
+  databaseURL: "https://wealthwise-03-09692965-e2a36-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
