@@ -8,11 +8,11 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   projectId: "wealthwise-demo-project",
   appId: "1:598104639129:web:d7a13196e6e0136feb5a08",
-  storageBucket: "wealthwise-03-09692965-e2a36.appspot.com",
+  storageBucket: "wealthwise-demo-project.appspot.com",
   apiKey: "AIzaSyAW1NOjMUD3cWYDDzTImM0d4T9JxEEPLsE",
-  authDomain: "wealthwise-03-09692965-e2a36.firebaseapp.com",
+  authDomain: "wealthwise-demo-project.firebaseapp.com",
   messagingSenderId: "598104639129",
-  databaseURL: "https://wealthwise-03-09692965-e2a36-default-rtdb.firebaseio.com"
+  databaseURL: "https://wealthwise-demo-project-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
