@@ -1,6 +1,8 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getAuth, signInAnonymously, onAuthStateChanged, type User } from "firebase/auth";
 import type { FinancialData } from './types';
 
 const firebaseConfig = {
@@ -15,22 +17,19 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const DATA_DOCUMENT_ID = 'financialData';
-const DATA_COLLECTION_ID = 'userData'; // A collection to hold user data
+const DATA_COLLECTION_ID = 'userData';
 
-// We will use a single document for this example.
-// For a multi-user app, you would use user IDs as document IDs.
-const dataDocRef = doc(db, DATA_COLLECTION_ID, DATA_DOCUMENT_ID);
-
-
-export const getFinancialDataFromFirestore = async (): Promise<FinancialData | null> => {
+export const getFinancialDataFromFirestore = async (userId: string): Promise<FinancialData | null> => {
+    if (!userId) return null;
+    const dataDocRef = doc(db, DATA_COLLECTION_ID, userId);
     try {
         const docSnap = await getDoc(dataDocRef);
         if (docSnap.exists()) {
             return docSnap.data() as FinancialData;
         } else {
-            console.log("No such document!");
+            console.log("No such document for user:", userId);
             return null;
         }
     } catch (error) {
@@ -39,10 +38,15 @@ export const getFinancialDataFromFirestore = async (): Promise<FinancialData | n
     }
 };
 
-export const saveFinancialDataToFirestore = async (data: FinancialData) => {
+export const saveFinancialDataToFirestore = async (userId: string, data: FinancialData) => {
+    if (!userId) return;
+    const dataDocRef = doc(db, DATA_COLLECTION_ID, userId);
     try {
         await setDoc(dataDocRef, data, { merge: true });
     } catch (error) {
         console.error("Error writing document: ", error);
     }
 };
+
+export { auth, signInAnonymously, onAuthStateChanged };
+export type { User };

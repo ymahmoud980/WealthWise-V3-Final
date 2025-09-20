@@ -14,16 +14,32 @@ import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChar
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   const { data, loading: dataLoading, metrics } = useFinancialData();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/signin');
+    }
+  }, [user, authLoading, router]);
   
-  if (dataLoading) {
+  if (dataLoading || authLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="ml-4 text-muted-foreground">Loading your financial data...</p>
       </div>
     )
+  }
+
+  if (!user) {
+    return null; // or a loading/redirecting screen
   }
 
   return (

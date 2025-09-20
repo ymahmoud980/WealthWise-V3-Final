@@ -7,6 +7,7 @@ import { initialFinancialData } from '@/lib/data';
 import { calculateMetrics } from '@/lib/calculations';
 import { useCurrency } from '@/hooks/use-currency';
 import { getFinancialDataFromFirestore, saveFinancialDataToFirestore } from '@/lib/firebase';
+import { useAuth } from './AuthContext';
 
 interface FinancialDataContextType {
   data: FinancialData;
@@ -20,44 +21,51 @@ const FinancialDataContext = createContext<FinancialDataContextType | undefined>
 export function FinancialDataProvider({ children }: { children: ReactNode }) {
   const [data, setDataState] = useState<FinancialData>(initialFinancialData);
   const [loading, setLoading] = useState(true);
-  const { currency } = useCurrency(); // Get the currency to calculate metrics
+  const { currency } = useCurrency();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
-        setLoading(true);
-        try {
-            let firestoreData = await getFinancialDataFromFirestore();
-            
-            if (firestoreData) {
-                 // The saved data is up-to-date or newer.
-                setDataState(firestoreData);
-            } else {
-                // No saved data, use the initial default data and save it to Firestore.
-                await saveFinancialDataToFirestore(initialFinancialData);
-                setDataState(initialFinancialData);
-            }
-        } catch (error) {
-            console.error("Error reading from Firestore:", error);
-            // Fallback to initial data if Firestore fails
-            setDataState(initialFinancialData);
-        } finally {
-            setLoading(false);
+      if (!user) {
+        setLoading(false);
+        setDataState(initialFinancialData); // Reset to initial if user logs out
+        return;
+      };
+
+      setLoading(true);
+      try {
+        let firestoreData = await getFinancialDataFromFirestore(user.uid);
+        
+        if (firestoreData) {
+          setDataState(firestoreData);
+        } else {
+          // No saved data for this user, use the initial default data and save it.
+          await saveFinancialDataToFirestore(user.uid, initialFinancialData);
+          setDataState(initialFinancialData);
         }
+      } catch (error) {
+        console.error("Error reading from Firestore:", error);
+        // Fallback to initial data if Firestore fails
+        setDataState(initialFinancialData);
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchData();
-  }, []);
+  }, [user]);
 
   const setData = useCallback((newData: FinancialData) => {
+    if (!user) return;
     try {
       const updatedData = { ...newData, lastUpdated: new Date().toISOString() };
       setDataState(updatedData);
-      saveFinancialDataToFirestore(updatedData); // Save to Firestore instead of localStorage
+      saveFinancialDataToFirestore(user.uid, updatedData);
     } catch (error) {
       console.error("Failed to save data to Firestore:", error);
     }
-  }, []);
+  }, [user]);
 
-  // Memoize the metrics calculation
   const metrics = useMemo(() => calculateMetrics(data, currency), [data, currency]);
 
   const value = useMemo(() => ({
