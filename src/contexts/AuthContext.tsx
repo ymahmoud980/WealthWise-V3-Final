@@ -48,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        // Fetch user profile from Firestore
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -70,37 +69,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (loading) return;
-
-    const isPublicRoute = publicRoutes.includes(pathname);
-
-    if (!user && !isPublicRoute) {
-      router.push('/signin');
-    }
-  }, [user, loading, pathname, router]);
-
-
   const handleSignOut = async () => {
     await firebaseSignOut();
     router.push('/signin');
   };
+  
+  const isPublicRoute = publicRoutes.includes(pathname);
   
   if (loading) {
      return (
         <div className="flex justify-center items-center h-screen bg-background">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
-     )
+     );
   }
-  
-  // Do not render children on protected routes if user is not authenticated
-  if (!user && !publicRoutes.includes(pathname)) {
+
+  if (!user && !isPublicRoute) {
+    router.push('/signin');
     return (
         <div className="flex justify-center items-center h-screen bg-background">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
      );
+  }
+  
+  if (user && isPublicRoute) {
+      router.push('/');
+      return (
+        <div className="flex justify-center items-center h-screen bg-background">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      );
   }
 
   return (
