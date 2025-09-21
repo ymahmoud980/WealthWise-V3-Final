@@ -1,7 +1,22 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, type FirebaseOptions } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged, type User, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  setDoc,
+  serverTimestamp
+} from "firebase/firestore";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  type User, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile
+} from "firebase/auth";
 import type { FinancialData } from './types';
 
 const firebaseConfig: FirebaseOptions = {
@@ -17,9 +32,9 @@ const firebaseConfig: FirebaseOptions = {
 const app = getApps().length === 0 && firebaseConfig.apiKey ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 const DATA_COLLECTION_ID = 'userData';
+const USER_COLLECTION_ID = 'users';
 
 export const getFinancialDataFromFirestore = async (userId: string): Promise<FinancialData | null> => {
     if (!userId) return null;
@@ -48,9 +63,42 @@ export const saveFinancialDataToFirestore = async (userId: string, data: Financi
     }
 };
 
-export const signInWithGoogle = () => {
-  return signInWithPopup(auth, googleProvider);
+export const signUpWithEmail = async (email: string, password: string, name: string) => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
+
+  // Update Firebase Auth profile
+  await updateProfile(user, { displayName: name });
+
+  // Create user document in Firestore
+  const userDocRef = doc(db, USER_COLLECTION_ID, user.uid);
+  await setDoc(userDocRef, {
+    name: name,
+    email: user.email,
+    role: 'user',
+    createdAt: serverTimestamp(),
+    lastLoginAt: serverTimestamp(),
+  });
+
+  return userCredential;
 };
 
-export { auth, onAuthStateChanged };
+export const signInWithEmail = async (email: string, password: string) => {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+  // Update last login timestamp
+  const userDocRef = doc(db, USER_COLLECTION_ID, userCredential.user.uid);
+  await setDoc(userDocRef, {
+    lastLoginAt: serverTimestamp(),
+  }, { merge: true });
+
+  return userCredential;
+};
+
+export const signOut = () => {
+  return firebaseSignOut(auth);
+};
+
+
+export { auth, onAuthStateChanged, db, doc, getDoc };
 export type { User };

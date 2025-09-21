@@ -19,12 +19,16 @@ import {
   Wallet,
   BrainCircuit,
   Calculator,
-  Settings,
+  LogOut,
   FileText,
   HeartPulse,
   AreaChart,
   BookOpen,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { format } from 'date-fns';
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: <LayoutDashboard /> },
@@ -41,6 +45,7 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { userProfile, signOut } = useAuth();
 
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -85,14 +90,32 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
+         {userProfile && (
+            <div className="p-2 group-data-[collapsible=icon]:hidden">
+                <div className="p-2 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                            <AvatarImage src={`https://avatar.iran.liara.run/public/boy?username=${userProfile.name}`} />
+                            <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold text-sm">{userProfile.name}</p>
+                            <p className="text-xs text-muted-foreground">{userProfile.email}</p>
+                        </div>
+                    </div>
+                     <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                        <p>Joined: {format(new Date(userProfile.createdAt), 'MMM d, yyyy')}</p>
+                        <p>Last login: {format(new Date(userProfile.lastLoginAt), 'MMM d, yyyy, p')}</p>
+                    </div>
+                </div>
+            </div>
+         )}
          <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="#">
-                <SidebarMenuButton tooltip={{ children: 'Settings' }} disabled>
-                  <Settings />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton tooltip={{ children: 'Sign Out' }} onClick={signOut}>
+                <LogOut />
+                <span>Sign Out</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>

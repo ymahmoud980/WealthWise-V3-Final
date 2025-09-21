@@ -29,17 +29,13 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router]);
   
-  if (dataLoading || authLoading) {
+  if (dataLoading || authLoading || !user) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="ml-4 text-muted-foreground">Loading your financial data...</p>
       </div>
     )
-  }
-
-  if (!user) {
-    return null; // or a loading/redirecting screen
   }
 
   return (
