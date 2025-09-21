@@ -2,19 +2,19 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   auth, 
   onAuthStateChanged, 
-  signInWithEmail, 
-  signUpWithEmail,
-  signOut,
+  signInWithEmail as firebaseSignIn, 
+  signUpWithEmail as firebaseSignUp,
+  signOut as firebaseSignOut,
   db,
   doc,
   getDoc,
   type User as FirebaseUser 
 } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export interface UserProfile {
   name: string;
@@ -35,11 +35,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const publicRoutes = ['/signin', '/signup'];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -67,8 +70,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+
+    const isPublicRoute = publicRoutes.includes(pathname);
+
+    if (!user && !isPublicRoute) {
+      router.push('/signin');
+    }
+  }, [user, loading, pathname, router]);
+
+
   const handleSignOut = async () => {
-    await signOut();
+    await firebaseSignOut();
     router.push('/signin');
   };
   
@@ -79,9 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         </div>
      )
   }
+  
+  // Do not render children on protected routes if user is not authenticated
+  if (!user && !publicRoutes.includes(pathname)) {
+    return (
+        <div className="flex justify-center items-center h-screen bg-background">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+     );
+  }
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, signInWithEmail, signUpWithEmail, signOut: handleSignOut }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, signInWithEmail: firebaseSignIn, signUpWithEmail: firebaseSignUp, signOut: handleSignOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,35 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Loader2 } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function DashboardPage() {
-  const { data, loading: dataLoading, metrics } = useFinancialData();
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/signin');
-    }
-  }, [user, authLoading, router]);
-  
-  if (dataLoading || authLoading || !user) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="ml-4 text-muted-foreground">Loading your financial data...</p>
-      </div>
-    )
-  }
+  const { data, metrics } = useFinancialData();
 
   return (
     <div 
