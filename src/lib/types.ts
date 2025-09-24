@@ -127,4 +127,5 @@ export interface UserData {
   email: string;
   role: 'user' | 'admin';
   createdAt: string;
+  lastLogin?: string;
 }

@@ -11,12 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrency } from "@/hooks/use-currency";
-import type { Currency, FinancialData, HistoryEntry, UserData } from "@/lib/types";
+import type { Currency, FinancialData, HistoryEntry } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Upload, Download, Save, LogOut } from "lucide-react";
+import { Upload, Download, Save, LogOut, UserCircle, CalendarClock } from "lucide-react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useToast } from "@/hooks/use-toast";
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
 
 const pageTitles: { [key: string]: string } = {
   "/": "Dashboard",
@@ -44,8 +45,8 @@ const pageTitles: { [key: string]: string } = {
 export function AppHeader() {
   const pathname = usePathname();
   const { currency, setCurrency } = useCurrency();
-  const { data, setData, metrics, loading } = useFinancialData();
-  const { user, userData, signOut } = useAuth();
+  const { data, setData, metrics } = useFinancialData();
+  const { user, userData, signOut, loading } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -131,6 +132,11 @@ export function AppHeader() {
     });
   };
 
+  const formatLastLogin = (dateString?: string) => {
+    if (!dateString) return "Never";
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
       <div className="md:hidden">
@@ -138,7 +144,7 @@ export function AppHeader() {
       </div>
       <h1 className="text-xl font-semibold md:text-2xl">{title}</h1>
 
-      {showHeaderContent && (
+      {showHeaderContent && user && (
         <div className="ml-auto flex items-center gap-2">
           <input
             type="file"
@@ -181,7 +187,7 @@ export function AppHeader() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-64" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{userData?.name}</p>
@@ -190,6 +196,17 @@ export function AppHeader() {
                   </p>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="p-2 text-xs text-muted-foreground space-y-2">
+                 <div className="flex items-center gap-2">
+                    <UserCircle className="h-4 w-4" />
+                    <span>Role: <span className="font-semibold capitalize">{userData?.role}</span></span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4" />
+                    <span>Last Login: <span className="font-semibold">{formatLastLogin(userData?.lastLogin)}</span></span>
+                 </div>
+              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
