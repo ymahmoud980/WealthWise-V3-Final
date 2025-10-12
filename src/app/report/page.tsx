@@ -9,10 +9,11 @@ import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
 import { generateFinancialReport } from "@/ai/flows/generate-financial-report";
+import { format as formatDate } from "date-fns";
 
 export default function ReportPage() {
   const { data, metrics } = useFinancialData();
-  const { currency } = useCurrency();
+  const { currency, rates } = useCurrency();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<string | null>(null);
@@ -25,6 +26,8 @@ export default function ReportPage() {
         financialData: data,
         metrics: metrics,
         displayCurrency: currency,
+        currentDate: formatDate(new Date(), 'yyyy-MM-dd'),
+        exchangeRates: rates,
       });
       setReport(result.report);
     } catch (error) {

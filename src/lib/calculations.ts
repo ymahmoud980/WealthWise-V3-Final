@@ -6,9 +6,9 @@ import type { FinancialData, ExchangeRates, Currency } from './types';
 
 export const rates: ExchangeRates = {
     USD: 1,
-    EGP: 48.30,
-    KWD: 0.307,
-    TRY: 32.85,
+    EGP: 153.85, // 1 / 0.0065
+    KWD: 0.31,
+    TRY: 136.98, // 1 / 0.0073
     GOLD_GRAM: 118.42 // Price per gram in USD
 };
 
@@ -16,10 +16,6 @@ export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM', to
     if (typeof amount !== 'number' || isNaN(amount)) return 0;
     if (fromCurrency === toCurrency) return amount;
     
-    // The user wants a direct conversion, but exchange rates are typically quoted against a base currency (like USD).
-    // A direct conversion rate (e.g., EGP to KWD) is calculated as (EGP_to_USD) * (USD_to_KWD).
-    // The current logic correctly implements this by converting to a common base (USD) first.
-    // Let's simplify the function signature but keep the reliable calculation method.
     const rateFrom = exchangeRates[fromCurrency];
     const rateTo = exchangeRates[toCurrency];
 

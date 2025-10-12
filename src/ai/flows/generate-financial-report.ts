@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { FinancialData } from '@/lib/types';
+import type { FinancialData, ExchangeRates } from '@/lib/types';
 import type { calculateMetrics } from '@/lib/calculations';
 
 // The input now takes the pre-calculated metrics.
@@ -19,6 +19,8 @@ export type GenerateFinancialReportInput = {
   financialData: FinancialData;
   metrics: ReturnType<typeof calculateMetrics>;
   displayCurrency: string;
+  currentDate: string;
+  exchangeRates: ExchangeRates;
 };
 
 const GenerateFinancialReportOutputSchema = z.object({
@@ -28,10 +30,14 @@ const GenerateFinancialReportOutputSchema = z.object({
 export type GenerateFinancialReportOutput = z.infer<typeof GenerateFinancialReportOutputSchema>;
 
 export async function generateFinancialReport(input: GenerateFinancialReportInput): Promise<GenerateFinancialReportOutput> {
+  const rateSummary = `1 EGP = ${(input.exchangeRates.USD / input.exchangeRates.EGP * input.exchangeRates[input.displayCurrency as keyof ExchangeRates]).toFixed(4)} ${input.displayCurrency}, 1 TRY = ${(input.exchangeRates.USD / input.exchangeRates.TRY * input.exchangeRates[input.displayCurrency as keyof ExchangeRates]).toFixed(4)} ${input.displayCurrency}, 1 USD = ${(input.exchangeRates.USD * input.exchangeRates[input.displayCurrency as keyof ExchangeRates]).toFixed(4)} ${input.displayCurrency}`;
+    
   return generateFinancialReportFlow({
     financialData: JSON.stringify(input.financialData, null, 2),
     metrics: JSON.stringify(input.metrics, null, 2),
     displayCurrency: input.displayCurrency,
+    currentDate: input.currentDate,
+    rateSummary: rateSummary,
   });
 }
 
@@ -41,7 +47,9 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateFinancialReportOutputSchema},
   prompt: `You are an expert financial analyst. Your task is to generate a comprehensive, detailed, and well-organized financial report based on the JSON data provided. The user wants a full picture of their financial situation in a clear, readable text format.
 
+The report date is: {{{currentDate}}}
 All financial figures should be presented in the user's preferred display currency: {{{displayCurrency}}}.
+The exchange rates used for conversion are: {{{rateSummary}}}
 
 Here are the user's calculated financial metrics:
 \`\`\`json
@@ -103,7 +111,7 @@ const generateFinancialReportFlow = ai.defineFlow(
     inputSchema: z.any(),
     outputSchema: GenerateFinancialReportOutputSchema,
   },
-  async (input: { financialData: string; metrics: string; displayCurrency: string }) => {
+  async (input: { financialData: string; metrics: string; displayCurrency: string, currentDate: string; rateSummary: string; }) => {
     const {output} = await prompt(input);
     return output!;
   }
