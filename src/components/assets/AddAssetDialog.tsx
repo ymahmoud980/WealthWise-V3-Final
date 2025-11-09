@@ -63,12 +63,12 @@ const cashSchema = z.object({
 });
 
 const goldSchema = z.object({
-  description: z.string().min(2, "Description is required."),
+  location: z.enum(['Egypt', 'Kuwait', 'Turkey', 'Other']),
   grams: z.coerce.number().min(1),
 });
 
 const silverSchema = z.object({
-  description: z.string().min(2, "Description is required."),
+  location: z.enum(['Egypt', 'Kuwait', 'Turkey', 'Other']),
   grams: z.coerce.number().min(1),
 });
 
@@ -117,8 +117,8 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
       realEstate: { name: "", location: "", currentValue: 0, currency: "USD", monthlyRent: 0 },
       underDevelopment: { name: "", location: "", purchasePrice: 0, currentValue: 0, currency: "USD" },
       cash: { location: "", amount: 0, currency: "USD" },
-      gold: { description: "Gold Bars", grams: 0 },
-      silver: { description: "Silver Coins", grams: 0 },
+      gold: { location: 'Egypt', grams: 0 },
+      silver: { location: 'Egypt', grams: 0 },
       other: { description: "", value: 0, currency: "USD" },
     },
   })
@@ -247,13 +247,13 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
             )}
             {assetType === 'gold' && (
                 <div className="space-y-4 p-4 border rounded-md">
-                     <FormField control={form.control} name="gold.description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Gold Bars" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="gold.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Egypt">Egypt</SelectItem><SelectItem value="Kuwait">Kuwait</SelectItem><SelectItem value="Turkey">Turkey</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="gold.grams" render={({ field }) => ( <FormItem><FormLabel>Grams</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             )}
             {assetType === 'silver' && (
                 <div className="space-y-4 p-4 border rounded-md">
-                     <FormField control={form.control} name="silver.description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Silver Coins" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField control={form.control} name="silver.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Egypt">Egypt</SelectItem><SelectItem value="Kuwait">Kuwait</SelectItem><SelectItem value="Turkey">Turkey</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="silver.grams" render={({ field }) => ( <FormItem><FormLabel>Grams</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             )}

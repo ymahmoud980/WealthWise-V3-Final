@@ -38,13 +38,13 @@ export interface CashAsset {
 
 export interface GoldAsset {
   id: string;
-  description: string;
+  location: 'Egypt' | 'Kuwait' | 'Turkey' | 'Other';
   grams: number;
 }
 
 export interface SilverAsset {
   id: string;
-  description: string;
+  location: 'Egypt' | 'Kuwait' | 'Turkey' | 'Other';
   grams: number;
 }
 

@@ -36,8 +36,8 @@ export const initialFinancialData: FinancialData = {
             { id: 'c2', location: "Kuwait", amount: 11622, currency: "KWD" },
             { id: 'c3', location: "Turkey", amount: 115924, currency: "TRY" },
         ],
-        gold: [ { id: 'g1', description: "Gold Bars", grams: 300 } ],
-        silver: [ { id: 's1', description: "Silver Coins", grams: 1000 } ],
+        gold: [ { id: 'g1', location: "Kuwait", grams: 300 } ],
+        silver: [ { id: 's1', location: "Egypt", grams: 1000 } ],
         otherAssets: [
             { id: 'oa1', description: "End of Service Allowance (KOC)", value: 82000, currency: "KWD" },
             { id: 'oa2', description: "Loan to Mahmoud (Receivable)", value: 677, currency: "KWD" }

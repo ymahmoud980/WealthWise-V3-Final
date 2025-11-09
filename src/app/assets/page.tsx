@@ -154,17 +154,17 @@ export default function AssetsPage() {
     const updatedData = JSON.parse(JSON.stringify(data));
 
     if (type === 'realEstate') {
-        updatedData.assets.realEstate = updatedData.assets.realEstate.filter((item: any) => item.id !== id);
+        updatedData.assets.realEstate = (updatedData.assets.realEstate || []).filter((item: any) => item.id !== id);
     } else if (type === 'underDevelopment') {
-        updatedData.assets.underDevelopment = updatedData.assets.underDevelopment.filter((item: any) => item.id !== id);
+        updatedData.assets.underDevelopment = (updatedData.assets.underDevelopment || []).filter((item: any) => item.id !== id);
     } else if (type === 'cash') {
-        updatedData.assets.cash = updatedData.assets.cash.filter((item: any) => item.id !== id);
+        updatedData.assets.cash = (updatedData.assets.cash || []).filter((item: any) => item.id !== id);
     } else if (type === 'gold') {
-        updatedData.assets.gold = updatedData.assets.gold.filter((item: any) => item.id !== id);
+        updatedData.assets.gold = (updatedData.assets.gold || []).filter((item: any) => item.id !== id);
     } else if (type === 'silver') {
-        updatedData.assets.silver = updatedData.assets.silver.filter((item: any) => item.id !== id);
+        updatedData.assets.silver = (updatedData.assets.silver || []).filter((item: any) => item.id !== id);
     } else if (type === 'other') {
-        updatedData.assets.otherAssets = updatedData.assets.otherAssets.filter((item: any) => item.id !== id);
+        updatedData.assets.otherAssets = (updatedData.assets.otherAssets || []).filter((item: any) => item.id !== id);
     }
 
     setData(updatedData);
@@ -334,7 +334,7 @@ export default function AssetsPage() {
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          <p className="font-bold">{g.description}</p>
+                          <p className="font-bold">Gold <span className="font-normal text-muted-foreground">- {g.location}</span></p>
                           <div className="space-y-1">
                               <label className="text-xs font-medium">Grams</label>
                               {isEditing ? (
@@ -357,7 +357,7 @@ export default function AssetsPage() {
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          <p className="font-bold">{s.description}</p>
+                          <p className="font-bold">Silver <span className="font-normal text-muted-foreground">- {s.location}</span></p>
                           <div className="space-y-1">
                               <label className="text-xs font-medium">Grams</label>
                               {isEditing ? (
