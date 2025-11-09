@@ -100,15 +100,31 @@ export default function AssetsPage() {
     const newId = `${type.substring(0,2)}${new Date().getTime()}`;
     const assetWithId = { ...newAsset, id: newId };
 
+    if (!updatedData.assets) {
+        updatedData.assets = {
+            realEstate: [],
+            underDevelopment: [],
+            cash: [],
+            gold: [],
+            otherAssets: [],
+            salary: { id: 's1', amount: 0, currency: 'USD' }
+        };
+    }
+
     if (type === 'realEstate') {
+      if (!updatedData.assets.realEstate) updatedData.assets.realEstate = [];
       updatedData.assets.realEstate.push(assetWithId as RealEstateAsset);
     } else if (type === 'underDevelopment') {
+      if (!updatedData.assets.underDevelopment) updatedData.assets.underDevelopment = [];
       updatedData.assets.underDevelopment.push(assetWithId as UnderDevelopmentAsset);
     } else if (type === 'cash') {
+      if (!updatedData.assets.cash) updatedData.assets.cash = [];
       updatedData.assets.cash.push(assetWithId as CashAsset);
     } else if (type === 'gold') {
+      if (!updatedData.assets.gold) updatedData.assets.gold = [];
       updatedData.assets.gold.push(assetWithId as GoldAsset);
     } else if (type === 'other') {
+      if (!updatedData.assets.otherAssets) updatedData.assets.otherAssets = [];
       updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
     }
 
@@ -366,5 +382,7 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
 
     
