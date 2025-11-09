@@ -1,10 +1,11 @@
 
+
 "use client"
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts"
 import { useCurrency } from "@/hooks/use-currency";
 
-const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
+const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--ring))"];
 
 interface AssetAllocationChartProps {
     assetsBreakdown: {
@@ -12,6 +13,7 @@ interface AssetAllocationChartProps {
         offPlanRealEstate: number;
         cash: number;
         gold: number;
+        silver: number;
         other: number;
     };
     totalAssets: number;
@@ -25,6 +27,7 @@ export function AssetAllocationChart({ assetsBreakdown, totalAssets }: AssetAllo
       { name: "Off-Plan Real Estate", value: assetsBreakdown.offPlanRealEstate },
       { name: "Cash", value: assetsBreakdown.cash },
       { name: "Gold", value: assetsBreakdown.gold },
+      { name: "Silver", value: assetsBreakdown.silver },
       { name: "Other", value: assetsBreakdown.other },
   ].sort((a,b) => b.value - a.value); // Sort descending
 

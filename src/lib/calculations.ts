@@ -1,4 +1,5 @@
 
+
 import type { FinancialData, ExchangeRates, Currency } from './types';
 
 // This file will hold the core calculation logic based on your Gemini Pro app.
@@ -9,10 +10,11 @@ export const rates: ExchangeRates = {
     EGP: 47.75, // Assuming 1 USD = 47.75 EGP as a base
     KWD: 0.3072, // From 155.41 EGP / 47.75 EGP per USD = 3.25 KWD per USD -> 1/3.25 = 0.307
     TRY: 41.88, // From 1.14 EGP per TRY -> 47.75 / 1.14 = 41.88
-    GOLD_GRAM: 75.50 // 1 gram of gold = 75.50 USD
+    GOLD_GRAM: 75.50, // 1 gram of gold = 75.50 USD
+    SILVER_GRAM: 0.95, // 1 gram of silver = 0.95 USD
 };
 
-export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM', toCurrency: Currency, exchangeRates: ExchangeRates): number {
+export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM' | 'SILVER_GRAM', toCurrency: Currency, exchangeRates: ExchangeRates): number {
     if (typeof amount !== 'number' || isNaN(amount)) return 0;
     if (fromCurrency === toCurrency) return amount;
     
@@ -22,8 +24,8 @@ export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM', to
     if (!rateFrom || !rateTo) return 0;
 
     // First, convert the amount to a base currency (USD)
-    const amountInUsd = fromCurrency === 'GOLD_GRAM' 
-      ? amount * rateFrom // For gold, it's a direct multiplication (grams * price_per_gram)
+    const amountInUsd = fromCurrency === 'GOLD_GRAM' || fromCurrency === 'SILVER_GRAM'
+      ? amount * rateFrom // For precious metals, it's a direct multiplication (grams * price_per_gram)
       : amount / rateFrom; // For currencies, we divide to get to the base
     
     // Then, convert from USD to the target currency
@@ -31,22 +33,24 @@ export function convert(amount: number, fromCurrency: Currency | 'GOLD_GRAM', to
 }
 
 export function calculateMetrics(data: FinancialData, displayCurrency: Currency) {
-    const convertToDisplay = (amount: number, from: Currency | 'GOLD_GRAM') => convert(amount, from, displayCurrency, rates);
+    const convertToDisplay = (amount: number, from: Currency | 'GOLD_GRAM' | 'SILVER_GRAM') => convert(amount, from, displayCurrency, rates);
 
     // --- ASSET CALCULATIONS ---
     const offPlanAssetsValue = (data.assets.underDevelopment || []).reduce((sum, p) => sum + convertToDisplay(p.currentValue, p.currency), 0);
     const existingRealEstateValue = (data.assets.realEstate || []).reduce((sum, p) => sum + convertToDisplay(p.currentValue, p.currency), 0);
     const cashValue = (data.assets.cash || []).reduce((sum, c) => sum + convertToDisplay(c.amount, c.currency), 0);
     const goldValue = (data.assets.gold || []).reduce((sum, g) => sum + convertToDisplay(g.grams, "GOLD_GRAM"), 0);
+    const silverValue = (data.assets.silver || []).reduce((sum, s) => sum + convertToDisplay(s.grams, "SILVER_GRAM"), 0);
     const otherAssetsValue = (data.assets.otherAssets || []).reduce((sum, o) => sum + convertToDisplay(o.value, o.currency), 0);
 
-    const totalAssets = existingRealEstateValue + offPlanAssetsValue + cashValue + goldValue + otherAssetsValue;
+    const totalAssets = existingRealEstateValue + offPlanAssetsValue + cashValue + goldValue + silverValue + otherAssetsValue;
     
     const assetsBreakdown = {
         existingRealEstate: existingRealEstateValue,
         offPlanRealEstate: offPlanAssetsValue,
         cash: cashValue,
         gold: goldValue,
+        silver: silverValue,
         other: otherAssetsValue
     };
 

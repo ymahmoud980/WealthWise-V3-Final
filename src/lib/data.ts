@@ -1,4 +1,5 @@
 
+
 import type { FinancialData } from './types';
 
 export const initialFinancialData: FinancialData = {
@@ -36,6 +37,7 @@ export const initialFinancialData: FinancialData = {
             { id: 'c3', location: "Turkey", amount: 115924, currency: "TRY" },
         ],
         gold: [ { id: 'g1', description: "Gold Bars", grams: 300 } ],
+        silver: [ { id: 's1', description: "Silver Coins", grams: 1000 } ],
         otherAssets: [
             { id: 'oa1', description: "End of Service Allowance (KOC)", value: 82000, currency: "KWD" },
             { id: 'oa2', description: "Loan to Mahmoud (Receivable)", value: 677, currency: "KWD" }
@@ -75,6 +77,7 @@ export const emptyFinancialData: FinancialData = {
         underDevelopment: [],
         cash: [],
         gold: [],
+        silver: [],
         otherAssets: [],
         salary: { id: 's1', amount: 0, currency: "USD" }
     },

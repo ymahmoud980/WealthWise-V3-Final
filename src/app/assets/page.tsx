@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState } from "react";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
-import type { FinancialData, RealEstateAsset, UnderDevelopmentAsset, CashAsset, GoldAsset, OtherAsset, Installment } from "@/lib/types";
+import type { FinancialData, RealEstateAsset, UnderDevelopmentAsset, CashAsset, GoldAsset, OtherAsset, Installment, SilverAsset } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
 import { Trash2 } from "lucide-react";
 import {
@@ -94,6 +95,16 @@ export default function AssetsPage() {
       setEditableData(newData);
     }
   };
+
+  const handleSilverChange = (id: string, value: string) => {
+    const numericValue = parseFloat(value) || 0;
+    const newData = { ...editableData };
+    const asset = newData.assets.silver.find(a => a.id === id);
+    if (asset) {
+      asset.grams = numericValue;
+      setEditableData(newData);
+    }
+  };
   
   const handleAddAsset = (newAsset: any, type: string) => {
     const updatedData = JSON.parse(JSON.stringify(data));
@@ -106,6 +117,7 @@ export default function AssetsPage() {
             underDevelopment: [],
             cash: [],
             gold: [],
+            silver: [],
             otherAssets: [],
             salary: { id: 's1', amount: 0, currency: 'USD' }
         };
@@ -123,6 +135,9 @@ export default function AssetsPage() {
     } else if (type === 'gold') {
       if (!updatedData.assets.gold) updatedData.assets.gold = [];
       updatedData.assets.gold.push(assetWithId as GoldAsset);
+    } else if (type === 'silver') {
+      if (!updatedData.assets.silver) updatedData.assets.silver = [];
+      updatedData.assets.silver.push(assetWithId as SilverAsset);
     } else if (type === 'other') {
       if (!updatedData.assets.otherAssets) updatedData.assets.otherAssets = [];
       updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
@@ -146,6 +161,8 @@ export default function AssetsPage() {
         updatedData.assets.cash = updatedData.assets.cash.filter((item: any) => item.id !== id);
     } else if (type === 'gold') {
         updatedData.assets.gold = updatedData.assets.gold.filter((item: any) => item.id !== id);
+    } else if (type === 'silver') {
+        updatedData.assets.silver = updatedData.assets.silver.filter((item: any) => item.id !== id);
     } else if (type === 'other') {
         updatedData.assets.otherAssets = updatedData.assets.otherAssets.filter((item: any) => item.id !== id);
     }
@@ -157,7 +174,7 @@ export default function AssetsPage() {
   const formatNumber = (num: number) => num.toLocaleString();
 
   const currentData = isEditing ? editableData : data;
-  const { realEstate, underDevelopment, cash, gold, otherAssets } = currentData.assets;
+  const { realEstate, underDevelopment, cash, gold, silver, otherAssets } = currentData.assets;
   const { installments } = currentData.liabilities;
 
   return (
@@ -333,6 +350,29 @@ export default function AssetsPage() {
                             </div>
                       </div>
                     ))}
+                    {(silver || []).map(s => (
+                      <div key={s.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
+                          {isEditing && (
+                            <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: s.id })}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <p className="font-bold">{s.description}</p>
+                          <div className="space-y-1">
+                              <label className="text-xs font-medium">Grams</label>
+                              {isEditing ? (
+                                <Input 
+                                    type="number" 
+                                    defaultValue={s.grams}
+                                    onBlur={(e) => handleSilverChange(s.id, e.target.value)}
+                                    className="h-8"
+                                />
+                              ) : (
+                                <p className="font-medium">{formatNumber(s.grams)}</p>
+                              )}
+                            </div>
+                      </div>
+                    ))}
                     {(otherAssets || []).map(o => (
                          <div key={o.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                             {isEditing && (
@@ -382,7 +422,3 @@ export default function AssetsPage() {
     </>
   )
 }
-
-    
-
-    

@@ -1,8 +1,9 @@
 
+
 export type Currency = 'EGP' | 'USD' | 'KWD' | 'TRY';
 
 export type ExchangeRates = {
-  [key in Currency | 'GOLD_GRAM']: number;
+  [key in Currency | 'GOLD_GRAM' | 'SILVER_GRAM']: number;
 };
 
 export interface RealEstateAsset {
@@ -41,6 +42,12 @@ export interface GoldAsset {
   grams: number;
 }
 
+export interface SilverAsset {
+  id: string;
+  description: string;
+  grams: number;
+}
+
 export interface OtherAsset {
   id: string;
   description: string;
@@ -59,6 +66,7 @@ export interface Assets {
   underDevelopment: UnderDevelopmentAsset[];
   cash: CashAsset[];
   gold: GoldAsset[];
+  silver: SilverAsset[];
   otherAssets: OtherAsset[];
   salary: Salary;
 }

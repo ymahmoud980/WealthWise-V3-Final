@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useForm } from "react-hook-form"
@@ -33,9 +34,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { RealEstateAsset, CashAsset, GoldAsset, OtherAsset, UnderDevelopmentAsset } from "@/lib/types"
+import type { RealEstateAsset, CashAsset, GoldAsset, OtherAsset, UnderDevelopmentAsset, SilverAsset } from "@/lib/types"
 
-type AssetType = "realEstate" | "underDevelopment" | "cash" | "gold" | "other"
+type AssetType = "realEstate" | "underDevelopment" | "cash" | "gold" | "silver" | "other"
 
 const realEstateSchema = z.object({
   name: z.string().min(2, "Name is required."),
@@ -66,6 +67,11 @@ const goldSchema = z.object({
   grams: z.coerce.number().min(1),
 });
 
+const silverSchema = z.object({
+  description: z.string().min(2, "Description is required."),
+  grams: z.coerce.number().min(1),
+});
+
 const otherSchema = z.object({
   description: z.string().min(2, "Description is required."),
   value: z.coerce.number().min(1),
@@ -73,11 +79,12 @@ const otherSchema = z.object({
 });
 
 const formSchema = z.object({
-  assetType: z.enum(["realEstate", "underDevelopment", "cash", "gold", "other"]),
+  assetType: z.enum(["realEstate", "underDevelopment", "cash", "gold", "silver", "other"]),
   realEstate: realEstateSchema.optional(),
   underDevelopment: underDevelopmentSchema.optional(),
   cash: cashSchema.optional(),
   gold: goldSchema.optional(),
+  silver: silverSchema.optional(),
   other: otherSchema.optional(),
 }).refine(data => {
     switch (data.assetType) {
@@ -85,6 +92,7 @@ const formSchema = z.object({
         case 'underDevelopment': return !!data.underDevelopment;
         case 'cash': return !!data.cash;
         case 'gold': return !!data.gold;
+        case 'silver': return !!data.silver;
         case 'other': return !!data.other;
         default: return false;
     }
@@ -110,6 +118,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
       underDevelopment: { name: "", location: "", purchasePrice: 0, currentValue: 0, currency: "USD" },
       cash: { location: "", amount: 0, currency: "USD" },
       gold: { description: "Gold Bars", grams: 0 },
+      silver: { description: "Silver Coins", grams: 0 },
       other: { description: "", value: 0, currency: "USD" },
     },
   })
@@ -157,19 +166,19 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
                     <RadioGroup
                       onValueChange={(value) => handleTypeChange(value as AssetType)}
                       defaultValue={field.value}
-                      className="grid grid-cols-2 gap-4"
+                      className="grid grid-cols-3 gap-4"
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
                           <RadioGroupItem value="realEstate" />
                         </FormControl>
-                        <FormLabel className="font-normal">Real Estate (Existing)</FormLabel>
+                        <FormLabel className="font-normal">Real Estate</FormLabel>
                       </FormItem>
                        <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
                           <RadioGroupItem value="underDevelopment" />
                         </FormControl>
-                        <FormLabel className="font-normal">Real Estate (Dev.)</FormLabel>
+                        <FormLabel className="font-normal">Under Dev.</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
@@ -185,9 +194,15 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
+                          <RadioGroupItem value="silver" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Silver</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
                           <RadioGroupItem value="other" />
                         </FormControl>
-                        <FormLabel className="font-normal">Other Asset</FormLabel>
+                        <FormLabel className="font-normal">Other</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -234,6 +249,12 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
                 <div className="space-y-4 p-4 border rounded-md">
                      <FormField control={form.control} name="gold.description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Gold Bars" {...field} /></FormControl><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="gold.grams" render={({ field }) => ( <FormItem><FormLabel>Grams</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+            )}
+            {assetType === 'silver' && (
+                <div className="space-y-4 p-4 border rounded-md">
+                     <FormField control={form.control} name="silver.description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Silver Coins" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField control={form.control} name="silver.grams" render={({ field }) => ( <FormItem><FormLabel>Grams</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             )}
             {assetType === 'other' && (
