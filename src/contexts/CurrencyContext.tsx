@@ -22,37 +22,80 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchRates = async () => {
+      let finalRates = { ...defaultRates };
+      let currencyApiError = false;
+      let goldApiError = false;
+      
+      // Fetch currency rates
       try {
-        const apiKey = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
-        if (!apiKey) {
+        const currencyApiKey = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
+        if (!currencyApiKey) {
             console.warn("Exchange rate API key not found. Using default rates.");
-            return;
-        }
-        const response = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`);
-        const data = await response.json();
-        
-        if (data.result === 'success') {
-            const newRates: ExchangeRates = {
-                ...defaultRates, // Keep GOLD/SILVER rates
-                ...data.conversion_rates
-            };
-            setRates(newRates);
+            currencyApiError = true;
         } else {
-            console.error("Failed to fetch latest exchange rates. Using default rates.");
-            toast({
-                title: "Live Rate Error",
-                description: "Could not fetch live currency rates. Using default values.",
-                variant: "destructive"
-            })
+            const response = await fetch(`https://v6.exchangerate-api.com/v6/${currencyApiKey}/latest/USD`);
+            const data = await response.json();
+            if (data.result === 'success') {
+                finalRates = { ...finalRates, ...data.conversion_rates };
+            } else {
+                console.error("Failed to fetch latest exchange rates. Using default rates.");
+                currencyApiError = true;
+            }
         }
       } catch (error) {
         console.error("Error fetching exchange rates:", error);
+        currencyApiError = true;
+      }
+
+      // Fetch Gold and Silver prices
+      try {
+        const goldApiKey = process.env.NEXT_PUBLIC_GOLD_API_KEY;
+        if(!goldApiKey) {
+            console.warn("Gold API key not found. Using fallback prices.");
+            goldApiError = true;
+        } else {
+            const goldResponse = await fetch(`https://www.goldapi.io/api/XAU/USD`, {
+                headers: { 'x-access-token': goldApiKey }
+            });
+            const goldData = await goldResponse.json();
+            if(goldData.price_gram_24k) {
+                finalRates['GOLD_GRAM'] = goldData.price_gram_24k;
+            } else {
+                 goldApiError = true;
+            }
+
+            const silverResponse = await fetch(`https://www.goldapi.io/api/XAG/USD`, {
+                headers: { 'x-access-token': goldApiKey }
+            });
+            const silverData = await silverResponse.json();
+            if(silverData.price_gram_24k) { // GoldAPI uses price_gram_24k for silver too
+                finalRates['SILVER_GRAM'] = silverData.price_gram_24k;
+            } else {
+                goldApiError = true;
+            }
+        }
+      } catch (error) {
+          console.error("Error fetching precious metal prices:", error);
+          goldApiError = true;
+      }
+      
+      setRates(finalRates);
+
+      if (currencyApiError) {
         toast({
-            title: "Live Rate Error",
+            title: "Live Currency Rate Error",
             description: "Could not fetch live currency rates. Using default values.",
             variant: "destructive"
-        })
+        });
       }
+      if (goldApiError) {
+         toast({
+            title: "Live Metal Price Error",
+            description: "Could not fetch live gold/silver prices. Using fallback values.",
+            variant: "destructive"
+        });
+      }
+
     };
     fetchRates();
   }, [toast]);
