@@ -168,7 +168,7 @@ export default function AssetsPage() {
             <div>
               <h3 className="text-xl font-semibold mb-4">Real Estate (Existing)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {realEstate.map(p => (
+                  {(realEstate || []).map(p => (
                       <div key={p.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                           {isEditing && (
                             <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'realEstate', id: p.id })}>
@@ -214,7 +214,7 @@ export default function AssetsPage() {
             <div>
               <h3 className="text-xl font-semibold mb-4">Real Estate (Under Development)</h3>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {underDevelopment.map(p => {
+                  {(underDevelopment || []).map(p => {
                     const linkedInstallment = installments.find(i => i.id === p.linkedInstallmentId);
                     const progress = linkedInstallment && !loading ? (linkedInstallment.paid / linkedInstallment.total) * 100 : 0;
                     
@@ -271,7 +271,7 @@ export default function AssetsPage() {
             <div>
                 <h3 className="text-xl font-semibold mb-4">Cash, Gold & Other Assets</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {cash.map(c => (
+                    {(cash || []).map(c => (
                         <div key={c.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                            {isEditing && (
                             <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'cash', id: c.id })}>
@@ -294,7 +294,7 @@ export default function AssetsPage() {
                            </div>
                         </div>
                     ))}
-                    {gold.map(g => (
+                    {(gold || []).map(g => (
                       <div key={g.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                           {isEditing && (
                             <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: g.id })}>
@@ -317,7 +317,7 @@ export default function AssetsPage() {
                             </div>
                       </div>
                     ))}
-                    {otherAssets.map(o => (
+                    {(otherAssets || []).map(o => (
                          <div key={o.id} className="p-4 bg-secondary rounded-lg space-y-2 group relative">
                             {isEditing && (
                               <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'other', id: o.id })}>
@@ -366,3 +366,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
