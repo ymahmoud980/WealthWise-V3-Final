@@ -67,25 +67,15 @@ export default function CashFlowPage() {
           ...newExpense,
           id: `he${new Date().getTime()}`,
         };
-        const updatedData = {
-            ...data,
-            monthlyExpenses: {
-                ...data.monthlyExpenses,
-                household: [...data.monthlyExpenses.household, fullExpense],
-            },
-        };
+        const updatedData = JSON.parse(JSON.stringify(data));
+        updatedData.monthlyExpenses.household.push(fullExpense);
         setData(updatedData);
         setIsAddExpenseDialogOpen(false);
     }
     
     const handleDeleteExpense = (id: string) => {
-        const updatedData = {
-            ...editableData,
-            monthlyExpenses: {
-                ...editableData.monthlyExpenses,
-                household: editableData.monthlyExpenses.household.filter(h => h.id !== id),
-            },
-        };
+        const updatedData = { ...editableData };
+        updatedData.monthlyExpenses.household = updatedData.monthlyExpenses.household.filter(h => h.id !== id);
         setEditableData(updatedData);
     }
 

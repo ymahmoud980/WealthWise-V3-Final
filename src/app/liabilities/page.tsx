@@ -91,13 +91,8 @@ export default function LiabilitiesPage() {
       id: `l${new Date().getTime()}`,
     };
 
-    const updatedData = {
-      ...data,
-      liabilities: {
-        ...data.liabilities,
-        loans: [...data.liabilities.loans, fullLoan],
-      },
-    };
+    const updatedData = JSON.parse(JSON.stringify(data));
+    updatedData.liabilities.loans.push(fullLoan);
     setData(updatedData);
     setIsAddLoanDialogOpen(false);
   }
@@ -107,14 +102,9 @@ export default function LiabilitiesPage() {
       ...newInstallment,
       id: `i${new Date().getTime()}`,
     };
-
-    const updatedData = {
-      ...data,
-      liabilities: {
-        ...data.liabilities,
-        installments: [...data.liabilities.installments, fullInstallment],
-      },
-    };
+    
+    const updatedData = JSON.parse(JSON.stringify(data));
+    updatedData.liabilities.installments.push(fullInstallment);
     setData(updatedData);
     setIsAddInstallmentDialogOpen(false);
   }
