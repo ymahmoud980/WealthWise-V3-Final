@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useState } from "react";
@@ -107,68 +106,61 @@ export default function AssetsPage() {
   };
   
   const handleAddAsset = (newAsset: any, type: string) => {
-    const updatedData = JSON.parse(JSON.stringify(data));
-    const newId = `${type.substring(0,2)}${new Date().getTime()}`;
-    const assetWithId = { ...newAsset, id: newId };
+    setData(prevData => {
+        const updatedData = JSON.parse(JSON.stringify(prevData));
+        const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
+        const assetWithId = { ...newAsset, id: newId };
 
-    if (!updatedData.assets) {
-        updatedData.assets = {
-            realEstate: [],
-            underDevelopment: [],
-            cash: [],
-            gold: [],
-            silver: [],
-            otherAssets: [],
-            salary: { id: 's1', amount: 0, currency: 'USD' }
-        };
-    }
+        if (type === 'realEstate') {
+            if (!updatedData.assets.realEstate) updatedData.assets.realEstate = [];
+            updatedData.assets.realEstate.push(assetWithId as RealEstateAsset);
+        } else if (type === 'underDevelopment') {
+            if (!updatedData.assets.underDevelopment) updatedData.assets.underDevelopment = [];
+            updatedData.assets.underDevelopment.push(assetWithId as UnderDevelopmentAsset);
+        } else if (type === 'cash') {
+            if (!updatedData.assets.cash) updatedData.assets.cash = [];
+            updatedData.assets.cash.push(assetWithId as CashAsset);
+        } else if (type === 'gold') {
+            if (!updatedData.assets.gold) updatedData.assets.gold = [];
+            updatedData.assets.gold.push(assetWithId as GoldAsset);
+        } else if (type === 'silver') {
+            if (!updatedData.assets.silver) updatedData.assets.silver = [];
+            updatedData.assets.silver.push(assetWithId as SilverAsset);
+        } else if (type === 'other') {
+            if (!updatedData.assets.otherAssets) updatedData.assets.otherAssets = [];
+            updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
+        }
 
-    if (type === 'realEstate') {
-      if (!updatedData.assets.realEstate) updatedData.assets.realEstate = [];
-      updatedData.assets.realEstate.push(assetWithId as RealEstateAsset);
-    } else if (type === 'underDevelopment') {
-      if (!updatedData.assets.underDevelopment) updatedData.assets.underDevelopment = [];
-      updatedData.assets.underDevelopment.push(assetWithId as UnderDevelopmentAsset);
-    } else if (type === 'cash') {
-      if (!updatedData.assets.cash) updatedData.assets.cash = [];
-      updatedData.assets.cash.push(assetWithId as CashAsset);
-    } else if (type === 'gold') {
-      if (!updatedData.assets.gold) updatedData.assets.gold = [];
-      updatedData.assets.gold.push(assetWithId as GoldAsset);
-    } else if (type === 'silver') {
-      if (!updatedData.assets.silver) updatedData.assets.silver = [];
-      updatedData.assets.silver.push(assetWithId as SilverAsset);
-    } else if (type === 'other') {
-      if (!updatedData.assets.otherAssets) updatedData.assets.otherAssets = [];
-      updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
-    }
+        return updatedData;
+    });
 
-    setData(updatedData);
     setIsAddAssetDialogOpen(false);
-  };
+};
 
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
-  
-    const { type, id } = deleteTarget;
+
+    setData(prevData => {
+      const updatedData = JSON.parse(JSON.stringify(prevData));
+      const { type, id } = deleteTarget;
     
-    const updatedData = JSON.parse(JSON.stringify(data));
+      if (type === 'realEstate') {
+          updatedData.assets.realEstate = (updatedData.assets.realEstate || []).filter((item: any) => item.id !== id);
+      } else if (type === 'underDevelopment') {
+          updatedData.assets.underDevelopment = (updatedData.assets.underDevelopment || []).filter((item: any) => item.id !== id);
+      } else if (type === 'cash') {
+          updatedData.assets.cash = (updatedData.assets.cash || []).filter((item: any) => item.id !== id);
+      } else if (type === 'gold') {
+          updatedData.assets.gold = (updatedData.assets.gold || []).filter((item: any) => item.id !== id);
+      } else if (type === 'silver') {
+          updatedData.assets.silver = (updatedData.assets.silver || []).filter((item: any) => item.id !== id);
+      } else if (type === 'other') {
+          updatedData.assets.otherAssets = (updatedData.assets.otherAssets || []).filter((item: any) => item.id !== id);
+      }
+
+      return updatedData;
+    });
   
-    if (type === 'realEstate') {
-        updatedData.assets.realEstate = (updatedData.assets.realEstate || []).filter((item: any) => item.id !== id);
-    } else if (type === 'underDevelopment') {
-        updatedData.assets.underDevelopment = (updatedData.assets.underDevelopment || []).filter((item: any) => item.id !== id);
-    } else if (type === 'cash') {
-        updatedData.assets.cash = (updatedData.assets.cash || []).filter((item: any) => item.id !== id);
-    } else if (type === 'gold') {
-        updatedData.assets.gold = (updatedData.assets.gold || []).filter((item: any) => item.id !== id);
-    } else if (type === 'silver') {
-        updatedData.assets.silver = (updatedData.assets.silver || []).filter((item: any) => item.id !== id);
-    } else if (type === 'other') {
-        updatedData.assets.otherAssets = (updatedData.assets.otherAssets || []).filter((item: any) => item.id !== id);
-    }
-  
-    setData(updatedData);
     setDeleteTarget(null);
   };
 
@@ -423,3 +415,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
