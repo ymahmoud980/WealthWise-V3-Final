@@ -110,7 +110,7 @@ export default function AssetsPage() {
     const assetWithId = { ...newAsset, id: newId };
     
     // Create a new data object to ensure state updates correctly
-    const updatedData = JSON.parse(JSON.stringify(data));
+    const updatedData = JSON.parse(JSON.stringify(isEditing ? editableData : data));
 
     if (type === 'realEstate') {
         if (!updatedData.assets.realEstate) updatedData.assets.realEstate = [];
@@ -132,6 +132,9 @@ export default function AssetsPage() {
         updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
     }
     setData(updatedData);
+    if(isEditing) {
+        setEditableData(updatedData);
+    }
     setIsAddAssetDialogOpen(false);
   };
 
@@ -139,8 +142,8 @@ export default function AssetsPage() {
     if (!deleteTarget) return;
     const { type, id } = deleteTarget;
 
-    // Create a new data object to ensure state updates correctly
-    const updatedData = JSON.parse(JSON.stringify(data));
+    const baseData = isEditing ? editableData : data;
+    const updatedData = JSON.parse(JSON.stringify(baseData));
   
     if (type === 'realEstate') {
       updatedData.assets.realEstate = (updatedData.assets.realEstate || []).filter((item: RealEstateAsset) => item.id !== id);
@@ -157,6 +160,9 @@ export default function AssetsPage() {
     }
     
     setData(updatedData);
+    if(isEditing) {
+        setEditableData(updatedData);
+    }
     setDeleteTarget(null);
   };
 
@@ -411,3 +417,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
