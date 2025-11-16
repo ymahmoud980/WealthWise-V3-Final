@@ -1,6 +1,9 @@
 
 import type { FinancialData, ExchangeRates, Currency } from './types';
 
+// Constants for conversion
+const GRAMS_PER_TROY_OUNCE = 31.1035;
+
 export function convert(amount: number, from: Currency | 'GOLD_GRAM' | 'SILVER_GRAM', to: Currency, exchangeRates: ExchangeRates): number {
     if (typeof amount !== 'number' || isNaN(amount) || amount === 0) return 0;
 
@@ -9,8 +12,8 @@ export function convert(amount: number, from: Currency | 'GOLD_GRAM' | 'SILVER_G
     // --- Step 1: Convert the input amount to a standard USD value ---
     if (from === 'GOLD_GRAM' || from === 'SILVER_GRAM') {
         // This is for a commodity (gold/silver).
-        // The 'amount' is in grams. We need to multiply by the price per gram.
-        const pricePerGramInUsd = exchangeRates[from]; // This is pre-calculated in the context.
+        // The 'amount' is in grams. We need to multiply by the price per gram in USD.
+        const pricePerGramInUsd = exchangeRates[from];
         if (!pricePerGramInUsd) return 0;
         amountInUsd = amount * pricePerGramInUsd;
     } else {
@@ -25,6 +28,7 @@ export function convert(amount: number, from: Currency | 'GOLD_GRAM' | 'SILVER_G
     const rateTo = exchangeRates[to as Currency];
     if (!rateTo) return 0;
     
+    // This was the critical bug. It should multiply, not divide.
     return amountInUsd * rateTo;
 }
 
