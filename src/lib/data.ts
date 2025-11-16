@@ -1,5 +1,4 @@
 
-
 import type { FinancialData } from './types';
 
 export const initialFinancialData: FinancialData = {
@@ -32,12 +31,18 @@ export const initialFinancialData: FinancialData = {
             { id: 'ud6', name: 'Dejoya Primero (S1/S-24)', location: 'New Capital', purchasePrice: 7875000, currentValue: 11812500, currency: 'EGP', linkedInstallmentId: 'i6' },
         ],
         cash: [
-            { id: 'c1', location: "Egypt", amount: 2323596, currency: "EGP" },
+            { id: 'c1', location: "Egypt", amount: 1000000, currency: "USD" },
             { id: 'c2', location: "Kuwait", amount: 11622, currency: "KWD" },
             { id: 'c3', location: "Turkey", amount: 115924, currency: "TRY" },
         ],
-        gold: [ { id: 'g1', location: "Kuwait", grams: 300 } ],
-        silver: [ { id: 's1', location: "Egypt", grams: 1000 } ],
+        gold: [ 
+            { id: 'g1', location: "Egypt", grams: 450 },
+            { id: 'g2', location: "Kuwait", grams: 1050 },
+            { id: 'g3', location: "Turkey", grams: 92 },
+        ],
+        silver: [ 
+            { id: 's1', location: "Egypt", grams: 1000 } 
+        ],
         otherAssets: [
             { id: 'oa1', description: "End of Service Allowance (KOC)", value: 82000, currency: "KWD" },
             { id: 'oa2', description: "Loan to Mahmoud (Receivable)", value: 677, currency: "KWD" }
@@ -67,7 +72,7 @@ export const initialFinancialData: FinancialData = {
         ]
     },
     history: [],
-    lastUpdated: "2024-08-02T12:00:00.000Z"
+    lastUpdated: "2025-11-01T12:00:00.000Z"
 };
 
 
@@ -91,3 +96,4 @@ export const emptyFinancialData: FinancialData = {
     history: [],
     lastUpdated: new Date().toISOString()
 };
+
