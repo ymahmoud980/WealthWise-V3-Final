@@ -11,8 +11,8 @@ export function PriceControlCard() {
     const { 
         goldPricePerOunce, 
         setGoldPricePerOunce,
-        silverPricePerKg,
-        setSilverPricePerKg
+        silverPricePerOunce,
+        setSilverPricePerOunce
     } = useCurrency();
 
     return (
@@ -38,14 +38,14 @@ export function PriceControlCard() {
                 <div className="space-y-2">
                     <Label htmlFor="silver-price" className="flex items-center gap-2 text-sm">
                         <Scale className="h-4 w-4 text-slate-400" />
-                        <span>Silver Price (USD per Kilogram)</span>
+                        <span>Silver Price (USD per Ounce)</span>
                     </Label>
                     <Input
                         id="silver-price"
                         type="number"
-                        value={silverPricePerKg}
-                        onChange={(e) => setSilverPricePerKg(parseFloat(e.target.value) || 0)}
-                        placeholder="e.g., 945"
+                        value={silverPricePerOunce}
+                        onChange={(e) => setSilverPricePerOunce(parseFloat(e.target.value) || 0)}
+                        placeholder="e.g., 30"
                     />
                 </div>
             </CardContent>
