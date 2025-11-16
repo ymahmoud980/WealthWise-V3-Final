@@ -6,27 +6,37 @@ import type { Currency, ExchangeRates } from '@/lib/types';
 import { rates as defaultRates } from '@/lib/calculations';
 import { useToast } from '@/hooks/use-toast';
 
+// Constants for conversion
+const GRAMS_PER_TROY_OUNCE = 31.1035;
+const GRAMS_PER_KILOGRAM = 1000;
+
 interface CurrencyContextType {
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   rates: ExchangeRates;
   format: (value: number) => string;
+  goldPricePerOunce: number;
+  setGoldPricePerOunce: (price: number) => void;
+  silverPricePerKg: number;
+  setSilverPricePerKg: (price: number) => void;
 }
 
 export const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('USD');
-  const [rates, setRates] = useState<ExchangeRates>(defaultRates);
+  const [currencyRates, setCurrencyRates] = useState<ExchangeRates>(defaultRates);
   const { toast } = useToast();
 
+  // State for user-defined metal prices
+  const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(2330); // Default based on fallback
+  const [silverPricePerKg, setSilverPricePerKg] = useState<number>(945); // Default based on fallback
+
   useEffect(() => {
-    const fetchRates = async () => {
+    const fetchCurrencyRates = async () => {
       let finalRates = { ...defaultRates };
       let currencyApiError = false;
-      let goldApiError = false;
       
-      // Fetch currency rates
       try {
         const currencyApiKey = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
         if (!currencyApiKey) {
@@ -36,6 +46,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
             const response = await fetch(`https://v6.exchangerate-api.com/v6/${currencyApiKey}/latest/USD`);
             const data = await response.json();
             if (data.result === 'success') {
+                // Only update currency rates, leave metal rates to be calculated
                 finalRates = { ...finalRates, ...data.conversion_rates };
             } else {
                 console.error("Failed to fetch latest exchange rates. Using default rates.");
@@ -46,30 +57,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         console.error("Error fetching exchange rates:", error);
         currencyApiError = true;
       }
-
-      // Fetch Gold and Silver prices from a public API
-      try {
-        const metalResponse = await fetch(`https://www.goldapi.io/api/XAU/USD`);
-        const goldData = await metalResponse.json();
-        if (goldData && goldData.price) {
-            finalRates['GOLD_GRAM'] = goldData.price_gram_24k;
-        } else {
-            goldApiError = true;
-        }
-
-        const silverResponse = await fetch(`https://www.goldapi.io/api/XAG/USD`);
-        const silverData = await silverResponse.json();
-        if (silverData && silverData.price) {
-            finalRates['SILVER_GRAM'] = silverData.price_gram_24k;
-        } else {
-            goldApiError = true;
-        }
-      } catch (error) {
-          console.error("Error fetching precious metal prices:", error);
-          goldApiError = true;
-      }
       
-      setRates(finalRates);
+      setCurrencyRates(prev => ({ ...prev, ...finalRates }));
 
       if (currencyApiError) {
         toast({
@@ -78,17 +67,18 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
             variant: "destructive"
         });
       }
-      if (goldApiError) {
-         toast({
-            title: "Live Metal Price Error",
-            description: "Could not fetch live gold/silver prices. Using fallback values.",
-            variant: "destructive"
-        });
-      }
-
     };
-    fetchRates();
+    fetchCurrencyRates();
   }, [toast]);
+
+  // Combined rates object derived from currency rates and manual metal prices
+  const combinedRates = useMemo(() => {
+    return {
+      ...currencyRates,
+      GOLD_GRAM: goldPricePerOunce / GRAMS_PER_TROY_OUNCE,
+      SILVER_GRAM: silverPricePerKg / GRAMS_PER_KILOGRAM,
+    }
+  }, [currencyRates, goldPricePerOunce, silverPricePerKg]);
 
 
   const format = (value: number) => {
@@ -103,9 +93,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     currency,
     setCurrency,
-    rates,
+    rates: combinedRates,
     format,
-  }), [currency, rates, format]);
+    goldPricePerOunce,
+    setGoldPricePerOunce,
+    silverPricePerKg,
+    setSilverPricePerKg,
+  }), [currency, combinedRates, format, goldPricePerOunce, silverPricePerKg]);
 
   return (
     <CurrencyContext.Provider value={value}>

@@ -27,6 +27,7 @@ import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { emptyFinancialData } from "@/lib/data";
+import { PriceControlCard } from "@/components/dashboard/PriceControlCard";
 
 
 export default function DashboardPage() {
@@ -50,9 +51,10 @@ export default function DashboardPage() {
         <StatCard title="Avg. Net Cash Flow" value={metrics.netCashFlow} icon={<ArrowRightLeft className="text-blue-500" />} isCurrency={true} />
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-3">
           <UpcomingPayments />
           <UpcomingRents rents={data.assets.realEstate} />
+          <PriceControlCard />
       </div>
 
        <Card>
