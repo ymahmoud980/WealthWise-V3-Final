@@ -72,7 +72,7 @@ export const initialFinancialData: FinancialData = {
         ]
     },
     history: [],
-    lastUpdated: "2025-11-01T12:00:00.000Z"
+    lastUpdated: "2025-07-28T12:00:00.000Z"
 };
 
 
@@ -97,4 +97,5 @@ export const emptyFinancialData: FinancialData = {
     lastUpdated: new Date().toISOString()
 };
 
+    
     
