@@ -24,9 +24,32 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('USD');
   const [currencyRates] = useState<Omit<ExchangeRates, 'GOLD_GRAM' | 'SILVER_GRAM'>>({ USD: 1, EGP: 47.75, KWD: 0.3072, TRY: 41.88 });
 
-  // State for user-defined metal prices
-  const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(2330);
-  const [silverPricePerOunce, setSilverPricePerOunce] = useState<number>(30);
+  // State for user-defined metal prices, initialized from localStorage or defaults.
+  const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+        const savedGoldPrice = localStorage.getItem('goldPricePerOunce');
+        return savedGoldPrice ? parseFloat(savedGoldPrice) : 4080;
+    }
+    return 4080;
+  });
+  const [silverPricePerOunce, setSilverPricePerOunce] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+        const savedSilverPrice = localStorage.getItem('silverPricePerOunce');
+        return savedSilverPrice ? parseFloat(savedSilverPrice) : 50;
+    }
+    return 50;
+  });
+
+  // Effect to save gold price to localStorage whenever it changes.
+  useEffect(() => {
+    localStorage.setItem('goldPricePerOunce', goldPricePerOunce.toString());
+  }, [goldPricePerOunce]);
+  
+  // Effect to save silver price to localStorage whenever it changes.
+  useEffect(() => {
+    localStorage.setItem('silverPricePerOunce', silverPricePerOunce.toString());
+  }, [silverPricePerOunce]);
+
 
   // Combined rates object derived from currency rates and manual metal prices
   const combinedRates = useMemo(() => {
