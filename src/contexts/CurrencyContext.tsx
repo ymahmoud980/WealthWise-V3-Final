@@ -49,21 +49,20 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
       // Fetch Gold and Silver prices from a public API
       try {
-        const metalResponse = await fetch(`https://api.metals.live/v1/spot`);
-        const metalData = await metalResponse.json();
-        
-        const goldItem = metalData.find((metal: any) => metal.metal === 'gold');
-        const silverItem = metalData.find((metal: any) => metal.metal === 'silver');
-
-        if (goldItem) {
-          finalRates['GOLD_GRAM'] = goldItem.price / 31.1035; // Convert from Troy Oz to Gram
+        const metalResponse = await fetch(`https://www.goldapi.io/api/XAU/USD`);
+        const goldData = await metalResponse.json();
+        if (goldData && goldData.price) {
+            finalRates['GOLD_GRAM'] = goldData.price_gram_24k;
         } else {
-          goldApiError = true;
+            goldApiError = true;
         }
-        if (silverItem) {
-          finalRates['SILVER_GRAM'] = silverItem.price / 31.1035; // Convert from Troy Oz to Gram
+
+        const silverResponse = await fetch(`https://www.goldapi.io/api/XAG/USD`);
+        const silverData = await silverResponse.json();
+        if (silverData && silverData.price) {
+            finalRates['SILVER_GRAM'] = silverData.price_gram_24k;
         } else {
-          goldApiError = true;
+            goldApiError = true;
         }
       } catch (error) {
           console.error("Error fetching precious metal prices:", error);
