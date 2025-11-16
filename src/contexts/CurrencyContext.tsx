@@ -33,8 +33,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const combinedRates = useMemo(() => {
     return {
       ...currencyRates,
-      GOLD_GRAM: goldPricePerOunce / GRAMS_PER_TROY_OUNCE,
-      SILVER_GRAM: silverPricePerOunce / GRAMS_PER_TROY_OUNCE,
+      GOLD: goldPricePerOunce / GRAMS_PER_TROY_OUNCE,
+      SILVER: silverPricePerOunce / GRAMS_PER_TROY_OUNCE,
     }
   }, [currencyRates, goldPricePerOunce, silverPricePerOunce]);
 

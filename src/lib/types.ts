@@ -2,7 +2,7 @@
 export type Currency = 'EGP' | 'USD' | 'KWD' | 'TRY' | string;
 
 export type ExchangeRates = {
-  [key in Currency | 'GOLD_GRAM' | 'SILVER_GRAM']: number;
+  [key in Currency | 'GOLD' | 'SILVER']: number;
 };
 
 export interface RealEstateAsset {
