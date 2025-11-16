@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect } from "react";
@@ -75,36 +76,43 @@ export default function AssetsPage() {
   };
 
   const handleAddAsset = (newAsset: any, type: string) => {
-    const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
-    const assetWithId = { ...newAsset, id: newId };
-    
-    // Create a deep copy of the *current global data* to modify.
     const updatedData = JSON.parse(JSON.stringify(data));
 
-    const assetKeyMap: { [key: string]: keyof FinancialData['assets'] } = {
-        realEstate: 'realEstate',
-        underDevelopment: 'underDevelopment',
-        cash: 'cash',
-        gold: 'gold',
-        silver: 'silver',
-        other: 'otherAssets',
-    };
+    if (type === 'gold' || type === 'silver') {
+        const assetKey = type === 'gold' ? 'gold' : 'silver';
+        const existingAsset = updatedData.assets[assetKey].find((a: GoldAsset | SilverAsset) => a.location === newAsset.location);
 
-    const assetKey = assetKeyMap[type];
-
-    if (assetKey) {
-        if (!updatedData.assets[assetKey]) {
-            (updatedData.assets as any)[assetKey] = [];
+        if (existingAsset) {
+            existingAsset.grams += newAsset.grams;
+        } else {
+            const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
+            const assetWithId = { ...newAsset, id: newId };
+            updatedData.assets[assetKey].push(assetWithId);
         }
-        (updatedData.assets[assetKey] as any[]).push(assetWithId);
+    } else {
+        const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
+        const assetWithId = { ...newAsset, id: newId };
         
-        // Immediately update the global state. This makes the change visible everywhere.
-        setData(updatedData);
+        const assetKeyMap: { [key: string]: keyof FinancialData['assets'] } = {
+            realEstate: 'realEstate',
+            underDevelopment: 'underDevelopment',
+            cash: 'cash',
+            other: 'otherAssets',
+        };
 
-        // If in editing mode, also update the local editable state to keep it in sync.
-        if (isEditing) {
-            setEditableData(updatedData);
+        const assetKey = assetKeyMap[type];
+        if (assetKey) {
+            if (!updatedData.assets[assetKey]) {
+                (updatedData.assets as any)[assetKey] = [];
+            }
+            (updatedData.assets[assetKey] as any[]).push(assetWithId);
         }
+    }
+
+    setData(updatedData);
+
+    if (isEditing) {
+        setEditableData(updatedData);
     }
     
     setIsAddAssetDialogOpen(false);
@@ -398,5 +406,7 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
 
     
