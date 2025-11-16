@@ -1,35 +1,22 @@
 
 import type { FinancialData, ExchangeRates, Currency } from './types';
 
-// This file will hold the core calculation logic based on your Gemini Pro app.
-// We are moving the logic here to keep components clean.
-
-// Default rates are used as a fallback or for non-currency items.
-export const rates: ExchangeRates = {
-    USD: 1,
-    EGP: 47.75, 
-    KWD: 0.3072,
-    TRY: 41.88,
-    GOLD: 75, // Fallback price per gram
-    SILVER: 0.96, // Fallback price per gram
-};
-
 export function convert(amount: number, fromCurrency: Currency | 'GOLD' | 'SILVER', toCurrency: Currency, exchangeRates: ExchangeRates): number {
     if (typeof amount !== 'number' || isNaN(amount)) return 0;
     
     let amountInUsd: number;
 
-    // For precious metals, we calculate their total value in USD first.
+    // For precious metals, we calculate their total value in USD first by multiplying.
     if (fromCurrency === 'GOLD' || fromCurrency === 'SILVER') {
         const pricePerGramInUsd = exchangeRates[fromCurrency];
         if (!pricePerGramInUsd) return 0;
         amountInUsd = amount * pricePerGramInUsd;
     } else {
-        // For regular currency conversions, convert to base currency (USD)
+        // For regular currency conversions, convert to base currency (USD) by dividing.
         if (fromCurrency === 'USD') {
             amountInUsd = amount;
         } else {
-            const rateFrom = exchangeRates[fromCurrency];
+            const rateFrom = exchangeRates[fromCurrency as Currency];
             if (!rateFrom) return 0;
             amountInUsd = amount / rateFrom;
         }
@@ -40,11 +27,12 @@ export function convert(amount: number, fromCurrency: Currency | 'GOLD' | 'SILVE
         return amountInUsd;
     }
 
-    const rateTo = exchangeRates[toCurrency];
+    const rateTo = exchangeRates[toCurrency as Currency];
     if (!rateTo) return 0;
     
     return amountInUsd * rateTo;
 }
+
 
 export function calculateMetrics(data: FinancialData, displayCurrency: Currency, liveRates: ExchangeRates) {
     const convertToDisplay = (amount: number, from: Currency | 'GOLD' | 'SILVER') => convert(amount, from, displayCurrency, liveRates);
@@ -81,7 +69,9 @@ export function calculateMetrics(data: FinancialData, displayCurrency: Currency,
     // --- CASH FLOW CALCULATIONS ---
     const salaryIncome = data.assets.salary ? convertToDisplay(data.assets.salary.amount, data.assets.salary.currency) : 0;
     const rentIncome = (data.assets.realEstate || []).reduce((sum, p) => {
+        if (!p.monthlyRent || p.monthlyRent <= 0) return sum;
         const rentInDisplayCurrency = convertToDisplay(p.monthlyRent, p.rentCurrency || p.currency);
+        
         if (p.rentFrequency === 'semi-annual') {
             return sum + (rentInDisplayCurrency / 6);
         }

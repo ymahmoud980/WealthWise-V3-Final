@@ -22,19 +22,22 @@ export const CurrencyContext = createContext<CurrencyContextType | undefined>(un
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('USD');
-  const [currencyRates, setCurrencyRates] = useState<ExchangeRates>({ USD: 1, EGP: 47.75, KWD: 0.3072, TRY: 41.88 });
+  const [currencyRates] = useState<Omit<ExchangeRates, 'GOLD' | 'SILVER'>>({ USD: 1, EGP: 47.75, KWD: 0.3072, TRY: 41.88 });
 
   // State for user-defined metal prices
-  const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(2330); // Default based on fallback
-  const [silverPricePerOunce, setSilverPricePerOunce] = useState<number>(30); // Default price per ounce
+  const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(2330);
+  const [silverPricePerOunce, setSilverPricePerOunce] = useState<number>(30);
 
   // Combined rates object derived from currency rates and manual metal prices
   const combinedRates = useMemo(() => {
+    const goldPricePerGram = goldPricePerOunce / GRAMS_PER_TROY_OUNCE;
+    const silverPricePerGram = silverPricePerOunce / GRAMS_PER_TROY_OUNCE;
+    
     return {
       ...currencyRates,
-      GOLD: goldPricePerOunce / GRAMS_PER_TROY_OUNCE,
-      SILVER: silverPricePerOunce / GRAMS_PER_TROY_OUNCE,
-    }
+      GOLD: goldPricePerGram,
+      SILVER: silverPricePerGram,
+    } as ExchangeRates;
   }, [currencyRates, goldPricePerOunce, silverPricePerOunce]);
 
 
