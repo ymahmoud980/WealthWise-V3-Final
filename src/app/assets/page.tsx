@@ -1,9 +1,8 @@
 
-
 "use client"
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
@@ -166,15 +165,17 @@ export default function AssetsPage() {
     type: string;
     colorClass: string;
     handleItemChange: (id: string, field: any, value: string | number) => void;
-  }) => (
-    <Card className={`overflow-hidden ${colorClass}`}>
+  }) => {
+    const total = items.reduce((acc, item) => acc + (Number(item[valueKey]) || 0), 0);
+    return (
+    <Card className={`overflow-hidden ${colorClass} flex flex-col`}>
       <CardHeader className="p-4 bg-background/50">
         <CardTitle className="flex items-center gap-2 text-base">
           {icon}
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 text-sm space-y-3">
+      <CardContent className="p-4 text-sm space-y-3 flex-grow">
         {items.map(item => (
           <div key={item.id} className="group relative bg-background/50 p-3 rounded-md">
             {isEditing && (
@@ -199,8 +200,17 @@ export default function AssetsPage() {
           </div>
         ))}
       </CardContent>
+      {(type === 'gold' || type === 'silver') && (
+        <CardFooter className="p-4 bg-background/50 mt-auto">
+            <div className="flex justify-between items-center w-full">
+                <p className="font-semibold text-sm">Total Grams</p>
+                <p className="font-bold text-lg">{formatNumber(total)}</p>
+            </div>
+        </CardFooter>
+      )}
     </Card>
-  );
+    )
+  };
 
   return (
     <>
@@ -397,3 +407,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
