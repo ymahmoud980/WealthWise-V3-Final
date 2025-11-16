@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -25,13 +25,16 @@ import { Progress } from "@/components/ui/progress";
 export default function AssetsPage() {
   const { data, setData, loading } = useFinancialData();
   const [isEditing, setIsEditing] = useState(false);
-  const [editableData, setEditableData] = useState<FinancialData>(JSON.parse(JSON.stringify(data)));
+  const [editableData, setEditableData] = useState<FinancialData>(data);
   const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
 
+  useEffect(() => {
+    setEditableData(JSON.parse(JSON.stringify(data)));
+  }, [data, isEditing]);
+
 
   const handleEditClick = () => {
-    setEditableData(JSON.parse(JSON.stringify(data)));
     setIsEditing(true);
   };
 
@@ -47,8 +50,8 @@ export default function AssetsPage() {
 
   const handleRealEstateChange = (id: string, key: 'currentValue' | 'monthlyRent', value: string) => {
     const numericValue = parseFloat(value) || 0;
-    const newData = { ...editableData };
-    const asset = newData.assets.realEstate.find(a => a.id === id);
+    const newData = JSON.parse(JSON.stringify(editableData));
+    const asset = newData.assets.realEstate.find((a: RealEstateAsset) => a.id === id);
     if (asset) {
       asset[key] = numericValue;
       setEditableData(newData);
@@ -57,8 +60,8 @@ export default function AssetsPage() {
   
   const handleUnderDevelopmentChange = (id: string, key: 'currentValue' | 'purchasePrice', value: string) => {
     const numericValue = parseFloat(value) || 0;
-    const newData = { ...editableData };
-    const asset = newData.assets.underDevelopment.find(a => a.id === id);
+    const newData = JSON.parse(JSON.stringify(editableData));
+    const asset = newData.assets.underDevelopment.find((a: UnderDevelopmentAsset) => a.id === id);
     if (asset) {
       asset[key] = numericValue;
       setEditableData(newData);
@@ -67,8 +70,8 @@ export default function AssetsPage() {
 
   const handleOtherAssetChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
-    const newData = { ...editableData };
-    const asset = newData.assets.otherAssets.find(a => a.id === id);
+    const newData = JSON.parse(JSON.stringify(editableData));
+    const asset = newData.assets.otherAssets.find((a: OtherAsset) => a.id === id);
     if (asset) {
       asset.value = numericValue;
       setEditableData(newData);
@@ -77,8 +80,8 @@ export default function AssetsPage() {
   
   const handleCashChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
-    const newData = { ...editableData };
-    const asset = newData.assets.cash.find(a => a.id === id);
+    const newData = JSON.parse(JSON.stringify(editableData));
+    const asset = newData.assets.cash.find((a: CashAsset) => a.id === id);
     if (asset) {
       asset.amount = numericValue;
       setEditableData(newData);
@@ -87,8 +90,8 @@ export default function AssetsPage() {
 
   const handleGoldChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
-    const newData = { ...editableData };
-    const asset = newData.assets.gold.find(a => a.id === id);
+    const newData = JSON.parse(JSON.stringify(editableData));
+    const asset = newData.assets.gold.find((a: GoldAsset) => a.id === id);
     if (asset) {
       asset.grams = numericValue;
       setEditableData(newData);
@@ -97,44 +100,41 @@ export default function AssetsPage() {
 
   const handleSilverChange = (id: string, value: string) => {
     const numericValue = parseFloat(value) || 0;
-    const newData = { ...editableData };
-    const asset = newData.assets.silver.find(a => a.id === id);
+    const newData = JSON.parse(JSON.stringify(editableData));
+    const asset = newData.assets.silver.find((a: SilverAsset) => a.id === id);
     if (asset) {
       asset.grams = numericValue;
       setEditableData(newData);
     }
   };
   
-  const handleAddAsset = (newAsset: any, type: string) => {
+ const handleAddAsset = (newAsset: any, type: string) => {
     const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
     const assetWithId = { ...newAsset, id: newId };
     
-    // Create a new data object to ensure state updates correctly
-    const updatedData = JSON.parse(JSON.stringify(isEditing ? editableData : data));
-
-    if (type === 'realEstate') {
-        if (!updatedData.assets.realEstate) updatedData.assets.realEstate = [];
-        updatedData.assets.realEstate.push(assetWithId as RealEstateAsset);
-    } else if (type === 'underDevelopment') {
-        if (!updatedData.assets.underDevelopment) updatedData.assets.underDevelopment = [];
-        updatedData.assets.underDevelopment.push(assetWithId as UnderDevelopmentAsset);
-    } else if (type === 'cash') {
-        if (!updatedData.assets.cash) updatedData.assets.cash = [];
-        updatedData.assets.cash.push(assetWithId as CashAsset);
-    } else if (type === 'gold') {
-        if (!updatedData.assets.gold) updatedData.assets.gold = [];
-        updatedData.assets.gold.push(assetWithId as GoldAsset);
-    } else if (type === 'silver') {
-        if (!updatedData.assets.silver) updatedData.assets.silver = [];
-        updatedData.assets.silver.push(assetWithId as SilverAsset);
-    } else if (type === 'other') {
-        if (!updatedData.assets.otherAssets) updatedData.assets.otherAssets = [];
-        updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
-    }
-    setData(updatedData);
-    if(isEditing) {
-        setEditableData(updatedData);
-    }
+    setData(prevData => {
+        const updatedData = JSON.parse(JSON.stringify(prevData));
+        if (type === 'realEstate') {
+            if (!updatedData.assets.realEstate) updatedData.assets.realEstate = [];
+            updatedData.assets.realEstate.push(assetWithId as RealEstateAsset);
+        } else if (type === 'underDevelopment') {
+            if (!updatedData.assets.underDevelopment) updatedData.assets.underDevelopment = [];
+            updatedData.assets.underDevelopment.push(assetWithId as UnderDevelopmentAsset);
+        } else if (type === 'cash') {
+            if (!updatedData.assets.cash) updatedData.assets.cash = [];
+            updatedData.assets.cash.push(assetWithId as CashAsset);
+        } else if (type === 'gold') {
+            if (!updatedData.assets.gold) updatedData.assets.gold = [];
+            updatedData.assets.gold.push(assetWithId as GoldAsset);
+        } else if (type === 'silver') {
+            if (!updatedData.assets.silver) updatedData.assets.silver = [];
+            updatedData.assets.silver.push(assetWithId as SilverAsset);
+        } else if (type === 'other') {
+            if (!updatedData.assets.otherAssets) updatedData.assets.otherAssets = [];
+            updatedData.assets.otherAssets.push(assetWithId as OtherAsset);
+        }
+        return updatedData;
+    });
     setIsAddAssetDialogOpen(false);
   };
 
@@ -142,29 +142,29 @@ export default function AssetsPage() {
     if (!deleteTarget) return;
     const { type, id } = deleteTarget;
 
-    const baseData = isEditing ? editableData : data;
-    const updatedData = JSON.parse(JSON.stringify(baseData));
+    setData(prevData => {
+      const updatedData = JSON.parse(JSON.stringify(prevData));
   
-    if (type === 'realEstate') {
-      updatedData.assets.realEstate = (updatedData.assets.realEstate || []).filter((item: RealEstateAsset) => item.id !== id);
-    } else if (type === 'underDevelopment') {
-      updatedData.assets.underDevelopment = (updatedData.assets.underDevelopment || []).filter((item: UnderDevelopmentAsset) => item.id !== id);
-    } else if (type === 'cash') {
-      updatedData.assets.cash = (updatedData.assets.cash || []).filter((item: CashAsset) => item.id !== id);
-    } else if (type === 'gold') {
-      updatedData.assets.gold = (updatedData.assets.gold || []).filter((item: GoldAsset) => item.id !== id);
-    } else if (type === 'silver') {
-      updatedData.assets.silver = (updatedData.assets.silver || []).filter((item: SilverAsset) => item.id !== id);
-    } else if (type === 'other') {
-      updatedData.assets.otherAssets = (updatedData.assets.otherAssets || []).filter((item: OtherAsset) => item.id !== id);
-    }
-    
-    setData(updatedData);
-    if(isEditing) {
-        setEditableData(updatedData);
-    }
+      if (type === 'realEstate') {
+        updatedData.assets.realEstate = (updatedData.assets.realEstate || []).filter((item: RealEstateAsset) => item.id !== id);
+      } else if (type === 'underDevelopment') {
+        updatedData.assets.underDevelopment = (updatedData.assets.underDevelopment || []).filter((item: UnderDevelopmentAsset) => item.id !== id);
+      } else if (type === 'cash') {
+        updatedData.assets.cash = (updatedData.assets.cash || []).filter((item: CashAsset) => item.id !== id);
+      } else if (type === 'gold') {
+        updatedData.assets.gold = (updatedData.assets.gold || []).filter((item: GoldAsset) => item.id !== id);
+      } else if (type === 'silver') {
+        updatedData.assets.silver = (updatedData.assets.silver || []).filter((item: SilverAsset) => item.id !== id);
+      } else if (type === 'other') {
+        updatedData.assets.otherAssets = (updatedData.assets.otherAssets || []).filter((item: OtherAsset) => item.id !== id);
+      }
+      
+      return updatedData;
+    });
+
     setDeleteTarget(null);
   };
+
 
   const formatNumber = (num: number) => num.toLocaleString();
 
@@ -213,7 +213,7 @@ export default function AssetsPage() {
                               <Input 
                                   type="number" 
                                   defaultValue={p.currentValue}
-                                  onBlur={(e) => handleRealEstateChange(p.id, 'currentValue', e.target.value)}
+                                  onChange={(e) => handleRealEstateChange(p.id, 'currentValue', e.target.value)}
                                   className="h-8"
                               />
                             ) : (
@@ -226,7 +226,7 @@ export default function AssetsPage() {
                                <Input 
                                   type="number" 
                                   defaultValue={p.monthlyRent}
-                                  onBlur={(e) => handleRealEstateChange(p.id, 'monthlyRent', e.target.value)}
+                                  onChange={(e) => handleRealEstateChange(p.id, 'monthlyRent', e.target.value)}
                                   className="h-8"
                                   disabled={p.monthlyRent === 0 && !isEditing}
                                />
@@ -268,7 +268,7 @@ export default function AssetsPage() {
                                 <Input 
                                     type="number" 
                                     defaultValue={linkedInstallment?.total}
-                                    onBlur={(e) => handleUnderDevelopmentChange(p.id, 'purchasePrice', e.target.value)}
+                                    onChange={(e) => handleUnderDevelopmentChange(p.id, 'purchasePrice', e.target.value)}
                                     className="h-8"
                                     disabled // This should be driven by the installment data
                                 />
@@ -282,7 +282,7 @@ export default function AssetsPage() {
                                 <Input 
                                     type="number" 
                                     defaultValue={p.currentValue}
-                                    onBlur={(e) => handleUnderDevelopmentChange(p.id, 'currentValue', e.target.value)}
+                                    onChange={(e) => handleUnderDevelopmentChange(p.id, 'currentValue', e.target.value)}
                                     className="h-8"
                                 />
                                 ) : (
@@ -313,7 +313,7 @@ export default function AssetsPage() {
                                <Input 
                                   type="number" 
                                   defaultValue={c.amount}
-                                  onBlur={(e) => handleCashChange(c.id, e.target.value)}
+                                  onChange={(e) => handleCashChange(c.id, e.target.value)}
                                   className="h-8"
                                 />
                              ) : (
@@ -336,7 +336,7 @@ export default function AssetsPage() {
                                 <Input 
                                     type="number" 
                                     defaultValue={g.grams}
-                                    onBlur={(e) => handleGoldChange(g.id, e.target.value)}
+                                    onChange={(e) => handleGoldChange(g.id, e.target.value)}
                                     className="h-8"
                                 />
                               ) : (
@@ -359,7 +359,7 @@ export default function AssetsPage() {
                                 <Input 
                                     type="number" 
                                     defaultValue={s.grams}
-                                    onBlur={(e) => handleSilverChange(s.id, e.target.value)}
+                                    onChange={(e) => handleSilverChange(s.id, e.target.value)}
                                     className="h-8"
                                 />
                               ) : (
@@ -382,7 +382,7 @@ export default function AssetsPage() {
                                   <Input 
                                       type="number" 
                                       defaultValue={o.value}
-                                      onBlur={(e) => handleOtherAssetChange(o.id, e.target.value)}
+                                      onChange={(e) => handleOtherAssetChange(o.id, e.target.value)}
                                       className="h-8"
                                   />
                                 ) : (
