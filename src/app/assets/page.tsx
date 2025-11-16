@@ -244,7 +244,7 @@ export default function AssetsPage() {
                                   type="number" 
                                   defaultValue={p.currentValue}
                                   onChange={(e) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)}
-                                  className="h-8"
+                                  className="h-8 w-full"
                               />
                             ) : (
                               <p className="font-medium">{formatNumber(p.currentValue)}</p>
@@ -257,7 +257,7 @@ export default function AssetsPage() {
                                   type="number" 
                                   defaultValue={p.monthlyRent}
                                   onChange={(e) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}
-                                  className="h-8"
+                                  className="h-8 w-full"
                                   disabled={p.monthlyRent === 0 && !isEditing}
                                />
                             ) : (
@@ -299,7 +299,7 @@ export default function AssetsPage() {
                                     type="number" 
                                     defaultValue={linkedInstallment?.total}
                                     onChange={(e) => handleAssetChange('underDevelopment', p.id, 'purchasePrice', e.target.value)}
-                                    className="h-8"
+                                    className="h-8 w-full"
                                     disabled // This should be driven by the installment data
                                 />
                                 ) : (
@@ -313,7 +313,7 @@ export default function AssetsPage() {
                                     type="number" 
                                     defaultValue={p.currentValue}
                                     onChange={(e) => handleAssetChange('underDevelopment', p.id, 'currentValue', e.target.value)}
-                                    className="h-8"
+                                    className="h-8 w-full"
                                 />
                                 ) : (
                                 <p className="font-medium">{formatNumber(p.currentValue)}</p>
