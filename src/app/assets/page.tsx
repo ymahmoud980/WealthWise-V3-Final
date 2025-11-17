@@ -165,73 +165,6 @@ export default function AssetsPage() {
   const { realEstate, underDevelopment, cash, gold, silver, otherAssets } = currentData.assets;
   const { installments } = currentData.liabilities;
   
-  const AssetSubCard = ({
-    title,
-    icon,
-    items,
-    valueKey,
-    unit,
-    currencyKey,
-    type,
-    colorClass,
-    handleItemChange
-  }: {
-    title: string;
-    icon: React.ReactNode;
-    items: any[];
-    valueKey: string;
-    unit: string;
-    currencyKey?: string;
-    type: keyof FinancialData['assets'];
-    colorClass: string;
-    handleItemChange: (assetTypeKey: keyof FinancialData['assets'], id: string, field: any, value: string | number) => void;
-  }) => {
-    const total = items.reduce((acc, item) => acc + (Number(item[valueKey]) || 0), 0);
-    return (
-    <Card className={`overflow-hidden ${colorClass} flex flex-col`}>
-      <CardHeader className="p-4 bg-background/50">
-        <CardTitle className="flex items-center gap-2 text-base">
-          {icon}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4 text-sm space-y-3 flex-grow">
-        {items.map(item => (
-          <div key={item.id} className="group relative bg-background/50 p-3 rounded-md">
-            {isEditing && (
-              <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type: type as string, id: item.id })}>
-                  <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            <p className="font-semibold">{item.location || item.description}</p>
-            <div className="flex items-end justify-between gap-2">
-              {isEditing ? (
-                <Input 
-                    type="number" 
-                    value={item[valueKey]}
-                    onChange={(e) => handleItemChange(type, item.id, valueKey, e.target.value)}
-                    className="h-8 mt-1 w-full"
-                />
-              ) : (
-                <p className="text-xl font-bold">{formatNumber(item[valueKey])}</p>
-              )}
-              <p className="text-xs text-muted-foreground shrink-0">{currencyKey ? item[currencyKey] : unit}</p>
-            </div>
-          </div>
-        ))}
-      </CardContent>
-      {(type === 'gold' || type === 'silver') && (
-        <CardFooter className="p-4 bg-background/50 mt-auto">
-            <div className="flex justify-between items-center w-full">
-                <p className="font-semibold text-sm">Total Grams</p>
-                <p className="font-bold text-lg">{formatNumber(total)}</p>
-            </div>
-        </CardFooter>
-      )}
-    </Card>
-    )
-  };
-
   return (
     <>
       <Card>
@@ -358,49 +291,123 @@ export default function AssetsPage() {
 
             <div>
                 <h3 className="text-xl font-semibold mb-4">Cash, Metals &amp; Other Assets</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <AssetSubCard 
-                        title="Cash Holdings"
-                        icon={<Wallet className="text-green-600" />}
-                        items={cash || []}
-                        valueKey="amount"
-                        unit=""
-                        currencyKey="currency"
-                        type="cash"
-                        colorClass="bg-green-50"
-                        handleItemChange={handleAssetChange}
-                    />
-                     <AssetSubCard 
-                        title="Gold Holdings"
-                        icon={<Gem className="text-yellow-500" />}
-                        items={gold || []}
-                        valueKey="grams"
-                        unit="grams"
-                        type="gold"
-                        colorClass="bg-yellow-50"
-                        handleItemChange={handleAssetChange}
-                    />
-                     <AssetSubCard 
-                        title="Silver Holdings"
-                        icon={<Scale className="text-slate-400" />}
-                        items={silver || []}
-                        valueKey="grams"
-                        unit="grams"
-                        type="silver"
-                        colorClass="bg-slate-100"
-                        handleItemChange={handleAssetChange}
-                    />
-                     <AssetSubCard 
-                        title="Other Assets"
-                        icon={<Package className="text-blue-500" />}
-                        items={otherAssets || []}
-                        valueKey="value"
-                        unit=""
-                        currencyKey="currency"
-                        type="otherAssets"
-                        colorClass="bg-blue-50"
-                        handleItemChange={handleAssetChange}
-                    />
+                <div className="space-y-4">
+                  {/* Cash Holdings */}
+                  <Card>
+                      <CardHeader><CardTitle className="text-lg">Cash Holdings</CardTitle></CardHeader>
+                      <CardContent className="space-y-2">
+                          {(cash || []).map(item => (
+                              <div key={item.id} className="group relative p-3 bg-secondary rounded-md">
+                                {isEditing && (
+                                  <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}>
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <p className="font-semibold">{item.location}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                  {isEditing ? (
+                                    <Input 
+                                        type="number" 
+                                        value={item.amount}
+                                        onChange={(e) => handleAssetChange('cash', item.id, 'amount', e.target.value)}
+                                        className="h-8 mt-1"
+                                    />
+                                  ) : (
+                                    <p className="text-lg font-bold">{formatNumber(item.amount)}</p>
+                                  )}
+                                  <p className="text-sm text-muted-foreground">{item.currency}</p>
+                                </div>
+                              </div>
+                          ))}
+                      </CardContent>
+                  </Card>
+                   {/* Gold Holdings */}
+                   <Card>
+                      <CardHeader><CardTitle className="text-lg">Gold Holdings</CardTitle></CardHeader>
+                      <CardContent className="space-y-2">
+                          {(gold || []).map(item => (
+                              <div key={item.id} className="group relative p-3 bg-secondary rounded-md">
+                                {isEditing && (
+                                  <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}>
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <p className="font-semibold">{item.location}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                  {isEditing ? (
+                                    <Input 
+                                        type="number" 
+                                        value={item.grams}
+                                        onChange={(e) => handleAssetChange('gold', item.id, 'grams', e.target.value)}
+                                        className="h-8 mt-1"
+                                    />
+                                  ) : (
+                                    <p className="text-lg font-bold">{formatNumber(item.grams)}</p>
+                                  )}
+                                  <p className="text-sm text-muted-foreground">grams</p>
+                                </div>
+                              </div>
+                          ))}
+                      </CardContent>
+                  </Card>
+                   {/* Silver Holdings */}
+                   <Card>
+                      <CardHeader><CardTitle className="text-lg">Silver Holdings</CardTitle></CardHeader>
+                      <CardContent className="space-y-2">
+                          {(silver || []).map(item => (
+                              <div key={item.id} className="group relative p-3 bg-secondary rounded-md">
+                                {isEditing && (
+                                  <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}>
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <p className="font-semibold">{item.location}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                  {isEditing ? (
+                                    <Input 
+                                        type="number" 
+                                        value={item.grams}
+                                        onChange={(e) => handleAssetChange('silver', item.id, 'grams', e.target.value)}
+                                        className="h-8 mt-1"
+                                    />
+                                  ) : (
+                                    <p className="text-lg font-bold">{formatNumber(item.grams)}</p>
+                                  )}
+                                  <p className="text-sm text-muted-foreground">grams</p>
+                                </div>
+                              </div>
+                          ))}
+                      </CardContent>
+                  </Card>
+                  {/* Other Assets */}
+                  <Card>
+                      <CardHeader><CardTitle className="text-lg">Other Assets</CardTitle></CardHeader>
+                      <CardContent className="space-y-2">
+                           {(otherAssets || []).map(item => (
+                              <div key={item.id} className="group relative p-3 bg-secondary rounded-md">
+                                {isEditing && (
+                                  <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'otherAssets', id: item.id })}>
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <p className="font-semibold">{item.description}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                  {isEditing ? (
+                                    <Input 
+                                        type="number" 
+                                        value={item.value}
+                                        onChange={(e) => handleAssetChange('otherAssets', item.id, 'value', e.target.value)}
+                                        className="h-8 mt-1"
+                                    />
+                                  ) : (
+                                    <p className="text-lg font-bold">{formatNumber(item.value)}</p>
+                                  )}
+                                  <p className="text-sm text-muted-foreground">{item.currency}</p>
+                                </div>
+                              </div>
+                          ))}
+                      </CardContent>
+                  </Card>
                 </div>
             </div>
         </CardContent>
@@ -427,3 +434,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
