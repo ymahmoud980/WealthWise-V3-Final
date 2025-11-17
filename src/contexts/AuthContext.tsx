@@ -3,7 +3,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { onAuthStateChanged, signOut as firebaseSignOut, type User } from "firebase/auth";
+import { onAuthStateChanged, signOut as firebaseSignOut, type User, setPersistence, browserSessionPersistence } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { usePathname, useRouter } from "next/navigation";
@@ -29,14 +29,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      if (!user) {
-        setUserData(null);
+    const initializeAuth = async () => {
+      try {
+        await setPersistence(auth, browserSessionPersistence);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          setUser(user);
+          if (!user) {
+            setUserData(null);
+            setLoading(false);
+          }
+        });
+        return unsubscribe;
+      } catch (error) {
+        console.error("Error setting auth persistence:", error);
         setLoading(false);
       }
-    });
-    return () => unsubscribe();
+    };
+
+    const unsubscribePromise = initializeAuth();
+
+    return () => {
+      unsubscribePromise.then(unsubscribe => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      });
+    };
   }, []);
 
   useEffect(() => {
