@@ -30,14 +30,14 @@ export default function AssetsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
 
   useEffect(() => {
-    if (isEditing) {
-      setEditableData(JSON.parse(JSON.stringify(data)));
-    }
-  }, [isEditing]);
+    // This is the correct way to sync the editable state with the main data context.
+    // It should only run when the main data changes, or when editing starts/stops.
+    setEditableData(JSON.parse(JSON.stringify(data)));
+  }, [data, isEditing]);
 
 
   const handleEditClick = () => {
-    setEditableData(JSON.parse(JSON.stringify(data)));
+    setEditableData(JSON.parse(JSON.stringify(data))); // Ensure fresh data on edit start
     setIsEditing(true);
   };
 
@@ -70,16 +70,29 @@ export default function AssetsPage() {
  const handleAddAsset = (newAsset: any, type: string) => {
     const updatedData = JSON.parse(JSON.stringify(data));
 
-    if (type === 'gold' || type === 'silver') {
-        const assetKey = type === 'gold' ? 'gold' : 'silver';
-        const existingAsset = updatedData.assets[assetKey].find((a: GoldAsset | SilverAsset) => a.location === newAsset.location);
+    if (type === 'gold' || type === 'silver' || type === 'cash') {
+        const assetKey = type as 'gold' | 'silver' | 'cash';
+        const existingAsset = updatedData.assets[assetKey].find((a: any) => a.location === newAsset.location);
 
         if (existingAsset) {
-            existingAsset.grams = Number(existingAsset.grams) + Number(newAsset.grams);
+            if (type === 'gold' || type === 'silver') {
+                existingAsset.grams = Number(existingAsset.grams) + Number(newAsset.grams);
+            } else { // cash
+                 // For cash, if currencies match, add amounts. Otherwise, do nothing for now.
+                 // A more complex implementation could create a new entry if currency is different.
+                 if (existingAsset.currency === newAsset.currency) {
+                    existingAsset.amount = Number(existingAsset.amount) + Number(newAsset.amount);
+                 } else {
+                    // If currency is different for the same location, create a new entry
+                    const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
+                    const assetWithId = { ...newAsset, id: newId };
+                    (updatedData.assets[assetKey] as any[]).push(assetWithId);
+                 }
+            }
         } else {
             const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
             const assetWithId = { ...newAsset, id: newId };
-            updatedData.assets[assetKey].push(assetWithId);
+            (updatedData.assets[assetKey] as any[]).push(assetWithId);
         }
     } else {
         const newId = `${type.substring(0, 2)}${new Date().getTime()}`;
@@ -88,7 +101,6 @@ export default function AssetsPage() {
         const assetKeyMap: { [key: string]: keyof FinancialData['assets'] } = {
             realEstate: 'realEstate',
             underDevelopment: 'underDevelopment',
-            cash: 'cash',
             other: 'otherAssets',
         };
 
@@ -130,10 +142,6 @@ export default function AssetsPage() {
     }
     
     setData(updatedData);
-
-    if (isEditing) {
-        setEditableData(updatedData);
-    }
 
     setDeleteTarget(null);
   };

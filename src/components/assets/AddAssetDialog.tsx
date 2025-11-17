@@ -57,7 +57,7 @@ const underDevelopmentSchema = z.object({
 });
 
 const cashSchema = z.object({
-  location: z.string().min(2, "Location is required."),
+  location: z.enum(['Egypt', 'Kuwait', 'Turkey', 'Other']),
   amount: z.coerce.number().min(1),
   currency: z.enum(["EGP", "USD", "KWD", "TRY"]),
 });
@@ -116,7 +116,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
       assetType: "realEstate",
       realEstate: { name: "", location: "", currentValue: 0, currency: "USD", monthlyRent: 0 },
       underDevelopment: { name: "", location: "", purchasePrice: 0, currentValue: 0, currency: "USD" },
-      cash: { location: "", amount: 0, currency: "USD" },
+      cash: { location: 'Egypt', amount: 0, currency: "USD" },
       gold: { location: 'Egypt', grams: 0 },
       silver: { location: 'Egypt', grams: 0 },
       other: { description: "", value: 0, currency: "USD" },
@@ -144,6 +144,13 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     setAssetType(type);
     form.setValue("assetType", type);
   }
+
+  const locationOptions = [
+    { value: "Egypt", label: "Egypt" },
+    { value: "Kuwait", label: "Kuwait" },
+    { value: "Turkey", label: "Turkey" },
+    { value: "Other", label: "Other" },
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -238,7 +245,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
             )}
              {assetType === 'cash' && (
                 <div className="space-y-4 p-4 border rounded-md">
-                    <FormField control={form.control} name="cash.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Egypt Bank Account" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="cash.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{locationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="cash.amount" render={({ field }) => ( <FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="cash.currency" render={({ field }) => ( <FormItem><FormLabel>Currency</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="USD">USD</SelectItem><SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem><SelectItem value="TRY">TRY</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
@@ -247,13 +254,13 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
             )}
             {assetType === 'gold' && (
                 <div className="space-y-4 p-4 border rounded-md">
-                    <FormField control={form.control} name="gold.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Egypt">Egypt</SelectItem><SelectItem value="Kuwait">Kuwait</SelectItem><SelectItem value="Turkey">Turkey</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="gold.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{locationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="gold.grams" render={({ field }) => ( <FormItem><FormLabel>Grams</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             )}
             {assetType === 'silver' && (
                 <div className="space-y-4 p-4 border rounded-md">
-                     <FormField control={form.control} name="silver.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Egypt">Egypt</SelectItem><SelectItem value="Kuwait">Kuwait</SelectItem><SelectItem value="Turkey">Turkey</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                     <FormField control={form.control} name="silver.location" render={({ field }) => ( <FormItem><FormLabel>Location</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{locationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="silver.grams" render={({ field }) => ( <FormItem><FormLabel>Grams</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             )}
