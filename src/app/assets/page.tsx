@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect } from "react";
@@ -322,7 +323,7 @@ export default function AssetsPage() {
                       </CardContent>
                   </Card>
                    {/* Gold Holdings */}
-                   <Card>
+                   <Card className="bg-amber-100 dark:bg-amber-900/50">
                       <CardHeader><CardTitle className="text-lg">Gold Holdings</CardTitle></CardHeader>
                       <CardContent className="space-y-2">
                           {(gold || []).map(item => (
