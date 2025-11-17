@@ -30,10 +30,10 @@ export default function AssetsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
 
   useEffect(() => {
-    if (!isEditing) {
+    if (isEditing) {
       setEditableData(JSON.parse(JSON.stringify(data)));
     }
-  }, [data, isEditing]);
+  }, [isEditing]);
 
 
   const handleEditClick = () => {
@@ -407,5 +407,3 @@ export default function AssetsPage() {
     </>
   )
 }
-
-    
