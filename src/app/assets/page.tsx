@@ -30,9 +30,11 @@ export default function AssetsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
 
   useEffect(() => {
-    // This is the correct way to sync the editable state with the main data context.
-    // It should only run when the main data changes, or when editing starts/stops.
-    setEditableData(JSON.parse(JSON.stringify(data)));
+    // When editing is finished, or if the original data changes from the context,
+    // we want to ensure the editableData is up-to-date.
+    if (!isEditing) {
+        setEditableData(JSON.parse(JSON.stringify(data)));
+    }
   }, [data, isEditing]);
 
 
@@ -196,7 +198,7 @@ export default function AssetsPage() {
               {isEditing ? (
                 <Input 
                     type="number" 
-                    defaultValue={item[valueKey]}
+                    value={item[valueKey]}
                     onChange={(e) => handleItemChange(item.id, valueKey, e.target.value)}
                     className="h-8 mt-1 w-full"
                 />
@@ -260,7 +262,7 @@ export default function AssetsPage() {
                             {isEditing ? (
                               <Input 
                                   type="number" 
-                                  defaultValue={p.currentValue}
+                                  value={p.currentValue}
                                   onChange={(e) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)}
                                   className="h-8 w-full"
                               />
@@ -273,7 +275,7 @@ export default function AssetsPage() {
                             {isEditing ? (
                                <Input 
                                   type="number" 
-                                  defaultValue={p.monthlyRent}
+                                  value={p.monthlyRent}
                                   onChange={(e) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}
                                   className="h-8 w-full"
                                   disabled={p.monthlyRent === 0 && !isEditing}
@@ -315,7 +317,7 @@ export default function AssetsPage() {
                                 {isEditing ? (
                                 <Input 
                                     type="number" 
-                                    defaultValue={linkedInstallment?.total}
+                                    value={linkedInstallment?.total}
                                     onChange={(e) => handleAssetChange('underDevelopment', p.id, 'purchasePrice', e.target.value)}
                                     className="h-8 w-full"
                                     disabled // This should be driven by the installment data
@@ -329,7 +331,7 @@ export default function AssetsPage() {
                                 {isEditing ? (
                                 <Input 
                                     type="number" 
-                                    defaultValue={p.currentValue}
+                                    value={p.currentValue}
                                     onChange={(e) => handleAssetChange('underDevelopment', p.id, 'currentValue', e.target.value)}
                                     className="h-8 w-full"
                                 />
@@ -415,3 +417,5 @@ export default function AssetsPage() {
     </>
   )
 }
+
+    
