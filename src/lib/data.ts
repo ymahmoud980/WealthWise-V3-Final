@@ -4,13 +4,13 @@ import type { FinancialData } from './types';
 export const initialFinancialData: FinancialData = {
     assets: {
         realEstate: [
-            { id: 're1-apt1', name: "Building Apt 1 (GF)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
-            { id: 're1-apt2', name: "Building Apt 2 (1F)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 0, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
-            { id: 're1-apt3', name: "Building Apt 3 (2F)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 11000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-11-01', rentCurrency: 'EGP' },
-            { id: 're1-apt4', name: "Building Apt 4 (3F)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 10000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-10-01', rentCurrency: 'EGP' },
-            { id: 're1-apt5', name: "Building Apt 5 (4F-1)", location: "New Cairo", currentValue: 3000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-05-01', rentCurrency: 'EGP' },
-            { id: 're1-apt6', name: "Building Apt 6 (4F-2)", location: "New Cairo", currentValue: 3000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-05-01', rentCurrency: 'EGP' },
-            { id: 're1-base', name: "Building Basement", location: "New Cairo", currentValue: 4000000, currency: "EGP", monthlyRent: 0, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
+            { id: 're1-apt1', name: "Gardenia Hights 2/80T (Ground floor)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
+            { id: 're1-apt2', name: "Gardenia Hights 2/80T (1st floor)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 0, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
+            { id: 're1-apt3', name: "Gardenia Hights 2/80T (2nd floor)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 11000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-11-01', rentCurrency: 'EGP' },
+            { id: 're1-apt4', name: "Gardenia Hights 2/80T (3rd floor)", location: "New Cairo", currentValue: 5000000, currency: "EGP", monthlyRent: 10000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-10-01', rentCurrency: 'EGP' },
+            { id: 're1-apt5', name: "Gardenia Hights 2/80T (4th floor, Apt 1)", location: "New Cairo", currentValue: 3000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-05-01', rentCurrency: 'EGP' },
+            { id: 're1-apt6', name: "Gardenia Hights 2/80T (4th floor, Apt 2)", location: "New Cairo", currentValue: 3000000, currency: "EGP", monthlyRent: 8500, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-05-01', rentCurrency: 'EGP' },
+            { id: 're1-base', name: "Gardenia Hights 2/80T (Basement)", location: "New Cairo", currentValue: 4000000, currency: "EGP", monthlyRent: 0, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
             { id: 're2', name: "Lotus Apt.", location: "New Cairo", currentValue: 6000000, currency: "EGP", monthlyRent: 11000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-08-01', rentCurrency: 'EGP' },
             { id: 're3', name: "Enppi Apt.", location: "New Cairo", currentValue: 3500000, currency: "EGP", monthlyRent: 9000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-11-01', rentCurrency: 'EGP' },
             { id: 're4', name: "Miami Apt.", location: "Alexandria", currentValue: 3000000, currency: "EGP", monthlyRent: 8000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
@@ -98,4 +98,6 @@ export const emptyFinancialData: FinancialData = {
 };
 
     
+    
+
     
