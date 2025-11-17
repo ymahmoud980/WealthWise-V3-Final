@@ -28,7 +28,6 @@ export function convert(amount: number, from: Currency | 'GOLD_GRAM' | 'SILVER_G
     const rateTo = exchangeRates[to as Currency];
     if (!rateTo) return 0;
     
-    // This was the critical bug. It should multiply, not divide.
     return amountInUsd * rateTo;
 }
 

@@ -7,14 +7,6 @@ import type { Currency, ExchangeRates } from '@/lib/types';
 // Constants for conversion
 const GRAMS_PER_TROY_OUNCE = 31.1035;
 
-// Base currency rates are stable and can be defined outside the component.
-const currencyRates: Omit<ExchangeRates, 'GOLD_GRAM' | 'SILVER_GRAM'> = { 
-  USD: 1, 
-  EGP: 47.75, 
-  KWD: 0.3072, 
-  TRY: 41.88 
-};
-
 interface CurrencyContextType {
   currency: Currency;
   setCurrency: (currency: Currency) => void;
@@ -31,6 +23,14 @@ export const CurrencyContext = createContext<CurrencyContextType | undefined>(un
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('USD');
 
+  // Base currency rates are stable and can be defined outside the component.
+  const currencyRates: Omit<ExchangeRates, 'GOLD_GRAM' | 'SILVER_GRAM'> = { 
+    USD: 1, 
+    EGP: 47.75, 
+    KWD: 0.3072, 
+    TRY: 41.88 
+  };
+  
   // State for user-defined metal prices, initialized from localStorage or defaults.
   const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(() => {
     if (typeof window !== 'undefined') {
