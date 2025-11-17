@@ -182,9 +182,9 @@ export default function AssetsPage() {
     valueKey: string;
     unit: string;
     currencyKey?: string;
-    type: string;
+    type: keyof FinancialData['assets'];
     colorClass: string;
-    handleItemChange: (id: string, field: any, value: string | number) => void;
+    handleItemChange: (assetTypeKey: keyof FinancialData['assets'], id: string, field: any, value: string | number) => void;
   }) => {
     const total = items.reduce((acc, item) => acc + (Number(item[valueKey]) || 0), 0);
     return (
@@ -199,7 +199,7 @@ export default function AssetsPage() {
         {items.map(item => (
           <div key={item.id} className="group relative bg-background/50 p-3 rounded-md">
             {isEditing && (
-              <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type, id: item.id })}>
+              <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive/60 hover:text-destructive" onClick={() => setDeleteTarget({ type: type as string, id: item.id })}>
                   <Trash2 className="h-4 w-4" />
               </Button>
             )}
@@ -209,7 +209,7 @@ export default function AssetsPage() {
                 <Input 
                     type="number" 
                     value={item[valueKey]}
-                    onChange={(e) => handleItemChange(item.id, valueKey, e.target.value)}
+                    onChange={(e) => handleItemChange(type, item.id, valueKey, e.target.value)}
                     className="h-8 mt-1 w-full"
                 />
               ) : (
@@ -368,7 +368,7 @@ export default function AssetsPage() {
                         currencyKey="currency"
                         type="cash"
                         colorClass="bg-green-50"
-                        handleItemChange={(id, field, value) => handleAssetChange('cash', id, field, value)}
+                        handleItemChange={handleAssetChange}
                     />
                      <AssetSubCard 
                         title="Gold Holdings"
@@ -378,7 +378,7 @@ export default function AssetsPage() {
                         unit="grams"
                         type="gold"
                         colorClass="bg-yellow-50"
-                        handleItemChange={(id, field, value) => handleAssetChange('gold', id, field, value)}
+                        handleItemChange={handleAssetChange}
                     />
                      <AssetSubCard 
                         title="Silver Holdings"
@@ -388,7 +388,7 @@ export default function AssetsPage() {
                         unit="grams"
                         type="silver"
                         colorClass="bg-slate-100"
-                        handleItemChange={(id, field, value) => handleAssetChange('silver', id, field, value)}
+                        handleItemChange={handleAssetChange}
                     />
                      <AssetSubCard 
                         title="Other Assets"
@@ -399,7 +399,7 @@ export default function AssetsPage() {
                         currencyKey="currency"
                         type="otherAssets"
                         colorClass="bg-blue-50"
-                        handleItemChange={(id, field, value) => handleAssetChange('otherAssets', id, field, value)}
+                        handleItemChange={handleAssetChange}
                     />
                 </div>
             </div>
@@ -427,5 +427,3 @@ export default function AssetsPage() {
     </>
   )
 }
-
-    
