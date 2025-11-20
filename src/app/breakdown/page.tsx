@@ -52,52 +52,6 @@ export default function BreakdownPage() {
           </CardContent>
         </Card>
 
-        {/* Asset Value Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><TrendingUp className="h-6 w-6 text-green-500" /><span>Asset Value Details</span></CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Row label="Existing Real Estate" value={metrics.assets.existingRealEstate} isTotal format={format} />
-            {(data.assets.realEstate || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
-
-            <Row label="Off-Plan Real Estate" value={metrics.assets.offPlanRealEstate} isTotal format={format} />
-            {(data.assets.underDevelopment || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
-            
-            <Row label="Cash Holdings" value={metrics.assets.cash} isTotal format={format} />
-            {(data.assets.cash || []).map(asset => <Row key={asset.id} label={`Cash - ${asset.location}`} value={convert(asset.amount, asset.currency, currency, rates)} isSub format={format} />)}
-
-            <Row label="Gold" value={metrics.assets.gold} isTotal format={format} />
-            {(data.assets.gold || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.grams, 'GOLD_GRAM', currency, rates)} isSub format={format} />)}
-
-            <Row label="Silver" value={metrics.assets.silver} isTotal format={format} />
-            {(data.assets.silver || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.grams, 'SILVER_GRAM', currency, rates)} isSub format={format} />)}
-
-            <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
-            {(data.assets.otherAssets || []).map(asset => <Row key={asset.id} label={asset.description} value={convert(asset.value, asset.currency, currency, rates)} isSub format={format} />)}
-            
-            <Separator className="my-4"/>
-            <Row label="Total Asset Value" value={metrics.totalAssets} isGrandTotal={true} format={format} />
-          </CardContent>
-        </Card>
-
-        {/* Liabilities Breakdown */}
-        <Card>
-           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><TrendingDown className="h-6 w-6 text-red-500" /><span>Liabilities Details</span></CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Row label="Loans" value={metrics.liabilities.loans} isTotal isNegative format={format} />
-            {(data.liabilities.loans || []).map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.remaining, l.currency, currency, rates)} isSub isNegative format={format} />)}
-
-            <Row label="Installments Remaining" value={metrics.liabilities.installments} isTotal isNegative format={format} />
-            {(data.liabilities.installments || []).map(i => <Row key={i.id} label={i.project} value={convert(i.total - i.paid, i.currency, currency, rates)} isSub isNegative format={format} />)}
-
-            <Separator className="my-4" />
-            <Row label="Total Liabilities" value={metrics.totalLiabilities} isGrandTotal={true} isNegative format={format} />
-          </CardContent>
-        </Card>
-
          {/* Income Breakdown */}
         <Card>
           <CardHeader>
@@ -142,6 +96,52 @@ export default function BreakdownPage() {
 
             <Separator className="my-4" />
             <Row label="Total Monthly Expenses" value={metrics.totalExpenses} isGrandTotal={true} isNegative format={format} />
+          </CardContent>
+        </Card>
+
+        {/* Asset Value Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><TrendingUp className="h-6 w-6 text-green-500" /><span>Asset Value Details</span></CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Row label="Existing Real Estate" value={metrics.assets.existingRealEstate} isTotal format={format} />
+            {(data.assets.realEstate || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
+
+            <Row label="Off-Plan Real Estate" value={metrics.assets.offPlanRealEstate} isTotal format={format} />
+            {(data.assets.underDevelopment || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
+            
+            <Row label="Cash Holdings" value={metrics.assets.cash} isTotal format={format} />
+            {(data.assets.cash || []).map(asset => <Row key={asset.id} label={`Cash - ${asset.location}`} value={convert(asset.amount, asset.currency, currency, rates)} isSub format={format} />)}
+
+            <Row label="Gold" value={metrics.assets.gold} isTotal format={format} />
+            {(data.assets.gold || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.grams, 'GOLD_GRAM', currency, rates)} isSub format={format} />)}
+
+            <Row label="Silver" value={metrics.assets.silver} isTotal format={format} />
+            {(data.assets.silver || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.grams, 'SILVER_GRAM', currency, rates)} isSub format={format} />)}
+
+            <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
+            {(data.assets.otherAssets || []).map(asset => <Row key={asset.id} label={asset.description} value={convert(asset.value, asset.currency, currency, rates)} isSub format={format} />)}
+            
+            <Separator className="my-4"/>
+            <Row label="Total Asset Value" value={metrics.totalAssets} isGrandTotal={true} format={format} />
+          </CardContent>
+        </Card>
+
+        {/* Liabilities Breakdown */}
+        <Card>
+           <CardHeader>
+            <CardTitle className="flex items-center gap-2"><TrendingDown className="h-6 w-6 text-red-500" /><span>Liabilities Details</span></CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Row label="Loans" value={metrics.liabilities.loans} isTotal isNegative format={format} />
+            {(data.liabilities.loans || []).map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.remaining, l.currency, currency, rates)} isSub isNegative format={format} />)}
+
+            <Row label="Installments Remaining" value={metrics.liabilities.installments} isTotal isNegative format={format} />
+            {(data.liabilities.installments || []).map(i => <Row key={i.id} label={i.project} value={convert(i.total - i.paid, i.currency, currency, rates)} isSub isNegative format={format} />)}
+
+            <Separator className="my-4" />
+            <Row label="Total Liabilities" value={metrics.totalLiabilities} isGrandTotal={true} isNegative format={format} />
           </CardContent>
         </Card>
 
