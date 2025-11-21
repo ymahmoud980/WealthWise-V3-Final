@@ -1,7 +1,5 @@
-
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrency } from "@/hooks/use-currency";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -17,28 +15,30 @@ export function StatCard({ title, value, icon, isCurrency = false }: StatCardPro
   const { format } = useCurrency();
 
   const getColor = () => {
-    if (title === 'Liabilities') {
-        return 'text-destructive';
-    }
-    if (title === 'Avg. Net Cash Flow') {
-        return value >= 0 ? 'text-green-500' : 'text-destructive';
-    }
-    if (title === 'Net Worth' || title === 'Asset Value') {
-        return 'text-green-500';
-    }
+    if (title === 'Liabilities') return 'text-rose-400 drop-shadow-md';
+    if (title.includes('Cash Flow')) return value >= 0 ? 'text-emerald-400 drop-shadow-md' : 'text-rose-400 drop-shadow-md';
+    if (title === 'Net Worth') return 'text-amber-400 drop-shadow-md'; // Gold for Net Worth
     return 'text-foreground';
   };
 
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className={cn("text-3xl font-bold", getColor())}>{isCurrency ? format(value) : value}</div>
-      </CardContent>
-    </Card>
+    <div className="glass-panel p-6 rounded-xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl group border border-white/10">
+      {/* Decorative Background Glow */}
+      <div className="absolute -right-4 -top-4 h-24 w-24 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full blur-2xl group-hover:opacity-100 opacity-50 transition-opacity" />
+
+      <div className="relative z-10">
+        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{title}</h3>
+          <div className="p-2 bg-white/5 rounded-lg backdrop-blur-md border border-white/5 shadow-inner">
+            {icon}
+          </div>
+        </div>
+        <div className="mt-4">
+          <div className={cn("text-3xl font-bold tracking-tight font-mono", getColor())}>
+            {isCurrency ? format(value) : value}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
