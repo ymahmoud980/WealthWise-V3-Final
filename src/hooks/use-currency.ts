@@ -1,35 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { fetchLiveRates, initialRates, MarketRates } from "@/lib/marketPrices";
+import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 export function useCurrency() {
-  // Default user preference (you could save this to localStorage later)
-  const [currency, setCurrency] = useState("USD"); 
-  const [rates, setRates] = useState<MarketRates>(initialRates);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadRates() {
-      const liveData = await fetchLiveRates();
-      setRates(liveData);
-      setLoading(false);
-    }
-    loadRates();
-  }, []);
+  // We now pull the state directly from the main Financial Context.
+  // This ensures that when you switch currency here, the WHOLE app updates.
+  const { currency, setCurrency, rates, loading } = useFinancialData();
 
   const format = (value: number) => {
+    // Handle invalid numbers safely
+    if (isNaN(value) || value === null || value === undefined) {
+        return "0.00";
+    }
+
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 0, // Keeps the UI clean (no cents)
     }).format(value);
   };
 
   return {
     currency,
     setCurrency,
-    rates, // Now exposes the LIVE rates to the whole app
+    rates,
     format,
     loading
   };
