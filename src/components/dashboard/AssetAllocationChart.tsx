@@ -1,3 +1,4 @@
+// Force Chart Update.
 "use client";
 
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
