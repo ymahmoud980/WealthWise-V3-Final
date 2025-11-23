@@ -5,7 +5,7 @@ import type { FinancialData } from "@/lib/types";
 import { calculateMetrics } from "@/lib/calculations";
 import { fetchLiveRates, initialRates, MarketRates } from "@/lib/marketPrices";
 
-// --- 1. DEFINE SAFE DEFAULTS INLINE (Prevents crash if import fails) ---
+// Safe Default (Empty)
 const SAFE_DEFAULT_DATA: FinancialData = {
   assets: {
     realEstate: [],
@@ -16,13 +16,8 @@ const SAFE_DEFAULT_DATA: FinancialData = {
     otherAssets: [],
     salary: { amount: 0, currency: 'USD' }
   },
-  liabilities: {
-    loans: [],
-    installments: []
-  },
-  monthlyExpenses: {
-    household: []
-  }
+  liabilities: { loans: [], installments: [] },
+  monthlyExpenses: { household: [] }
 };
 
 interface FinancialDataContextType {
@@ -38,73 +33,60 @@ interface FinancialDataContextType {
 const FinancialDataContext = createContext<FinancialDataContextType | undefined>(undefined);
 
 export function FinancialDataProvider({ children }: { children: React.ReactNode }) {
-  // Use the inline safe default
   const [data, setData] = useState<FinancialData>(SAFE_DEFAULT_DATA);
   const [currency, setCurrency] = useState("USD");
-  const [rates, setRates] = useState<MarketRates>(initialRates || { USD: 1, EUR: 0.92, GBP: 0.79, Gold: 2000, Silver: 25 });
+  const [rates, setRates] = useState<MarketRates>(initialRates);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false); // <--- NEW SAFETY FLAG
 
   // 1. Load Live Rates
   useEffect(() => {
     async function loadRates() {
       try {
         const liveData = await fetchLiveRates();
-        if (liveData && liveData.USD) {
-          setRates(liveData);
-        }
-      } catch (e) {
-        console.warn("Using default rates");
-      }
+        if (liveData && liveData.USD) setRates(liveData);
+      } catch (e) { console.warn("Using default rates"); }
       setLoading(false);
     }
     loadRates();
-    const interval = setInterval(loadRates, 60000); 
+    const interval = setInterval(loadRates, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // 2. Load User Data
+  // 2. Load User Data (Run ONCE on mount)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem("wealth_navigator_data_v3");
-      if (saved) {
+      // Try to find V3 data
+      const savedV3 = localStorage.getItem("wealth_navigator_data_v3");
+      
+      if (savedV3) {
         try {
-          const parsed = JSON.parse(saved);
-          // Safety check: ensure it has the main keys
-          if (parsed && parsed.assets) {
-            setData(parsed);
-          }
-        } catch (e) {
-          console.error("Data load error", e);
-        }
-      }
+          const parsed = JSON.parse(savedV3);
+          if (parsed && parsed.assets) setData(parsed);
+        } catch (e) { console.error("Error parsing V3 data"); }
+      } 
+      
+      // Mark initialization as complete so we can start saving
+      setIsInitialized(true); 
     }
   }, []);
 
-  // 3. Save User Data
+  // 3. Save User Data (Run only after Initialized)
   useEffect(() => {
-    if (typeof window !== 'undefined' && data) {
+    if (isInitialized && typeof window !== 'undefined') {
       localStorage.setItem("wealth_navigator_data_v3", JSON.stringify(data));
     }
-  }, [data]);
+  }, [data, isInitialized]); // <--- Only runs if we are initialized
 
   // 4. Calculate Metrics
   const metrics = useMemo(() => {
-    // Double safety check
     const safeData = data || SAFE_DEFAULT_DATA;
     return calculateMetrics(safeData, currency, rates);
   }, [data, currency, rates]);
 
   return (
     <FinancialDataContext.Provider 
-      value={{ 
-        data, 
-        setData, 
-        metrics, 
-        loading,
-        currency,
-        setCurrency,
-        rates 
-      }}
+      value={{ data, setData, metrics, loading, currency, setCurrency, rates }}
     >
       {children}
     </FinancialDataContext.Provider>
