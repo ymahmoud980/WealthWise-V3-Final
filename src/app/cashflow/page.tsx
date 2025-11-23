@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts"
 import { useCurrency } from "@/hooks/use-currency"
 import { convert } from "@/lib/calculations"
 import { useFinancialData } from "@/contexts/FinancialDataContext";
@@ -11,7 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { FinancialData, HouseholdExpense } from "@/lib/types";
 import { AddExpenseDialog } from "@/components/cashflow/AddExpenseDialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, TrendingUp, TrendingDown, ArrowRightLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const GlassInput = (props: any) => (
+    <Input 
+      {...props} 
+      className={cn("bg-black/20 border-white/10 text-foreground focus:ring-primary/50 h-8", props.className)} 
+    />
+  );
 
 export default function CashFlowPage() {
     const { currency, format, rates } = useCurrency();
@@ -37,11 +44,9 @@ export default function CashFlowPage() {
         setIsEditing(false);
     };
     
-    const handleCancelClick = () => {
-        // No need to reset editableData, as it will be reset on next edit click
-        setIsEditing(false);
-    };
+    const handleCancelClick = () => setIsEditing(false);
 
+    // (Keep your existing handlers exactly the same)
     const handleSalaryChange = (value: string) => {
         const numericValue = parseFloat(value) || 0;
         const newData = { ...editableData };
@@ -53,20 +58,14 @@ export default function CashFlowPage() {
         const newData = { ...editableData };
         const expense = newData.monthlyExpenses.household.find(h => h.id === id);
         if (expense) {
-            if (key === 'amount') {
-                 expense[key] = parseFloat(value) || 0;
-            } else {
-                expense[key] = value;
-            }
+            if (key === 'amount') expense[key] = parseFloat(value) || 0;
+            else expense[key] = value;
             setEditableData(newData);
         }
     };
     
     const handleAddExpense = (newExpense: Omit<HouseholdExpense, 'id'>) => {
-        const fullExpense: HouseholdExpense = {
-          ...newExpense,
-          id: `he${new Date().getTime()}`,
-        };
+        const fullExpense: HouseholdExpense = { ...newExpense, id: `he${new Date().getTime()}` };
         const updatedData = JSON.parse(JSON.stringify(data));
         updatedData.monthlyExpenses.household.push(fullExpense);
         setData(updatedData);
@@ -83,146 +82,149 @@ export default function CashFlowPage() {
     const currentNetCashFlow = netCashFlow;
 
     return (
-        <>
-            <div className="space-y-8">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold">Cash Flow</h1>
-                        <p className="text-muted-foreground">Track your monthly income and expenses.</p>
-                    </div>
-                     <div className="flex gap-2">
-                         {isEditing ? (
-                          <>
-                            <Button onClick={handleSaveClick}>Save Changes</Button>
-                            <Button variant="outline" onClick={handleCancelClick}>Cancel</Button>
-                          </>
-                        ) : (
-                          <Button onClick={handleEditClick}>Edit</Button>
-                        )}
-                    </div>
+        <div className="space-y-8">
+            <div className="flex justify-between items-center glass-panel p-6 rounded-xl">
+                <div>
+                    <h1 className="text-3xl font-bold">Cash Flow Analysis</h1>
+                    <p className="text-muted-foreground">Monthly inflows vs outflows.</p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader><CardTitle>Total Income</CardTitle></CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold text-green-600">{format(totalIncome)}</p>
-                            <p className="text-xs text-muted-foreground">per month</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader><CardTitle>Total Expenses</CardTitle></CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold text-red-600">{format(totalExpenses)}</p>
-                            <p className="text-xs text-muted-foreground">per month (incl. avg. installments)</p>
-                        </CardContent>
-                    </Card>
-                    <Card className={currentNetCashFlow >= 0 ? "bg-green-100" : "bg-red-100"}>
-                        <CardHeader><CardTitle>Net Cash Flow</CardTitle></CardHeader>
-                        <CardContent>
-                            <p className={`text-3xl font-bold ${currentNetCashFlow >= 0 ? "text-green-800" : "text-red-800"}`}>{format(currentNetCashFlow)}</p>
-                            <p className={`text-xs ${currentNetCashFlow >= 0 ? "text-green-700" : "text-red-700"}`}>per month</p>
-                        </CardContent>
-                    </Card>
+                 <div className="flex gap-2">
+                     {isEditing ? (
+                      <>
+                        <Button className="bg-green-600 hover:bg-green-700" onClick={handleSaveClick}>Save</Button>
+                        <Button variant="outline" onClick={handleCancelClick}>Cancel</Button>
+                      </>
+                    ) : (
+                      <Button variant="outline" onClick={handleEditClick}>Edit Mode</Button>
+                    )}
                 </div>
-                <div className="grid md:grid-cols-2 gap-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Monthly Figures</CardTitle>
-                            <CardDescription>A detailed breakdown of your cash flow.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                            <div className="p-3 bg-green-100/60 rounded-lg">
-                                <div className="flex justify-between items-center font-semibold text-green-800">
-                                    <span>Total Income</span>
-                                    <span className="text-base font-bold text-green-900">{format(totalIncome)}</span>
-                                </div>
-                                <div className="pl-4 mt-2 space-y-1">
-                                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Salary</span>
-                                        {isEditing ? (
-                                            <div className="flex items-center gap-2">
-                                                 <Input 
-                                                    type="number" 
-                                                    defaultValue={currentData.assets.salary.amount}
-                                                    onBlur={(e) => handleSalaryChange(e.target.value)}
-                                                    className="h-8 max-w-[120px]"
-                                                />
-                                                <span>{currentData.assets.salary.currency}</span>
-                                            </div>
-                                        ) : (
-                                            <span className="text-green-700">{format(income.salary)}</span>
-                                        )}
+            </div>
+
+            {/* Top KPI Cards */}
+            <div className="grid gap-4 md:grid-cols-3">
+                <div className="glass-panel p-6 rounded-xl border-b-4 border-b-emerald-500 relative overflow-hidden">
+                    <div className="absolute right-4 top-4 p-2 bg-emerald-500/10 rounded-lg"><TrendingUp className="h-5 w-5 text-emerald-500"/></div>
+                    <p className="text-sm text-muted-foreground uppercase font-bold">Total Income</p>
+                    <p className="text-3xl font-mono font-bold text-emerald-400 mt-2">{format(totalIncome)}</p>
+                </div>
+                <div className="glass-panel p-6 rounded-xl border-b-4 border-b-rose-500 relative overflow-hidden">
+                    <div className="absolute right-4 top-4 p-2 bg-rose-500/10 rounded-lg"><TrendingDown className="h-5 w-5 text-rose-500"/></div>
+                    <p className="text-sm text-muted-foreground uppercase font-bold">Total Expenses</p>
+                    <p className="text-3xl font-mono font-bold text-rose-400 mt-2">{format(totalExpenses)}</p>
+                </div>
+                <div className={cn("glass-panel p-6 rounded-xl border-b-4 relative overflow-hidden", currentNetCashFlow >= 0 ? "border-b-blue-500" : "border-b-yellow-500")}>
+                    <div className="absolute right-4 top-4 p-2 bg-blue-500/10 rounded-lg"><ArrowRightLeft className="h-5 w-5 text-blue-500"/></div>
+                    <p className="text-sm text-muted-foreground uppercase font-bold">Net Cash Flow</p>
+                    <p className={cn("text-3xl font-mono font-bold mt-2", currentNetCashFlow >= 0 ? "text-blue-400" : "text-yellow-400")}>
+                        {format(currentNetCashFlow)}
+                    </p>
+                </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+                {/* Detailed Ledger */}
+                <div className="glass-panel p-6 rounded-xl space-y-6">
+                    <h3 className="text-xl font-bold">Monthly Breakdown</h3>
+                    
+                    {/* Income Section */}
+                    <div className="space-y-2">
+                        <div className="text-xs uppercase text-emerald-500 font-bold tracking-wider">Inflows</div>
+                        <div className="bg-black/20 rounded-lg p-4 space-y-3 border border-white/5">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">Monthly Salary</span>
+                                {isEditing ? (
+                                    <div className="flex items-center gap-2">
+                                         <GlassInput 
+                                            type="number" 
+                                            defaultValue={currentData.assets.salary.amount}
+                                            onBlur={(e: any) => handleSalaryChange(e.target.value)}
+                                            className="w-24 text-right"
+                                        />
+                                        <span className="text-xs">{currentData.assets.salary.currency}</span>
                                     </div>
-                                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Property Rentals</span><span className="text-green-700">{format(income.rent)}</span></div>
-                                </div>
+                                ) : (
+                                    <span className="font-mono font-bold text-emerald-400">{format(income.salary)}</span>
+                                )}
                             </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">Rentals</span>
+                                <span className="font-mono font-bold text-emerald-400">{format(income.rent)}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                             <div className="p-3 bg-red-100/60 rounded-lg">
-                                <div className="flex justify-between items-center font-semibold text-red-800">
-                                    <span>Total Monthly Expenses</span>
-                                    <span className="text-base font-bold text-red-900">{format(totalExpenses)}</span>
-                                </div>
-                                <div className="pl-4 mt-2 space-y-1">
-                                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Loan Payments</span><span className="text-red-700">{format(expenses.loans)}</span></div>
-                                    {(currentData.monthlyExpenses.household || []).map(h => (
-                                         <div key={h.id} className="flex justify-between items-center group">
-                                            {isEditing ? (
-                                                <>
-                                                    <Input
-                                                        defaultValue={h.description}
-                                                        onBlur={(e) => handleHouseholdChange(h.id, 'description', e.target.value)}
-                                                        className="h-8 max-w-[150px] text-muted-foreground"
-                                                    />
-                                                    <div className="flex items-center gap-2">
-                                                        <Input 
-                                                            type="number" 
-                                                            defaultValue={h.amount}
-                                                            onBlur={(e) => handleHouseholdChange(h.id, 'amount', e.target.value)}
-                                                            className="h-8 max-w-[100px]"
-                                                        />
-                                                        <span>{h.currency}</span>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => handleDeleteExpense(h.id)}>
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                 <span className="text-muted-foreground">{h.description}</span>
-                                                 <span className="text-red-700">{format(convert(h.amount, h.currency, currency, rates))}</span>
-                                                </>
-                                            )}
-                                         </div>
-                                    ))}
-                                    {isEditing && (
-                                        <Button size="sm" variant="outline" className="mt-2 w-full" onClick={() => setIsAddExpenseDialogOpen(true)}>Add Household Expense</Button>
+                     {/* Expense Section */}
+                     <div className="space-y-2">
+                        <div className="text-xs uppercase text-rose-500 font-bold tracking-wider">Outflows</div>
+                        <div className="bg-black/20 rounded-lg p-4 space-y-3 border border-white/5">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">Loan Repayments</span>
+                                <span className="font-mono font-medium text-rose-400">{format(expenses.loans)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">Project Installments (Avg)</span>
+                                <span className="font-mono font-medium text-rose-400">{format(expenses.installmentsAvg)}</span>
+                            </div>
+                            
+                            <div className="border-t border-white/10 my-2 pt-2"></div>
+                            
+                            {(currentData.monthlyExpenses.household || []).map(h => (
+                                 <div key={h.id} className="flex justify-between items-center group">
+                                    {isEditing ? (
+                                        <div className="flex gap-2 w-full">
+                                            <GlassInput
+                                                defaultValue={h.description}
+                                                onBlur={(e: any) => handleHouseholdChange(h.id, 'description', e.target.value)}
+                                                className="flex-1"
+                                            />
+                                            <GlassInput 
+                                                type="number" 
+                                                defaultValue={h.amount}
+                                                onBlur={(e: any) => handleHouseholdChange(h.id, 'amount', e.target.value)}
+                                                className="w-20 text-right"
+                                            />
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteExpense(h.id)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                         <span className="text-sm text-muted-foreground">{h.description}</span>
+                                         <span className="font-mono font-medium text-rose-400">{format(convert(h.amount, h.currency, currency, rates))}</span>
+                                        </>
                                     )}
-                                    <div className="flex justify-between items-center border-t mt-1 pt-1 font-medium"><span className="">Avg. Project Installments</span><span className="text-red-700">{format(expenses.installmentsAvg)}</span></div>
-                                </div>
-                            </div>
+                                 </div>
+                            ))}
+                            
+                            {isEditing && (
+                                <Button size="sm" variant="ghost" className="w-full text-muted-foreground hover:text-foreground mt-2 border border-dashed border-white/20" onClick={() => setIsAddExpenseDialogOpen(true)}>+ Add Expense</Button>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Income vs. Expenses Chart</CardTitle>
-                            <CardDescription>Visualizing your monthly cash flow categories.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                 <BarChart data={chartData}>
-                                    <XAxis dataKey="name" />
-                                    <YAxis tickFormatter={(value) => format(value).replace(/[^0-9-]/g, '')}/>
-                                    <Tooltip formatter={(value: number) => format(value)} />
-                                    <Legend />
-                                    <Bar dataKey="Salary" stackId="a" fill="hsl(var(--chart-2))" />
-                                    <Bar dataKey="Rentals" stackId="a" fill="hsl(var(--chart-4))" />
-                                    <Bar dataKey="Loans" stackId="b" fill="hsl(var(--chart-3))" />
-                                    <Bar dataKey="Household" stackId="b" fill="hsl(var(--chart-5))" />
-                                    <Bar dataKey="Installments" stackId="b" fill="#F87171" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                {/* Chart */}
+                <div className="glass-panel p-6 rounded-xl flex flex-col">
+                    <h3 className="text-xl font-bold mb-6">Flow Visualization</h3>
+                    <div className="flex-1 min-h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                             <BarChart data={chartData}>
+                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value / 1000}k`} />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#fff' }}
+                                    formatter={(value: number) => format(value)} 
+                                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                                />
+                                <Legend />
+                                <Bar dataKey="Salary" stackId="a" fill="#10b981" />
+                                <Bar dataKey="Rentals" stackId="a" fill="#34d399" />
+                                <Bar dataKey="Loans" stackId="b" fill="#f43f5e" />
+                                <Bar dataKey="Household" stackId="b" fill="#fb7185" />
+                                <Bar dataKey="Installments" stackId="b" fill="#e11d48" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
              <AddExpenseDialog
@@ -230,6 +232,6 @@ export default function CashFlowPage() {
                 onClose={() => setIsAddExpenseDialogOpen(false)}
                 onAddExpense={handleAddExpense}
             />
-        </>
+        </div>
     )
 }

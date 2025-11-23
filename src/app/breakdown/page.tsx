@@ -1,17 +1,28 @@
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { TrendingUp, TrendingDown, Wallet, DollarSign } from "lucide-react"
+import { TrendingUp, TrendingDown, Wallet, DollarSign, Calculator } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency";
 import { convert } from "@/lib/calculations";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
+import { cn } from "@/lib/utils";
 
-const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false, isGrandTotal = false, format }: { label: string, value: number, isSub?: boolean, isNegative?: boolean, isTotal?: boolean, isGrandTotal?: boolean, format: (value: number) => string }) => (
-  <div className={`flex justify-between items-center text-sm ${isSub ? 'pl-4 text-xs' : ''} ${isTotal ? 'font-semibold pt-2 mt-2 border-t' : ''} ${isGrandTotal ? 'font-bold text-lg pt-2 border-t' : ''}`}>
-      <span className={isTotal || isGrandTotal ? '' : 'text-muted-foreground'}>{label}</span>
-      <span className={`${isGrandTotal ? 'text-primary' : ''} ${isNegative ? 'text-destructive' : 'text-green-600'}`}>{isNegative && '- '}{format(value)}</span>
+const Row = ({ label, value, isSub = false, isNegative = false, isTotal = false, isGrandTotal = false, format }: any) => (
+  <div className={cn(
+      "flex justify-between items-center py-1", 
+      isSub ? "pl-4 text-xs text-muted-foreground" : "text-sm",
+      isTotal ? "pt-3 mt-2 border-t border-dashed border-white/20 font-semibold" : "",
+      isGrandTotal ? "pt-4 mt-2 border-t-2 border-white/20 text-lg font-bold bg-white/5 -mx-4 px-4" : ""
+  )}>
+      <span className={cn(isTotal || isGrandTotal ? "text-foreground" : "text-muted-foreground")}>{label}</span>
+      <span className={cn(
+          "font-mono",
+          isGrandTotal ? "text-primary" : "",
+          isNegative ? "text-rose-400" : (isTotal || isGrandTotal ? "text-emerald-400" : "text-foreground")
+      )}>
+          {isNegative && '- '}{format(value)}
+      </span>
   </div>
 );
 
@@ -21,64 +32,61 @@ export default function BreakdownPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Calculation Breakdown</h1>
-      <p className="text-muted-foreground">This section shows the math behind your key financial figures. It provides a transparent, line-by-line calculation of your total assets, liabilities, and cash flow, all converted to your selected currency ({currency}).</p>
+      <div className="glass-panel p-6 rounded-xl">
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Calculator className="h-8 w-8 text-primary" />
+            Financial Ledger
+          </h1>
+          <p className="text-muted-foreground mt-2">Detailed audit trail of all calculations converted to {currency}.</p>
+      </div>
       
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
 
         {/* Net Worth Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><DollarSign className="h-6 w-6 text-primary" /><span>Net Worth Calculation</span></CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass-panel p-6 rounded-xl border-t-4 border-t-amber-500">
+          <div className="flex items-center gap-2 mb-6">
+            <DollarSign className="h-6 w-6 text-amber-500" />
+            <h2 className="text-xl font-bold">Net Worth Formula</h2>
+          </div>
+          <div className="space-y-1">
             <Row label="Total Asset Value" value={metrics.totalAssets} format={format} />
             <Row label="Total Liabilities" value={metrics.totalLiabilities} isNegative={true} format={format} />
-            <Separator />
             <Row label="Net Worth" value={metrics.netWorth} isGrandTotal={true} format={format} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
         
         {/* Net Cash Flow Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Wallet className="h-6 w-6 text-blue-500" /><span>Avg. Net Cash Flow Calculation</span></CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass-panel p-6 rounded-xl border-t-4 border-t-blue-500">
+           <div className="flex items-center gap-2 mb-6">
+            <Wallet className="h-6 w-6 text-blue-500" />
+            <h2 className="text-xl font-bold">Cash Flow Formula</h2>
+          </div>
+          <div className="space-y-1">
             <Row label="Total Monthly Income" value={metrics.totalIncome} format={format} />
             <Row label="Total Monthly Expenses" value={metrics.totalExpenses} isNegative={true} format={format} />
-            <Separator />
             <Row label="Avg. Net Cash Flow" value={metrics.netCashFlow > 0 ? metrics.netCashFlow : -metrics.netCashFlow} isGrandTotal={true} format={format} isNegative={metrics.netCashFlow < 0} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
          {/* Income Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Income Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className="glass-panel p-6 rounded-xl">
+          <h3 className="font-bold mb-4 text-emerald-400 uppercase text-sm tracking-wider">Income Sources</h3>
+          <div className="space-y-1">
             <Row label="Salary" value={metrics.income.salary} isTotal format={format} />
             <Row label="Property Rentals" value={metrics.income.rent} isTotal format={format} />
             {(data.assets.realEstate || []).filter(r => r.monthlyRent > 0).map(r => {
                 let monthlyRent = convert(r.monthlyRent, r.rentCurrency || r.currency, currency, rates);
-                if (r.rentFrequency === 'semi-annual') {
-                    monthlyRent = monthlyRent / 6;
-                }
+                if (r.rentFrequency === 'semi-annual') monthlyRent = monthlyRent / 6;
                 return <Row key={r.id} label={r.name} value={monthlyRent} isSub format={format} />
              })}
-
-            <Separator className="my-4" />
             <Row label="Total Monthly Income" value={metrics.totalIncome} isGrandTotal={true} format={format} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Expense Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Expense Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className="glass-panel p-6 rounded-xl">
+          <h3 className="font-bold mb-4 text-rose-400 uppercase text-sm tracking-wider">Expense Sources</h3>
+          <div className="space-y-1">
              <Row label="Loan Payments" value={metrics.expenses.loans} isTotal isNegative format={format} />
              {(data.liabilities.loans || []).map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.monthlyPayment, l.currency, currency, rates)} isSub isNegative format={format} />)}
             
@@ -93,18 +101,17 @@ export default function BreakdownPage() {
                 else if (p.frequency === 'Quarterly') monthlyCost = p.amount / 3;
                 return <Row key={p.id} label={p.project} value={convert(monthlyCost, p.currency, currency, rates)} isSub isNegative format={format} />
              })}
-
-            <Separator className="my-4" />
             <Row label="Total Monthly Expenses" value={metrics.totalExpenses} isGrandTotal={true} isNegative format={format} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Asset Value Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><TrendingUp className="h-6 w-6 text-green-500" /><span>Asset Value Details</span></CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className="glass-panel p-6 rounded-xl">
+           <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
+            <h3 className="font-bold">Asset Details</h3>
+          </div>
+          <div className="space-y-1">
             <Row label="Existing Real Estate" value={metrics.assets.existingRealEstate} isTotal format={format} />
             {(data.assets.realEstate || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
 
@@ -112,38 +119,30 @@ export default function BreakdownPage() {
             {(data.assets.underDevelopment || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
             
             <Row label="Cash Holdings" value={metrics.assets.cash} isTotal format={format} />
-            {(data.assets.cash || []).map(asset => <Row key={asset.id} label={`Cash - ${asset.location}`} value={convert(asset.amount, asset.currency, currency, rates)} isSub format={format} />)}
-
             <Row label="Gold" value={metrics.assets.gold} isTotal format={format} />
-            {(data.assets.gold || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.grams, 'GOLD_GRAM', currency, rates)} isSub format={format} />)}
-
             <Row label="Silver" value={metrics.assets.silver} isTotal format={format} />
-            {(data.assets.silver || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.grams, 'SILVER_GRAM', currency, rates)} isSub format={format} />)}
-
             <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
-            {(data.assets.otherAssets || []).map(asset => <Row key={asset.id} label={asset.description} value={convert(asset.value, asset.currency, currency, rates)} isSub format={format} />)}
             
-            <Separator className="my-4"/>
             <Row label="Total Asset Value" value={metrics.totalAssets} isGrandTotal={true} format={format} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Liabilities Breakdown */}
-        <Card>
-           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><TrendingDown className="h-6 w-6 text-red-500" /><span>Liabilities Details</span></CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className="glass-panel p-6 rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingDown className="h-5 w-5 text-rose-500" />
+            <h3 className="font-bold">Liabilities Details</h3>
+          </div>
+          <div className="space-y-1">
             <Row label="Loans" value={metrics.liabilities.loans} isTotal isNegative format={format} />
             {(data.liabilities.loans || []).map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.remaining, l.currency, currency, rates)} isSub isNegative format={format} />)}
 
             <Row label="Installments Remaining" value={metrics.liabilities.installments} isTotal isNegative format={format} />
             {(data.liabilities.installments || []).map(i => <Row key={i.id} label={i.project} value={convert(i.total - i.paid, i.currency, currency, rates)} isSub isNegative format={format} />)}
 
-            <Separator className="my-4" />
             <Row label="Total Liabilities" value={metrics.totalLiabilities} isGrandTotal={true} isNegative format={format} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
       </div>
     </div>
