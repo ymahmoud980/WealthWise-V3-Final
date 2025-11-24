@@ -69,23 +69,37 @@ export default function DashboardPage() {
     <div className="min-h-screen p-4 md:p-8 lg:p-12 space-y-8">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".json" />
 
-      {/* --- HEADER --- */}
+{/* --- HEADER --- */}
       <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-card/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-lg">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Wealth <span className="text-primary">Navigator</span>
-          </h1>
-          <p className="text-muted-foreground mt-1">
-             Welcome, {user?.displayName || user?.email?.split('@')[0]}
-          </p>
+        <div className="flex items-center gap-4">
+          
+          {/* USER AVATAR */}
+          <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.3)] bg-slate-800">
+             {/* Uses the avatar URL from AuthContext, or a fallback if missing */}
+             <img src={user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.email}`} alt="User" className="h-full w-full object-cover" />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    Wealth <span className="text-primary">Navigator</span>
+                </h1>
+                {/* USER ROLE BADGE */}
+                <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/20 uppercase tracking-widest font-bold">
+                    {user?.role || "PRO"}
+                </span>
+            </div>
+            
+            {/* LAST LOGIN INFO */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground mt-1">
+               <span className="font-medium text-slate-300">{user?.displayName || user?.email}</span>
+               <span className="hidden sm:inline w-1 h-1 rounded-full bg-slate-600"></span>
+               <span>Last Access: <span className="text-emerald-400 font-mono">{user?.lastLogin || "Just now"}</span></span>
+            </div>
+          </div>
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-           {/* CURRENCY SWITCHER */}
-           <div className="relative group mr-2">
-              
-           </div>
-
            <Button variant="outline" onClick={() => setPrivacyMode(!privacyMode)} className="border-primary/20 hover:bg-primary/10 h-9 text-xs">
             {privacyMode ? <Eye className="mr-2 h-3 w-3" /> : <EyeOff className="mr-2 h-3 w-3" />}
             {privacyMode ? "Show" : "Hide"}
@@ -97,10 +111,6 @@ export default function DashboardPage() {
 
           <Button variant="default" onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 h-9 text-xs">
             <Download className="mr-2 h-3 w-3" /> Export
-          </Button>
-
-          <Button variant="destructive" onClick={logout} className="ml-2 h-9 text-xs">
-            <LogOut className="mr-2 h-3 w-3" /> Logout
           </Button>
         </div>
       </header>
