@@ -4,42 +4,52 @@ export interface MarketRates {
   USD: number;
   EUR: number;
   GBP: number;
-  Gold: number;   // Price per Ounce in USD
-  Silver: number; // Price per Ounce in USD
-  [key: string]: number; // Allow dynamic access
+  Gold: number;
+  Silver: number;
+  TRY: number;
+  EGP: number;
+  KWD: number;
+  [key: string]: number;
 }
 
-// These are the default values the app uses before it fetches live data
-// CRITICAL: The Context needs this variable "initialRates" to exist!
+// 1. Base Fallback (Nov 2025)
+// These are only used if the API fails or doesn't provide Metal data
 export const initialRates: MarketRates = {
   USD: 1,
-  EUR: 0.92,
-  GBP: 0.79,
-  Gold: 4050.00,  // Approx current price
-  Silver: 52.50   // Approx current price
+  EUR: 0.95,
+  GBP: 0.82,
+  Gold: 4121.05, 
+  Silver: 50.50,
+  TRY: 45.0,
+  EGP: 65.0,
+  KWD: 0.31
 };
 
 export async function fetchLiveRates(): Promise<MarketRates> {
   try {
-    // 1. Fetch Currency (Free API)
-    // We try/catch inside here so if the API fails, the app doesn't crash
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-    const data = await res.json();
-
-    // 2. Fluctuation Logic for Metals (Simulating live ticker)
-    const volatility = () => 1 + (Math.random() * 0.016 - 0.008);
+    // 2. Fetch Real Data
+    // We add a timestamp (?t=...) to ensure the browser doesn't show you old cached data
+    const res = await fetch(`https://api.exchangerate-api.com/v4/latest/USD?t=${new Date().getTime()}`);
     
+    if (!res.ok) throw new Error("API Failed");
+    
+    const data = await res.json();
+    const rates = data.rates;
+
+    // 3. Calculate Real Prices (No Simulation)
+    // If API gives Gold (XAU), calculate price. If not, keep fallback.
+    const realGold = rates.XAU ? (1 / rates.XAU) : initialRates.Gold;
+    const realSilver = rates.XAG ? (1 / rates.XAG) : initialRates.Silver;
+
     return {
-      USD: 1,
-      EUR: data.rates.EUR || 0.92,
-      GBP: data.rates.GBP || 0.79,
-      Gold: 4050.00 * volatility(),
-      Silver: 52.50 * volatility(),
-      // Spread existing currency data so nothing breaks
-      ...data.rates 
+      ...initialRates, // Keep defaults for missing currencies
+      ...rates,        // Overwrite with live API data
+      Gold: realGold,  
+      Silver: realSilver
     };
+
   } catch (error) {
-    console.warn("Could not fetch live rates, using defaults.");
+    console.warn("Market Data Offline: Using backup rates.");
     return initialRates;
   }
 }
