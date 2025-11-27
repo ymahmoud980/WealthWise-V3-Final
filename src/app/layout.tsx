@@ -21,20 +21,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${mono.variable} font-sans antialiased min-h-screen bg-[#020817]`}>
+      <body className={`${inter.variable} ${mono.variable} font-sans antialiased h-screen overflow-hidden bg-[#020817]`}>
         
         <AuthProvider>
           <FinancialDataProvider>
             
-            <div className="relative h-full min-h-screen">
+            {/* --- FLEX CONTAINER (The Unbreakable Fix) --- */}
+            <div className="flex h-full w-full">
               
-              {/* SIDEBAR */}
-              <div className="fixed inset-y-0 left-0 z-50 w-64 h-full border-r border-white/10 bg-[#111827]">
+              {/* 1. SIDEBAR COLUMN */}
+              {/* shrink-0 = Do not let this shrink, ever. */}
+              <aside className="w-64 h-full shrink-0 bg-[#111827] border-r border-white/10 overflow-y-auto">
                  <Sidebar />
-              </div>
+              </aside>
 
-              {/* CONTENT */}
-              <main className="pl-64 h-full min-h-screen relative">
+              {/* 2. MAIN CONTENT COLUMN */}
+              {/* flex-1 = Take up all remaining space */}
+              <main className="flex-1 h-full overflow-y-auto relative">
                 {children}
               </main>
 
