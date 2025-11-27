@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button";
-import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Trash2, Download, Upload, Eye, EyeOff, ShieldCheck, PieChart, Activity, LogOut, Globe } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Trash2, Download, Upload, Eye, EyeOff, ShieldCheck, PieChart, Activity, LogOut } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
@@ -12,24 +12,25 @@ import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import { PriceControlCard } from "@/components/dashboard/PriceControlCard";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { emptyFinancialData } from "@/lib/data";
-import { fetchLiveRates, initialRates } from "@/lib/marketPrices";
+import { fetchLiveRates, initialRates, MarketRates } from "@/lib/marketPrices";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
-  const { data, setData, metrics, currency, setCurrency } = useFinancialData(); 
+  const { data, setData, metrics } = useFinancialData();
   const { logout, user } = useAuth();
   const [isClearAlertOpen, setIsClearAlertOpen] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [marketRates, setMarketRates] = useState(initialRates);
+  const [marketRates, setMarketRates] = useState<MarketRates>(initialRates);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    // Fetch live rates immediately
     fetchLiveRates().then((rates) => { if(rates) setMarketRates(rates); });
   }, []);
 
-  const handleClearData = () => { setData(emptyFinancialData); setIsClearAlertOpen(false); };
+  const handleClearData = () => { setData(emptyFinancialData); setIsClearAlertOpen(false); }
 
   const handleExport = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
@@ -39,10 +40,9 @@ export default function DashboardPage() {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-  };
+  }
 
   const handleImportClick = () => fileInputRef.current?.click();
-  
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -62,21 +62,27 @@ export default function DashboardPage() {
   };
 
   if (!mounted) return null;
-  
   const privacyClass = privacyMode ? "blur-xl select-none transition-all duration-500" : "transition-all duration-500";
+
+  // --- SAFE USER DATA EXTRACTION ---
+  // If Google Auth, these exist. If Local Auth, we use fallbacks.
+  const userImage = user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.email}`;
+  // Firebase stores last login in metadata, or we use current time
+  const lastLogin = (user as any)?.metadata?.lastSignInTime 
+    ? new Date((user as any).metadata.lastSignInTime).toLocaleString() 
+    : "Just now";
 
   return (
     <div className="min-h-screen p-4 md:p-8 lg:p-12 space-y-8">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".json" />
 
-{/* --- HEADER --- */}
+      {/* --- RICH HEADER (RESTORED) --- */}
       <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-card/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-lg">
         <div className="flex items-center gap-4">
           
-          {/* USER AVATAR */}
-          <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.3)] bg-slate-800">
-             {/* Uses the avatar URL from AuthContext, or a fallback if missing */}
-             <img src={user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.email}`} alt="User" className="h-full w-full object-cover" />
+          {/* AVATAR BOX */}
+          <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_15px_rgba(var(--primary),0.3)] bg-slate-800">
+             <img src={userImage} alt="User" className="h-full w-full object-cover" />
           </div>
 
           <div>
@@ -84,17 +90,17 @@ export default function DashboardPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Wealth <span className="text-primary">Navigator</span>
                 </h1>
-                {/* USER ROLE BADGE */}
-                <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/20 uppercase tracking-widest font-bold">
-                    {user?.role || "PRO"}
+                {/* ROLE BADGE */}
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-widest font-bold">
+                    PRO INVESTOR
                 </span>
             </div>
             
-            {/* LAST LOGIN INFO */}
+            {/* EMAIL & LAST LOGIN */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground mt-1">
                <span className="font-medium text-slate-300">{user?.displayName || user?.email}</span>
                <span className="hidden sm:inline w-1 h-1 rounded-full bg-slate-600"></span>
-               <span>Last Access: <span className="text-emerald-400 font-mono">{user?.lastLogin || "Just now"}</span></span>
+               <span>Last Access: <span className="text-amber-400 font-mono">{lastLogin}</span></span>
             </div>
           </div>
         </div>
@@ -115,7 +121,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* --- TICKER --- */}
+      {/* --- LIVE TICKER --- */}
       <div className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-xs font-mono text-muted-foreground py-3 px-4 border-y border-white/5 bg-black/20 rounded-lg no-scrollbar">
         <span className="flex items-center gap-2 text-primary font-bold"><Activity className="h-3 w-3" /> LIVE:</span>
         <span className="text-emerald-400">USD/EUR: {marketRates.EUR}</span>
@@ -131,7 +137,7 @@ export default function DashboardPage() {
         <StatCard title="Net Cash Flow" value={metrics.netCashFlow} icon={<ArrowRightLeft className="text-blue-500" />} isCurrency={true} />
       </div>
 
-      {/* --- DASHBOARD CONTENT --- */}
+      {/* --- MAIN CONTENT --- */}
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
           <div className={`grid gap-8 md:grid-cols-2 ${privacyClass}`}>
