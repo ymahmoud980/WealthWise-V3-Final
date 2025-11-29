@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   title: string;
-  value: any; // Allow any input type to prevent TypeErrors
+  value: any; // Allow any type to prevent TS crashes
   icon: ReactNode;
   isCurrency?: boolean;
 }
@@ -14,13 +14,14 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, isCurrency = false }: StatCardProps) {
   const { format } = useCurrency();
 
-  // SAFETY: Convert whatever we get to a number, default to 0 if NaN
-  const safeValue = Number(value) || 0;
+  // SAFETY: Ensure we have a valid number. If it's NaN or null, use 0.
+  const safeValue = Number(value);
+  const displayValue = isNaN(safeValue) ? 0 : safeValue;
 
   const getColor = () => {
-    if (title === 'Liabilities') return 'text-rose-400';
-    if (title.includes('Cash Flow')) return safeValue >= 0 ? 'text-emerald-400' : 'text-rose-400';
-    if (title === 'Net Worth') return 'text-amber-400';
+    if (title === 'Liabilities') return 'text-rose-400 drop-shadow-md';
+    if (title.includes('Cash Flow')) return displayValue >= 0 ? 'text-emerald-400 drop-shadow-md' : 'text-rose-400 drop-shadow-md';
+    if (title === 'Net Worth') return 'text-amber-400 drop-shadow-md';
     return 'text-foreground';
   };
 
@@ -37,7 +38,7 @@ export function StatCard({ title, value, icon, isCurrency = false }: StatCardPro
         </div>
         <div className="mt-4">
           <div className={cn("text-3xl font-bold tracking-tight font-mono", getColor())}>
-            {isCurrency ? format(safeValue) : safeValue}
+            {isCurrency ? format(displayValue) : displayValue}
           </div>
         </div>
       </div>
