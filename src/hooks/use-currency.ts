@@ -3,21 +3,30 @@
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 
 export function useCurrency() {
-  // We now pull the state directly from the main Financial Context.
-  // This ensures that when you switch currency here, the WHOLE app updates.
-  const { currency, setCurrency, rates, loading } = useFinancialData();
+  const context = useFinancialData();
+  
+  // Safety: Fallback to USD if context is not ready
+  const currency = context?.currency || "USD"; 
+  const setCurrency = context?.setCurrency || (() => {});
+  const rates = context?.rates || {};
+  const loading = context?.loading || false;
 
-  const format = (value: number) => {
-    // Handle invalid numbers safely
-    if (isNaN(value) || value === null || value === undefined) {
+  const format = (value: any) => {
+    // CRASH PROOFING: Check if value is a valid number
+    if (value === null || value === undefined || isNaN(Number(value))) {
         return "0.00";
     }
 
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-      maximumFractionDigits: 0, // Keeps the UI clean (no cents)
-    }).format(value);
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+        maximumFractionDigits: 0,
+      }).format(Number(value));
+    } catch (error) {
+      // Fallback if currency code is invalid
+      return `$${Number(value).toFixed(0)}`;
+    }
   };
 
   return {

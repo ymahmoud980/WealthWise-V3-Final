@@ -5,50 +5,48 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 
 import { useCurrency } from "@/hooks/use-currency";
 
 interface AssetAllocationChartProps {
-  assetsBreakdown?: { // Made optional to prevent crash
-    existingRealEstate: number;
-    offPlanRealEstate: number;
-    cash: number;
-    gold: number;
-    silver: number;
-    other: number;
-  };
-  totalAssets?: number; // Made optional
+  assetsBreakdown?: any; // Allow 'any' to prevent type crashes
+  totalAssets?: number;
 }
 
 export function AssetAllocationChart({ assetsBreakdown, totalAssets = 0 }: AssetAllocationChartProps) {
   const { format } = useCurrency();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Prevent SSR Hydration Mismatch (Recharts often crashes on first load without this)
+  // Prevent SSR Hydration Mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground">Loading Chart...</div>;
+  // 1. Loading State
+  if (!isMounted) return <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground animate-pulse">Loading Chart...</div>;
 
-  // SAFETY CHECK: If data is missing, don't try to render the chart
+  // 2. Data Safety Check
   if (!assetsBreakdown) {
     return <div className="h-[350px] flex items-center justify-center text-muted-foreground">No data available</div>;
   }
 
+  // 3. Construct Data safely (Default to 0 if missing)
   const data = [
-    { name: "Existing Real Estate", value: assetsBreakdown.existingRealEstate || 0, color: "#10b981" },
-    { name: "Off-Plan Real Estate", value: assetsBreakdown.offPlanRealEstate || 0, color: "#34d399" },
-    { name: "Gold", value: assetsBreakdown.gold || 0, color: "#fbbf24" },
-    { name: "Silver", value: assetsBreakdown.silver || 0, color: "#94a3b8" },
-    { name: "Cash", value: assetsBreakdown.cash || 0, color: "#3b82f6" },
-    { name: "Other", value: assetsBreakdown.other || 0, color: "#a855f7" },
+    { name: "Existing Real Estate", value: Number(assetsBreakdown.existingRealEstate) || 0, color: "#10b981" },
+    { name: "Off-Plan Real Estate", value: Number(assetsBreakdown.offPlanRealEstate) || 0, color: "#34d399" },
+    { name: "Gold", value: Number(assetsBreakdown.gold) || 0, color: "#fbbf24" },
+    { name: "Silver", value: Number(assetsBreakdown.silver) || 0, color: "#94a3b8" },
+    { name: "Cash", value: Number(assetsBreakdown.cash) || 0, color: "#3b82f6" },
+    { name: "Other", value: Number(assetsBreakdown.other) || 0, color: "#a855f7" },
   ].filter(item => item.value > 0);
 
   if (data.length === 0) {
-    return <div className="h-[350px] flex items-center justify-center text-muted-foreground">No assets to display</div>;
+    return <div className="h-[350px] flex items-center justify-center text-muted-foreground">Add assets to see chart</div>;
   }
 
+  // Custom Tooltip (Crash Proof)
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const item = payload[0].payload;
-      const percentage = totalAssets > 0 ? ((item.value / totalAssets) * 100).toFixed(1) : "0";
+      const safeTotal = totalAssets || 1; // Prevent divide by zero
+      const percentage = ((item.value / safeTotal) * 100).toFixed(1);
+      
       return (
         <div className="bg-[#0f172a]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-xl">
           <p className="font-bold text-white mb-1">{item.name}</p>

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   title: string;
-  value: number;
+  value: any; // Accept any type safely
   icon: ReactNode;
   isCurrency?: boolean;
 }
@@ -14,16 +14,18 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, isCurrency = false }: StatCardProps) {
   const { format } = useCurrency();
 
+  // Safety: Ensure we have a number
+  const safeValue = Number(value) || 0;
+
   const getColor = () => {
     if (title === 'Liabilities') return 'text-rose-400 drop-shadow-md';
-    if (title.includes('Cash Flow')) return value >= 0 ? 'text-emerald-400 drop-shadow-md' : 'text-rose-400 drop-shadow-md';
-    if (title === 'Net Worth') return 'text-amber-400 drop-shadow-md'; // Gold for Net Worth
+    if (title.includes('Cash Flow')) return safeValue >= 0 ? 'text-emerald-400 drop-shadow-md' : 'text-rose-400 drop-shadow-md';
+    if (title === 'Net Worth') return 'text-amber-400 drop-shadow-md';
     return 'text-foreground';
   };
 
   return (
     <div className="glass-panel p-6 rounded-xl relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl group border border-white/10">
-      {/* Decorative Background Glow */}
       <div className="absolute -right-4 -top-4 h-24 w-24 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full blur-2xl group-hover:opacity-100 opacity-50 transition-opacity" />
 
       <div className="relative z-10">
@@ -35,7 +37,7 @@ export function StatCard({ title, value, icon, isCurrency = false }: StatCardPro
         </div>
         <div className="mt-4">
           <div className={cn("text-3xl font-bold tracking-tight font-mono", getColor())}>
-            {isCurrency ? format(value) : value}
+            {isCurrency ? format(safeValue) : safeValue}
           </div>
         </div>
       </div>
