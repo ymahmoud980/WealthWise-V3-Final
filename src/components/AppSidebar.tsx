@@ -42,7 +42,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
   
-  if (!user || loading || pathname === '/signin' || pathname === '/signup') {
+  if (loading || !user || pathname === '/signin' || pathname === '/signup') {
     return null;
   }
 
