@@ -5,7 +5,7 @@ import { getFirestore } from "firebase/firestore";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBuezWec1n1B5wi7xGLatgQ3Ausmtb345g",
-  authDomain: "wealthwise-v3-final.firebaseapp.com",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: "wealthwise-v3-final",
   storageBucket: "wealthwise-v3-final.firebasestorage.app",
   messagingSenderId: "489414271056",
