@@ -1,0 +1,104 @@
+mutation CreateDemoData @transaction @auth(level: USER, insecureReason: "This mutation is safe to expose to all logged in users.") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      displayName: "demouser1",
+      email: "demouser1@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "demouser2",
+      email: "demouser2@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    }
+  ])
+  account_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      name: "Checking Account",
+      description: "My primary checking account",
+      accountType: "Checking",
+      balance: 1000.00,
+      createdAt: "2024-01-02T00:00:00Z"
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      name: "Savings Account",
+      description: "My primary savings account",
+      accountType: "Savings",
+      balance: 5000.00,
+      createdAt: "2024-01-02T00:00:00Z"
+    }
+  ])
+  category_insertMany(data: [
+    {
+      id: "750e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      name: "Groceries",
+      description: "Spending on groceries",
+      categoryType: "Expense",
+      createdAt: "2024-01-03T00:00:00Z"
+    },
+    {
+      id: "750e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      name: "Salary",
+      description: "Income from salary",
+      categoryType: "Income",
+      createdAt: "2024-01-03T00:00:00Z"
+    }
+  ])
+  transaction_insertMany(data: [
+    {
+      id: "850e8400-e29b-41d4-a716-446655440000",
+      accountId: "650e8400-e29b-41d4-a716-446655440000",
+      categoryId: "750e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      amount: 50.00,
+      description: "Grocery shopping at Whole Foods",
+      transactionType: "Expense",
+      transactionDate: "2024-01-04",
+      createdAt: "2024-01-04T00:00:00Z"
+    },
+    {
+      id: "850e8400-e29b-41d4-a716-446655440001",
+      accountId: "650e8400-e29b-41d4-a716-446655440001",
+      categoryId: "750e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      amount: 5000.00,
+      description: "Received salary for January",
+      transactionType: "Income",
+      transactionDate: "2024-01-04",
+      createdAt: "2024-01-04T00:00:00Z"
+    }
+  ])
+  investment_insertMany(data: [
+    {
+      id: "950e8400-e29b-41d4-a716-446655440000",
+      accountId: "650e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      assetName: "Apple Stock",
+      purchasePrice: 170.00,
+      currentPrice: 175.00,
+      quantity: 10.00,
+      purchaseDate: "2024-01-05",
+      currency: "USD",
+      createdAt: "2024-01-05T00:00:00Z"
+    },
+    {
+      id: "950e8400-e29b-41d4-a716-446655440001",
+      accountId: "650e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      assetName: "Tesla Stock",
+      purchasePrice: 250.00,
+      currentPrice: 260.00,
+      quantity: 5.00,
+      purchaseDate: "2024-01-05",
+      currency: "USD",
+      createdAt: "2024-01-05T00:00:00Z"
+    }
+  ])
+}

@@ -1,0 +1,35 @@
+mutation CreateUser($displayName: String!, $email: String!) @auth(level: USER) {
+  user_insert(data: {displayName: $displayName, email: $email, createdAt_expr: "request.time", id_expr: "uuidV4()"})
+}
+
+query GetMyTransactions @auth(level: USER) {
+  transactions(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    amount
+    description
+    transactionDate
+    transactionType
+    category {
+      id
+      name
+    }
+    account {
+      id
+      name
+    }
+  }
+}
+
+mutation CreateTransaction($accountId: UUID!, $categoryId: UUID, $amount: Float!, $description: String!, $transactionDate: Date!, $transactionType: String!) @auth(level: USER) {
+  transaction_insert(data: {accountId: $accountId, categoryId: $categoryId, amount: $amount, description: $description, transactionDate: $transactionDate, transactionType: $transactionType, userId_expr: "auth.uid", createdAt_expr: "request.time", id_expr: "uuidV4()"})
+}
+
+query ListAccounts @auth(level: USER) {
+  accounts(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    name
+    description
+    accountType
+    balance
+  }
+}
