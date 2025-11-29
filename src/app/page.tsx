@@ -16,11 +16,9 @@ import { fetchLiveRates, initialRates, MarketRates } from "@/lib/marketPrices";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
-  // 1. Safe Context Access
   const financialContext = useFinancialData();
   const authContext = useAuth();
   
-  // 2. Safe Fallbacks (Prevents "Cannot read property of undefined" crash)
   const data = financialContext?.data || emptyFinancialData;
   const setData = financialContext?.setData || (() => {});
   const metrics = financialContext?.metrics || { netWorth: 0, totalAssets: 0, totalLiabilities: 0, netCashFlow: 0, assets: { existingRealEstate: 0, offPlanRealEstate: 0, cash: 0, gold: 0, silver: 0, other: 0 } };
@@ -32,20 +30,11 @@ export default function DashboardPage() {
   const [marketRates, setMarketRates] = useState<MarketRates>(initialRates);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 3. Load Data Safely
   useEffect(() => {
     setMounted(true);
-    const loadRates = async () => {
-      try {
-        const rates = await fetchLiveRates();
-        if(rates && typeof rates === 'object') {
-          setMarketRates(rates);
-        }
-      } catch (e) {
-        console.error("Failed to load rates", e);
-      }
-    };
-    loadRates();
+    fetchLiveRates().then((rates) => { 
+        if(rates && typeof rates === 'object') setMarketRates(rates); 
+    });
   }, []);
 
   const handleClearData = () => { setData(emptyFinancialData); setIsClearAlertOpen(false); }
@@ -61,7 +50,6 @@ export default function DashboardPage() {
   }
 
   const handleImportClick = () => fileInputRef.current?.click();
-  
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -80,82 +68,56 @@ export default function DashboardPage() {
     reader.readAsText(file);
   };
 
-  // 4. Prevent Hydration Error
+  // --- CRITICAL STABILITY CHECK ---
   if (!mounted) return null;
 
   const privacyClass = privacyMode ? "blur-xl select-none transition-all duration-500" : "transition-all duration-500";
 
-  // --- SAFE DATA PARSING (CRASH PREVENTION) ---
-  
-  // User Info
-  const emailName = user?.email ? user.email.split('@')[0] : "Investor";
-  const displayName = user?.displayName || emailName;
   const userImage = user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.email || 'guest'}`;
-  
   let lastLogin = "Just now";
   try {
       const meta = (user as any)?.metadata;
-      if (meta?.lastSignInTime) {
-          lastLogin = new Date(meta.lastSignInTime).toLocaleString();
-      }
+      if (meta?.lastSignInTime) lastLogin = new Date(meta.lastSignInTime).toLocaleString();
   } catch (e) {}
 
-  // Market Rates (The part that likely caused the crash)
   const safeEur = marketRates?.EUR || 0.95;
-  // Explicitly check for null/undefined before calling toFixed
-  const safeGold = (marketRates?.Gold !== undefined && marketRates?.Gold !== null) 
-    ? marketRates.Gold.toFixed(2) 
-    : "Loading...";
-  const safeSilver = (marketRates?.Silver !== undefined && marketRates?.Silver !== null) 
-    ? marketRates.Silver.toFixed(2) 
-    : "Loading...";
+  const safeGold = (marketRates?.Gold !== undefined && marketRates?.Gold !== null) ? marketRates.Gold.toFixed(2) : "Loading...";
+  const safeSilver = (marketRates?.Silver !== undefined && marketRates?.Silver !== null) ? marketRates.Silver.toFixed(2) : "Loading...";
 
   return (
     <div className="min-h-screen p-4 md:p-8 lg:p-12 space-y-8">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".json" />
 
-      {/* --- HEADER --- */}
+      {/* HEADER */}
       <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-card/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_15px_rgba(var(--primary),0.3)] bg-slate-800">
              <img src={userImage} alt="User" className="h-full w-full object-cover" />
           </div>
-
           <div>
             <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Wealth <span className="text-primary">Navigator</span>
                 </h1>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-widest font-bold">
-                    PRO INVESTOR
-                </span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-widest font-bold">PRO INVESTOR</span>
             </div>
-            
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground mt-1">
-               <span className="font-medium text-slate-300">{displayName}</span>
+               <span className="font-medium text-slate-300">{user?.displayName || user?.email}</span>
                <span className="hidden sm:inline w-1 h-1 rounded-full bg-slate-600"></span>
                <span>Last Access: <span className="text-amber-400 font-mono">{lastLogin}</span></span>
             </div>
           </div>
         </div>
-        
         <div className="flex flex-wrap items-center gap-2">
            <Button variant="outline" onClick={() => setPrivacyMode(!privacyMode)} className="border-primary/20 hover:bg-primary/10 h-9 text-xs">
-            {privacyMode ? <Eye className="mr-2 h-3 w-3" /> : <EyeOff className="mr-2 h-3 w-3" />}
-            {privacyMode ? "Show" : "Hide"}
+            {privacyMode ? <Eye className="mr-2 h-3 w-3" /> : <EyeOff className="mr-2 h-3 w-3" />} {privacyMode ? "Show" : "Hide"}
           </Button>
-          
-          <Button variant="outline" onClick={handleImportClick} className="border-white/10 h-9 text-xs">
-            <Upload className="mr-2 h-3 w-3" /> Import
-          </Button>
-
-          <Button variant="default" onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 h-9 text-xs">
-            <Download className="mr-2 h-3 w-3" /> Export
-          </Button>
+          <Button variant="outline" onClick={handleImportClick} className="border-white/10 h-9 text-xs"><Upload className="mr-2 h-3 w-3" /> Import</Button>
+          <Button variant="default" onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 h-9 text-xs"><Download className="mr-2 h-3 w-3" /> Export</Button>
         </div>
       </header>
 
-      {/* --- LIVE TICKER --- */}
+      {/* TICKER */}
       <div className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-xs font-mono text-muted-foreground py-3 px-4 border-y border-white/5 bg-black/20 rounded-lg no-scrollbar">
         <span className="flex items-center gap-2 text-primary font-bold"><Activity className="h-3 w-3" /> LIVE:</span>
         <span className="text-emerald-400">USD/EUR: {safeEur}</span>
@@ -163,7 +125,7 @@ export default function DashboardPage() {
         <span className="text-slate-300">SILVER: ${safeSilver}</span>
       </div>
 
-      {/* --- STATS --- */}
+      {/* STATS */}
       <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-4 ${privacyClass}`}>
         <StatCard title="Net Worth" value={metrics?.netWorth || 0} icon={<DollarSign className="text-amber-500" />} isCurrency={true} />
         <StatCard title="Asset Value" value={metrics?.totalAssets || 0} icon={<TrendingUp className="text-emerald-500" />} isCurrency={true} />
@@ -171,7 +133,7 @@ export default function DashboardPage() {
         <StatCard title="Net Cash Flow" value={metrics?.netCashFlow || 0} icon={<ArrowRightLeft className="text-blue-500" />} isCurrency={true} />
       </div>
 
-      {/* --- MAIN CONTENT --- */}
+      {/* CONTENT */}
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
           <div className={`grid gap-8 md:grid-cols-2 ${privacyClass}`}>
@@ -180,7 +142,6 @@ export default function DashboardPage() {
           </div>
           <Card className="glass-panel border-0"><CardHeader><CardTitle>Asset Allocation</CardTitle></CardHeader><CardContent className={privacyClass}><AssetAllocationChart assetsBreakdown={metrics?.assets} totalAssets={metrics?.totalAssets || 0} /></CardContent></Card>
         </div>
-
         <div className="space-y-8">
           <div className="glass-panel p-1 rounded-xl"><PriceControlCard /></div>
           <Card className="border-destructive/30 bg-destructive/5"><CardHeader><CardTitle className="text-destructive">Data Zone</CardTitle><CardDescription>Danger Zone</CardDescription></CardHeader><CardContent><Button variant="outline" className="w-full border-destructive/50 text-destructive" onClick={() => setIsClearAlertOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Clear Data</Button></CardContent></Card>

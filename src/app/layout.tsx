@@ -20,24 +20,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} ${mono.variable} font-sans antialiased h-screen overflow-hidden bg-[#020817]`}>
         
         <AuthProvider>
           <FinancialDataProvider>
             
-            {/* --- FLEX CONTAINER (The Unbreakable Fix) --- */}
+            {/* STABLE LAYOUT: Flex container holds Sidebar and Main Content side-by-side */}
             <div className="flex h-full w-full">
               
-              {/* 1. SIDEBAR COLUMN */}
-              {/* shrink-0 = Do not let this shrink, ever. */}
-              <aside className="w-64 h-full shrink-0 bg-[#111827] border-r border-white/10 overflow-y-auto">
+              {/* SIDEBAR BLOCK */}
+              <aside className="w-64 h-full shrink-0 bg-[#111827] border-r border-white/10 overflow-y-auto z-50">
                  <Sidebar />
               </aside>
 
-              {/* 2. MAIN CONTENT COLUMN */}
-              {/* flex-1 = Take up all remaining space */}
-              <main className="flex-1 h-full overflow-y-auto relative">
+              {/* CONTENT BLOCK */}
+              <main className="flex-1 h-full overflow-y-auto relative bg-background/50">
                 {children}
               </main>
 
