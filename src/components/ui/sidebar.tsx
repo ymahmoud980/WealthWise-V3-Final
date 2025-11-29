@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react"; // Added hooks
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -41,14 +42,22 @@ export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { currency, setCurrency } = useFinancialData();
+  
+  // --- HYDRATION FIX ---
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
-    <div className="space-y-4 py-4 flex flex-col h-full bg-[#111827] text-white">
-      <div className="px-3 py-2 flex-1 overflow-y-auto">
+    <div className="space-y-4 py-4 flex flex-col h-full bg-[#111827] text-white border-r border-white/10">
+      
+      <div className="px-3 py-2 flex-1 overflow-y-auto custom-scrollbar">
         <Link href="/" className="flex items-center pl-3 mb-10">
            <div className="h-8 w-8 mr-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold">W</div>
            <h1 className="text-2xl font-bold">Wealth Nav</h1>
         </Link>
+
         <div className="space-y-1">
           {routes.map((route) => (
             <Link
@@ -69,25 +78,30 @@ export function Sidebar() {
       </div>
       
       <div className="px-3 py-2 space-y-3 border-t border-white/10 pt-4 bg-[#0f172a]/50">
-        <div className="relative group px-1">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Globe className="h-4 w-4 text-muted-foreground" />
+        
+        {/* --- CURRENCY SWITCHER (Only show after mount to prevent crash) --- */}
+        {mounted && (
+            <div className="relative group px-1">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Globe className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+                <select 
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="h-10 pl-10 pr-4 w-full rounded-lg border border-white/10 bg-black/40 text-sm text-white focus:ring-primary focus:border-primary appearance-none cursor-pointer hover:bg-white/10 transition-colors font-medium"
+                >
+                <option value="USD">🇺🇸 USD ($)</option>
+                <option value="KWD">🇰🇼 KWD (KD)</option>
+                <option value="EGP">🇪🇬 EGP (E£)</option>
+                <option value="TRY">🇹🇷 TRY (₺)</option>
+                <option value="EUR">🇪🇺 EUR (€)</option>
+                <option value="GBP">🇬🇧 GBP (£)</option>
+                <option value="AED">🇦🇪 AED (Dh)</option>
+                <option value="SAR">🇸🇦 SAR (SR)</option>
+                </select>
             </div>
-            <select 
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="h-10 pl-10 pr-4 w-full rounded-lg border border-white/10 bg-black/40 text-sm text-white focus:ring-primary appearance-none cursor-pointer hover:bg-white/10"
-            >
-              <option value="USD">🇺🇸 USD ($)</option>
-              <option value="KWD">🇰🇼 KWD (KD)</option>
-              <option value="EGP">🇪🇬 EGP (E£)</option>
-              <option value="TRY">🇹🇷 TRY (₺)</option>
-              <option value="EUR">🇪🇺 EUR (€)</option>
-              <option value="GBP">🇬🇧 GBP (£)</option>
-              <option value="AED">🇦🇪 AED (Dh)</option>
-              <option value="SAR">🇸🇦 SAR (SR)</option>
-            </select>
-        </div>
+        )}
+
         <Button onClick={logout} variant="ghost" className="w-full justify-start text-zinc-400 hover:text-red-400 hover:bg-white/10">
             <LogOut className="h-5 w-5 mr-3" /> Logout
         </Button>
