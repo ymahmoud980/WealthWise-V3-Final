@@ -3,13 +3,14 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBuezWec1n1B5wi7xGLatgQ3Ausmtb345g",
+  apiKey: "AIzaSyD235oKmaCDNC9sv1BetoBCn-5CyaNmmxk",
   authDomain: "web-archive-harvester.firebaseapp.com",
   projectId: "web-archive-harvester",
-  storageBucket: "web-archive-harvester.appspot.com",
+  storageBucket: "web-archive-harvester.firebasestorage.app",
   messagingSenderId: "536596374039",
-  appId: "1:536596374039:web:ca213c8c6159457e123252",
+  appId: "1:536596374039:web:ca213c8c6159457e123252"
 };
 
 // Initialize Firebase (Prevent double initialization in Next.js)

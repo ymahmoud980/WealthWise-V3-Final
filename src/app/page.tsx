@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// FIX: Added CardDescription to the import list below
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button";
 import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Trash2, Download, Upload, Eye, EyeOff, ShieldCheck, PieChart, Activity, LogOut, Globe } from "lucide-react";
@@ -117,7 +118,7 @@ export default function DashboardPage() {
               <select 
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="h-9 pl-9 pr-4 rounded-md border border-white/10 bg-black/20 text-sm focus:ring-primary focus:border-primary block w-full appearance-none cursor-pointer hover:bg-white/5 transition-colors"
+                className="h-9 pl-9 pr-4 rounded-md border border-white/10 bg-black/20 text-sm focus:ring-primary focus:border-primary block w-full appearance-none cursor-pointer hover:bg-white/10 transition-colors"
               >
                 <option value="USD">🇺🇸 USD ($)</option>
                 <option value="KWD">🇰🇼 KWD (KD)</option>
@@ -165,7 +166,15 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-8">
           <div className="glass-panel p-1 rounded-xl"><PriceControlCard /></div>
-          <Card className="border-destructive/30 bg-destructive/5"><CardHeader><CardTitle className="text-destructive">Data Zone</CardTitle><CardDescription>Danger Zone</CardDescription></CardHeader><CardContent><Button variant="outline" className="w-full border-destructive/50 text-destructive" onClick={() => setIsClearAlertOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Clear Data</Button></CardContent></Card>
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardHeader>
+                <CardTitle className="text-destructive">Data Zone</CardTitle>
+                <CardDescription>Danger Zone</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button variant="outline" className="w-full border-destructive/50 text-destructive" onClick={() => setIsClearAlertOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Clear Data</Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
