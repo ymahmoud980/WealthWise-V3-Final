@@ -1,8 +1,10 @@
-
 import type {NextConfig} from 'next';
 import withPWA from '@ducanh2912/next-pwa';
 
 const nextConfig: NextConfig = {
+  // --- FIX: Disable Strict Mode to prevent Firebase Auth "Pending promise" error ---
+  reactStrictMode: false,
+
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
@@ -27,6 +29,19 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'avatar.iran.liara.run',
+        port: '',
+        pathname: '/**',
+      },
+      // --- ADDED: Google and Dicebear for Avatars ---
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
         port: '',
         pathname: '/**',
       }
