@@ -4,6 +4,10 @@ import { getFirestore } from "firebase/firestore";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 // Your web app's Firebase configuration
+// ---------------------------------------------------------
+// NOTE: This connects to the Firebase Project labeled "WealthWise V3 Final"
+// The ID "web-archive-harvester" is correct! Do not change it.
+// ---------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyD235oKmaCDNC9sv1BetoBCn-5CyaNmmxk",
   authDomain: "web-archive-harvester.firebaseapp.com",
