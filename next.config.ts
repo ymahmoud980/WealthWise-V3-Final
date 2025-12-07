@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // 1. Prevent Firebase Auth crash
   reactStrictMode: false,
 
-  // 2. Ignore Typescript/ESLint errors during build (Vercel Fix)
+  // 2. Force the build to pass even if there are code warnings
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -12,52 +12,19 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // 3. Image Domains (Google, Dicebear, placeholders)
+  // 3. Allow Images from Google
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatar.iran.liara.run',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-        port: '',
-        pathname: '/**',
-      }
+      { protocol: 'https', hostname: 'placehold.co' },
+      { protocol: 'https', hostname: 'picsum.photos' },
+      { protocol: 'https', hostname: 'avatar.iran.liara.run' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'api.dicebear.com' },
     ],
   },
-
-  // 4. Keep your Environment Variables (Good practice)
-  env: {
-    NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  },
+  
+  // 4. Reset Output to default (Fixes 404s)
+  output: undefined,
 };
 
-// 5. Export Standard Config (Removed withPWA wrapper to fix deployment)
 export default nextConfig;
