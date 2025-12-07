@@ -1,17 +1,18 @@
-import type {NextConfig} from 'next';
-import withPWA from '@ducanh2912/next-pwa';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // --- FIX: Disable Strict Mode to prevent Firebase Auth "Pending promise" error ---
+  // 1. Prevent Firebase Auth crash
   reactStrictMode: false,
 
-  /* config options here */
+  // 2. Ignore Typescript/ESLint errors during build (Vercel Fix)
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
+
+  // 3. Image Domains (Google, Dicebear, placeholders)
   images: {
     remotePatterns: [
       {
@@ -32,7 +33,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // --- ADDED: Google and Dicebear for Avatars ---
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
@@ -47,6 +47,8 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+
+  // 4. Keep your Environment Variables (Good practice)
   env: {
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -57,9 +59,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA({
-    dest: 'public',
-    disable: process.env.NODE_ENV === 'development',
-    register: true,
-    skipWaiting: true,
-})(nextConfig);
+// 5. Export Standard Config (Removed withPWA wrapper to fix deployment)
+export default nextConfig;
