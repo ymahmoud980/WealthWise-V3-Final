@@ -1,5 +1,6 @@
 "use client"
 
+import { DocumentManager } from "@/components/assets/DocumentManager";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -41,20 +42,19 @@ export default function AssetsPage() {
   
   const handleCancelClick = () => setIsEditing(false);
 
+  // Updated to accept 'any' so we can save Document Arrays
   const handleAssetChange = <T extends { id: string }>(
     assetTypeKey: keyof FinancialData['assets'],
     id: string,
     field: keyof T,
-    value: string | number
+    value: any 
   ) => {
     setEditableData(prevData => {
         const assetList = prevData.assets[assetTypeKey] as T[];
         const updatedAssetList = assetList.map(asset => {
             if (asset.id === id) {
                 const updatedAsset = { ...asset };
-                (updatedAsset[field] as any) = typeof asset[field] === 'number'
-                    ? parseFloat(value as string) || 0
-                    : value;
+                (updatedAsset[field] as any) = value;
                 return updatedAsset;
             }
             return asset;
@@ -199,6 +199,18 @@ export default function AssetsPage() {
                              <div className="font-mono font-medium">+{formatNumber(p.monthlyRent)} {p.rentCurrency || p.currency}</div>
                            )}
                         </div>
+
+                        {/* --- NEW: DOCUMENT MANAGER --- */}
+                        {/* Only show/enable this if we are NOT in edit mode (to prevent clutter), or enable always if preferred. 
+                            Currently enabling always so you can see it. */}
+                        <div className="pt-4 border-t border-white/5">
+                            <DocumentManager 
+                                assetId={p.id}
+                                documents={p.documents || []}
+                                onUpdate={(newDocs) => handleAssetChange('realEstate', p.id, 'documents', newDocs)}
+                            />
+                        </div>
+
                         {isEditing && (
                           <Button variant="destructive" size="sm" className="w-full mt-2" onClick={() => setDeleteTarget({ type: 'realEstate', id: p.id })}>
                               <Trash2 className="h-4 w-4 mr-2" /> Remove Asset
@@ -249,6 +261,16 @@ export default function AssetsPage() {
                               )}
                           </div>
                         </div>
+
+                        {/* --- NEW: DOCUMENT MANAGER FOR UNDER DEVELOPMENT --- */}
+                        <div className="pt-4 border-t border-white/5">
+                            <DocumentManager 
+                                assetId={p.id}
+                                documents={p.documents || []}
+                                onUpdate={(newDocs) => handleAssetChange('underDevelopment', p.id, 'documents', newDocs)}
+                            />
+                        </div>
+
                         {isEditing && (
                           <Button variant="destructive" size="sm" className="w-full mt-2" onClick={() => setDeleteTarget({ type: 'underDevelopment', id: p.id })}>
                               <Trash2 className="h-4 w-4 mr-2" /> Remove Asset
