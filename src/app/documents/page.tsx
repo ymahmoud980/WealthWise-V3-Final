@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-import { FileText, ExternalLink, Search, FolderOpen } from "lucide-react";
+import { FileText, ExternalLink, Search, FolderOpen, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +10,7 @@ export default function DocumentsPage() {
   const { data } = useFinancialData();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 1. Collect ALL documents from ALL assets into one list
+  // 1. Flatten all documents into one searchable list
   const allDocuments = [
     ...(data.assets.realEstate || []).flatMap(asset => 
       (asset.documents || []).map(doc => ({ ...doc, assetName: asset.name, type: "Real Estate" }))
@@ -26,6 +25,15 @@ export default function DocumentsPage() {
     doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     doc.assetName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // 3. GROUP BY ASSET NAME (The key change)
+  const groupedDocs = filteredDocs.reduce((groups, doc) => {
+    if (!groups[doc.assetName]) {
+        groups[doc.assetName] = [];
+    }
+    groups[doc.assetName].push(doc);
+    return groups;
+  }, {} as Record<string, typeof filteredDocs>);
 
   return (
     <div className="min-h-screen p-4 md:p-8 lg:p-12 space-y-8">
@@ -47,41 +55,46 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Document Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredDocs.length > 0 ? (
-            filteredDocs.map((doc, index) => (
-                <div key={`${doc.id}-${index}`} className="glass-panel p-4 rounded-xl border border-white/5 hover:border-indigo-500/50 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
-                                <FileText className="h-6 w-6 text-indigo-400" />
-                            </div>
-                            <div className="overflow-hidden">
-                                <p className="font-semibold text-white truncate w-48" title={doc.name}>{doc.name}</p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <FolderOpen className="h-3 w-3" />
-                                    <span className="truncate max-w-[150px]">{doc.assetName}</span>
+      {/* --- GROUPED DOCUMENTS --- */}
+      <div className="space-y-8">
+        {Object.keys(groupedDocs).length > 0 ? (
+            Object.entries(groupedDocs).map(([assetName, docs]) => (
+                <div key={assetName} className="space-y-4">
+                    {/* Asset Header */}
+                    <div className="flex items-center gap-2 text-xl font-semibold text-indigo-300 border-b border-white/5 pb-2">
+                        <FolderOpen className="h-5 w-5" />
+                        {assetName}
+                    </div>
+
+                    {/* Grid for this Asset */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {docs.map((doc, index) => (
+                            <div key={`${doc.id}-${index}`} className="glass-panel p-4 rounded-xl border border-white/5 hover:border-indigo-500/50 transition-all group bg-black/20">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
+                                            <FileText className="h-6 w-6 text-indigo-400" />
+                                        </div>
+                                        <div className="overflow-hidden">
+                                            <p className="font-semibold text-white truncate w-40" title={doc.name}>{doc.name}</p>
+                                            <p className="text-[10px] text-slate-500 uppercase">{doc.uploadedAt || "Unknown Date"}</p>
+                                        </div>
+                                    </div>
+                                    <a href={doc.url} target="_blank" rel="noreferrer">
+                                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+                                            <ExternalLink className="h-4 w-4" />
+                                        </Button>
+                                    </a>
                                 </div>
                             </div>
-                        </div>
-                        <a href={doc.url} target="_blank" rel="noreferrer">
-                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
-                        </a>
-                    </div>
-                    <div className="mt-4 flex justify-between items-center text-[10px] text-slate-500 uppercase tracking-wider font-medium">
-                        <span>{doc.type}</span>
-                        <span>{doc.uploadedAt || "Unknown Date"}</span>
+                        ))}
                     </div>
                 </div>
             ))
         ) : (
             <div className="col-span-full flex flex-col items-center justify-center p-12 text-muted-foreground border border-dashed border-white/10 rounded-xl bg-white/5">
                 <FileText className="h-12 w-12 mb-4 opacity-20" />
-                <p>No documents found.</p>
-                <p className="text-sm">Go to the <b>Assets</b> page to upload contracts for your properties.</p>
+                <p>No documents found matching your search.</p>
             </div>
         )}
       </div>
