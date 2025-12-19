@@ -6,17 +6,16 @@ import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   title: string;
-  value: any; // Allow any type to prevent TS crashes
+  value: any;
   icon: ReactNode;
   isCurrency?: boolean;
 }
 
 export function StatCard({ title, value, icon, isCurrency = false }: StatCardProps) {
   const { format } = useCurrency();
-
-  // SAFETY: Ensure we have a valid number. If it's NaN or null, use 0.
   const safeValue = Number(value);
   const displayValue = isNaN(safeValue) ? 0 : safeValue;
+  const formattedText = isCurrency ? format(displayValue) : displayValue;
 
   const getColor = () => {
     if (title === 'Liabilities') return 'text-rose-400 drop-shadow-md';
@@ -37,8 +36,12 @@ export function StatCard({ title, value, icon, isCurrency = false }: StatCardPro
           </div>
         </div>
         <div className="mt-4">
-          <div className={cn("text-3xl font-bold tracking-tight font-mono", getColor())}>
-            {isCurrency ? format(displayValue) : displayValue}
+          {/* FIX: Changed text-3xl to text-xl/2xl and added truncation handling */}
+          <div 
+            className={cn("text-2xl font-bold tracking-tight font-mono truncate", getColor())}
+            title={formattedText.toString()} // Hover to see full number
+          >
+            {formattedText}
           </div>
         </div>
       </div>

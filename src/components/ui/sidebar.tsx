@@ -13,6 +13,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/contexts/FinancialDataContext"; // Import Data Context
 import { Button } from "@/components/ui/button";
 
+// const routes = [
+//   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },
+//   { label: "Assets", icon: Building2, href: "/assets", color: "text-emerald-500" },
+//   { label: "Liabilities", icon: Wallet, href: "/liabilities", color: "text-rose-500" },
+//   { label: "Cash Flow", icon: ArrowRightLeft, href: "/cashflow", color: "text-violet-500" },
+//   { label: "Breakdown", icon: Calculator, href: "/breakdown", color: "text-orange-500" },
+//   { label: "Fin. Health", icon: Activity, href: "/health", color: "text-green-600" },
+//   { label: "Trends", icon: LineChart, href: "/trends", color: "text-blue-400" },
+//   { label: "Calculator", icon: Calculator, href: "/calculator", color: "text-yellow-500" },
+//   { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-700" },
+//   { label: "Insights", icon: Lightbulb, href: "/insights", color: "text-amber-400" },
+//   { label: "Reports", icon: FileBarChart, href: "/report", color: "text-indigo-400" },
+//   { label: "Documents", icon: FileText, href: "/documents", color: "text-slate-400" },
+// ];
+
 const routes = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },
   { label: "Assets", icon: Building2, href: "/assets", color: "text-emerald-500" },
@@ -22,9 +37,10 @@ const routes = [
   { label: "Fin. Health", icon: Activity, href: "/health", color: "text-green-600" },
   { label: "Trends", icon: LineChart, href: "/trends", color: "text-blue-400" },
   { label: "Calculator", icon: Calculator, href: "/calculator", color: "text-yellow-500" },
-  { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-700" },
-  { label: "Insights", icon: Lightbulb, href: "/insights", color: "text-amber-400" },
-  { label: "Reports", icon: FileBarChart, href: "/report", color: "text-indigo-400" },
+  
+  // REMOVED: AI Advisor and Insights as requested
+  
+  { label: "Master Report", icon: FileBarChart, href: "/report", color: "text-indigo-400" }, // Renamed for clarity
   { label: "Documents", icon: FileText, href: "/documents", color: "text-slate-400" },
 ];
 
