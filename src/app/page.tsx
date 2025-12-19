@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-// FIX: Added CardDescription to the import list below
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button";
-import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Trash2, Download, Upload, Eye, EyeOff, ShieldCheck, PieChart, Activity, LogOut, Globe } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, ArrowRightLeft, Trash2, Download, Upload, Eye, EyeOff, ShieldCheck, PieChart, Activity, LogOut } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
@@ -15,16 +14,14 @@ import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { emptyFinancialData } from "@/lib/data";
 import { fetchLiveRates, initialRates, MarketRates } from "@/lib/marketPrices";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/dashboard/NotificationBell"; // <--- Imported
 
 export default function DashboardPage() {
   const financialContext = useFinancialData();
   const authContext = useAuth();
   
-  // Safe Fallbacks
   const data = financialContext?.data || emptyFinancialData;
   const setData = financialContext?.setData || (() => {});
-  const currency = financialContext?.currency || "USD";
-  const setCurrency = financialContext?.setCurrency || (() => {});
   const metrics = financialContext?.metrics || { netWorth: 0, totalAssets: 0, totalLiabilities: 0, netCashFlow: 0, assets: { existingRealEstate: 0, offPlanRealEstate: 0, cash: 0, gold: 0, silver: 0, other: 0 } };
   const user = authContext?.user;
   
@@ -110,26 +107,8 @@ export default function DashboardPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-           {/* CURRENCY SWITCHER */}
-           <div className="relative group mr-2">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Globe className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <select 
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="h-9 pl-9 pr-4 rounded-md border border-white/10 bg-black/20 text-sm focus:ring-primary focus:border-primary block w-full appearance-none cursor-pointer hover:bg-white/10 transition-colors"
-              >
-                <option value="USD">🇺🇸 USD ($)</option>
-                <option value="KWD">🇰🇼 KWD (KD)</option>
-                <option value="EGP">🇪🇬 EGP (E£)</option>
-                <option value="TRY">🇹🇷 TRY (₺)</option>
-                <option value="EUR">🇪🇺 EUR (€)</option>
-                <option value="GBP">🇬🇧 GBP (£)</option>
-                <option value="AED">🇦🇪 AED (Dh)</option>
-                <option value="SAR">🇸🇦 SAR (SR)</option>
-              </select>
-           </div>
+           {/* --- NEW: Notification Bell --- */}
+           <NotificationBell />
 
            <Button variant="outline" onClick={() => setPrivacyMode(!privacyMode)} className="border-primary/20 hover:bg-primary/10 h-9 text-xs">
             {privacyMode ? <Eye className="mr-2 h-3 w-3" /> : <EyeOff className="mr-2 h-3 w-3" />} {privacyMode ? "Show" : "Hide"}
@@ -166,15 +145,7 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-8">
           <div className="glass-panel p-1 rounded-xl"><PriceControlCard /></div>
-          <Card className="border-destructive/30 bg-destructive/5">
-            <CardHeader>
-                <CardTitle className="text-destructive">Data Zone</CardTitle>
-                <CardDescription>Danger Zone</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button variant="outline" className="w-full border-destructive/50 text-destructive" onClick={() => setIsClearAlertOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Clear Data</Button>
-            </CardContent>
-          </Card>
+          <Card className="border-destructive/30 bg-destructive/5"><CardHeader><CardTitle className="text-destructive">Data Zone</CardTitle><CardDescription>Danger Zone</CardDescription></CardHeader><CardContent><Button variant="outline" className="w-full border-destructive/50 text-destructive" onClick={() => setIsClearAlertOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Clear Data</Button></CardContent></Card>
         </div>
       </div>
 
