@@ -32,6 +32,9 @@ export interface RealEstateAsset {
   rentCurrency?: Currency;
   rentFrequency: 'monthly' | 'quarterly' | 'semi-annual' | 'annual';
   nextRentDueDate: string;
+  
+  // 2. Add the documents list (Optional)
+  documents?: AssetDocument[]; 
 }
 
 export interface UnderDevelopmentAsset {
