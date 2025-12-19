@@ -19,6 +19,15 @@ const GlassInput = (props: any) => (
   />
 );
 
+// Color palette for assets
+const GROUP_COLORS = [
+  { border: "border-emerald-500", text: "text-emerald-500", bg: "bg-emerald-500", iconBg: "bg-emerald-500/10" },
+  { border: "border-cyan-500", text: "text-cyan-500", bg: "bg-cyan-500", iconBg: "bg-cyan-500/10" },
+  { border: "border-purple-500", text: "text-purple-500", bg: "bg-purple-500", iconBg: "bg-purple-500/10" },
+  { border: "border-amber-500", text: "text-amber-500", bg: "bg-amber-500", iconBg: "bg-amber-500/10" },
+  { border: "border-pink-500", text: "text-pink-500", bg: "bg-pink-500", iconBg: "bg-pink-500/10" },
+];
+
 export default function AssetsPage() {
   const { data, setData, loading } = useFinancialData();
   const [isEditing, setIsEditing] = useState(false);
@@ -125,7 +134,6 @@ export default function AssetsPage() {
   const { realEstate, underDevelopment, cash, gold, silver, otherAssets } = currentData.assets;
   const { installments } = currentData.liabilities;
 
-  // Grouping
   const groupedAssets: Record<string, RealEstateAsset[]> = {};
   (realEstate || []).forEach(asset => {
     const location = asset.location || "Uncategorized";
@@ -161,55 +169,42 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* --- REAL ESTATE SECTION --- */}
+      {/* --- REAL ESTATE (Color Coded) --- */}
       {Object.keys(groupedAssets).length > 0 && (
         <div className="space-y-10">
             <h2 className="text-2xl font-bold text-emerald-500 flex items-center gap-3 border-b border-white/10 pb-4">
                 <Building2 className="h-7 w-7" /> Real Estate
             </h2>
             
-            {Object.entries(groupedAssets).map(([location, assets]) => (
-                <div key={location} className="space-y-5 p-6 rounded-2xl bg-white/5 border border-white/5">
-                    <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-emerald-400" /> {location}
-                        <span className="text-xs font-normal text-muted-foreground ml-2 bg-black/20 px-2 py-1 rounded-full">{assets.length} Units</span>
+            {Object.entries(groupedAssets).map(([location, assets], index) => {
+                const theme = GROUP_COLORS[index % GROUP_COLORS.length];
+                return (
+                <div key={location} className="space-y-5 p-6 rounded-2xl bg-white/[0.02] border border-white/5">
+                    <h3 className={`text-xl font-semibold flex items-center gap-2 ${theme.text}`}>
+                        <MapPin className="h-5 w-5" /> {location}
+                        <span className="text-xs font-normal text-muted-foreground ml-2 bg-black/20 px-2 py-1 rounded-full text-white">{assets.length} Units</span>
                     </h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {assets.map(p => (
-                            <div key={p.id} className="glass-panel p-0 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all shadow-lg">
+                            <div key={p.id} className={`glass-panel p-0 rounded-xl overflow-hidden hover:border-opacity-50 transition-all shadow-lg border-l-4 ${theme.border}`}>
                                 {/* Card Header */}
                                 <div className="bg-secondary/50 p-4 border-b border-white/5 flex justify-between items-start">
                                     <div>
                                         {isEditing ? <GlassInput value={p.name} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'name', e.target.value)} className="font-bold w-full mb-1"/> : <h4 className="font-bold text-lg text-foreground">{p.name}</h4>}
                                         <p className="text-xs text-muted-foreground">{p.location}</p>
                                     </div>
-                                    <div className="p-1.5 bg-emerald-500/10 rounded-lg"><Building2 className="h-4 w-4 text-emerald-500" /></div>
+                                    <div className={`p-1.5 rounded-lg ${theme.iconBg}`}><Building2 className={`h-4 w-4 ${theme.text}`} /></div>
                                 </div>
-                                {/* Card Body */}
                                 <div className="p-5 space-y-4 bg-card/40">
-                                    {/* Market Value */}
                                     <div className="space-y-1">
                                         <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</label>
-                                        {isEditing ? <div className="flex gap-2 items-center"><GlassInput type="number" value={p.currentValue} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)}/><span className="text-xs font-mono">{p.currency}</span></div> : <p className="font-mono text-2xl font-bold text-emerald-500">{formatNumber(p.currentValue)} <span className="text-sm text-muted-foreground">{p.currency}</span></p>}
+                                        {isEditing ? <div className="flex gap-2 items-center"><GlassInput type="number" value={p.currentValue} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)}/><span className="text-xs font-mono">{p.currency}</span></div> : <p className={`font-mono text-2xl font-bold ${theme.text}`}>{formatNumber(p.currentValue)} <span className="text-sm text-muted-foreground">{p.currency}</span></p>}
                                     </div>
-
-                                    {/* --- RESTORED: MONTHLY RENT --- */}
                                     <div className="flex justify-between items-center pt-2 border-t border-white/5">
                                        <div className="text-xs text-muted-foreground">Monthly Rent</div>
-                                       {isEditing ? (
-                                         <GlassInput 
-                                            type="number" 
-                                            value={p.monthlyRent}
-                                            className="w-24 text-right"
-                                            onChange={(e: any) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}
-                                         />
-                                       ) : (
-                                         <div className="font-mono font-medium text-emerald-400">+{formatNumber(p.monthlyRent)} {p.rentCurrency || p.currency}</div>
-                                       )}
+                                       {isEditing ? <GlassInput type="number" value={p.monthlyRent} className="w-24 text-right" onChange={(e: any) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}/> : <div className="font-mono font-medium text-emerald-400">+{formatNumber(p.monthlyRent)} {p.rentCurrency || p.currency}</div>}
                                     </div>
-
-                                    {/* Documents */}
                                     <div className="pt-4 border-t border-white/5">
                                         <DocumentManager assetId={p.id} documents={p.documents || []} onUpdate={(newDocs) => handleDocumentUpdate(p.id, newDocs, 'realEstate')} />
                                     </div>
@@ -219,17 +214,16 @@ export default function AssetsPage() {
                         ))}
                     </div>
                 </div>
-            ))}
+            )})}
         </div>
       )}
 
-      {/* --- UNDER DEVELOPMENT SECTION --- */}
+      {/* --- UNDER DEVELOPMENT (Standard Styling) --- */}
       {Object.keys(groupedDevelopment).length > 0 && (
         <div className="space-y-10 pt-10 border-t border-white/10">
             <h2 className="text-2xl font-bold text-purple-400 flex items-center gap-3">
                 <Package className="h-7 w-7" /> Under Development
             </h2>
-            
             {Object.entries(groupedDevelopment).map(([location, assets]) => (
                 <div key={location} className="space-y-5 p-6 rounded-2xl bg-white/5 border border-white/5">
                     <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">

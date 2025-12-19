@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import type { FinancialData, Loan, Installment } from "@/lib/types";
-import { Trash2, Landmark, Building, CalendarClock, AlertCircle, FolderOpen, Plus } from "lucide-react";
+import { Trash2, Landmark, Building, CalendarClock, AlertCircle, FolderOpen, Plus, Tag } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
@@ -20,6 +20,16 @@ const GlassInput = (props: any) => (
     className={cn("bg-black/20 border-white/10 text-foreground focus:ring-destructive/50 h-8", props.className)} 
   />
 );
+
+// Color palette for different groups
+const GROUP_COLORS = [
+  { border: "border-emerald-500", text: "text-emerald-500", bg: "bg-emerald-500", lightBg: "bg-emerald-500/10" },
+  { border: "border-blue-500", text: "text-blue-500", bg: "bg-blue-500", lightBg: "bg-blue-500/10" },
+  { border: "border-amber-500", text: "text-amber-500", bg: "bg-amber-500", lightBg: "bg-amber-500/10" },
+  { border: "border-purple-500", text: "text-purple-500", bg: "bg-purple-500", lightBg: "bg-purple-500/10" },
+  { border: "border-pink-500", text: "text-pink-500", bg: "bg-pink-500", lightBg: "bg-pink-500/10" },
+  { border: "border-cyan-500", text: "text-cyan-500", bg: "bg-cyan-500", lightBg: "bg-cyan-500/10" },
+];
 
 export default function LiabilitiesPage() {
   const { data, setData } = useFinancialData();
@@ -111,7 +121,6 @@ export default function LiabilitiesPage() {
   }
 
   const formatNumber = (num: number) => num.toLocaleString();
-  
   const currentData = isEditing ? editableData : data;
   const { loans, installments } = currentData.liabilities;
 
@@ -143,10 +152,10 @@ export default function LiabilitiesPage() {
           </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-2 gap-10">
           
-          {/* --- PROJECT INSTALLMENTS --- */}
-          <div className="space-y-6">
+          {/* --- PROJECT INSTALLMENTS (Color Coded Groups) --- */}
+          <div className="space-y-8">
              <div className="flex justify-between items-center border-b border-white/10 pb-4">
                 <h3 className="text-xl font-semibold flex items-center gap-2 text-white">
                     <Building className="text-rose-500 h-6 w-6"/> Project Installments
@@ -160,16 +169,20 @@ export default function LiabilitiesPage() {
                 </Button>
              </div>
              
-             {Object.entries(groupedInstallments).map(([projectGroup, projectInstallments]) => (
-                <div key={projectGroup} className="space-y-3">
-                    <h4 className="text-sm font-semibold text-slate-400 flex items-center gap-2 pl-1 uppercase tracking-wider">
+             {Object.entries(groupedInstallments).map(([projectGroup, projectInstallments], groupIndex) => {
+                // Assign a color from palette based on index
+                const theme = GROUP_COLORS[groupIndex % GROUP_COLORS.length];
+                
+                return (
+                <div key={projectGroup} className={`space-y-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]`}>
+                    <h4 className={`text-sm font-bold flex items-center gap-2 uppercase tracking-wider ${theme.text}`}>
                         <FolderOpen className="h-4 w-4" /> {projectGroup}
                     </h4>
+                    
                     {projectInstallments.map(p => {
                         const progress = (p.paid / p.total) * 100;
                         const remaining = p.total - p.paid;
                         
-                        // Parse Date Logic (Moved inline to keep render clean)
                         let formattedDueDate = "Invalid Date";
                         if (p.nextDueDate) {
                             const parts = p.nextDueDate.split('-');
@@ -180,7 +193,7 @@ export default function LiabilitiesPage() {
                         }
                         
                         return (
-                        <div key={p.id} className="glass-panel p-5 rounded-xl relative group border-l-4 border-l-rose-500 hover:border-rose-400 transition-all shadow-md bg-black/20">
+                        <div key={p.id} className={`glass-panel p-5 rounded-xl relative group border-l-4 ${theme.border} bg-black/40 shadow-md`}>
                             {isEditing && (
                                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'installment', id: p.id })}>
                                     <Trash2 className="h-4 w-4" />
@@ -189,32 +202,26 @@ export default function LiabilitiesPage() {
                             <div className="flex justify-between items-start mb-2">
                                 <div>
                                     {isEditing ? (
-                                        <GlassInput 
-                                            value={p.project} 
-                                            onChange={(e: any) => handleInstallmentChange(p.id, 'project', e.target.value)}
-                                            className="font-bold text-lg mb-1"
-                                        />
+                                        <GlassInput value={p.project} onChange={(e: any) => handleInstallmentChange(p.id, 'project', e.target.value)} className="font-bold text-lg mb-1" />
                                     ) : (
                                         <h4 className="font-bold text-lg text-white">{p.project}</h4>
                                     )}
                                     {isEditing ? (
-                                        <GlassInput 
-                                            value={p.developer} 
-                                            onChange={(e: any) => handleInstallmentChange(p.id, 'developer', e.target.value)}
-                                            className="h-6 text-xs w-1/2"
-                                        />
+                                        <GlassInput value={p.developer} onChange={(e: any) => handleInstallmentChange(p.id, 'developer', e.target.value)} className="h-6 text-xs w-1/2" />
                                     ) : (
                                         <p className="text-xs text-muted-foreground">{p.developer}</p>
                                     )}
                                 </div>
                                 <div className="text-right">
                                     <div className="text-xs uppercase text-muted-foreground">Paid</div>
-                                    <div className="font-mono font-bold text-emerald-400">{progress.toFixed(0)}%</div>
+                                    <div className={`font-mono font-bold ${theme.text}`}>{progress.toFixed(0)}%</div>
                                 </div>
                             </div>
                             
-                            {/* FIX: Removed invalid 'indicatorClassName'. Used child selector [&>*] to color the bar Green */}
-                            <Progress value={progress} className="h-2 bg-white/10 mb-4 [&>*]:bg-emerald-500" />
+                            {/* Color-Matched Progress Bar */}
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-4">
+                                <div className={`h-full ${theme.bg}`} style={{ width: `${progress}%` }} />
+                            </div>
 
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div className="space-y-1">
@@ -227,24 +234,27 @@ export default function LiabilitiesPage() {
                                 </div>
                                 <div className="space-y-1 bg-white/5 p-2 rounded md:col-span-2 flex justify-between items-center mt-1">
                                     <div>
-                                        <p className="text-[10px] text-muted-foreground uppercase">Next Payment</p>
-                                        <div className="flex items-center gap-2">
-                                            <CalendarClock className="h-3 w-3 text-rose-400" />
+                                        <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                                            Next Payment <Tag className="h-3 w-3 ml-1 opacity-50"/> 
+                                            <span className="text-white font-bold">{p.frequency}</span>
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <CalendarClock className={`h-3 w-3 ${theme.text}`} />
                                             <span className="text-xs text-white">{formattedDueDate}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        {isEditing ? <GlassInput type="number" className="w-24 text-right" defaultValue={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)}/> : <span className="font-mono font-bold text-lg text-rose-300">{formatNumber(p.amount)}</span>}
+                                        {isEditing ? <GlassInput type="number" className="w-24 text-right" defaultValue={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)}/> : <span className={`font-mono font-bold text-lg ${theme.text}`}>{formatNumber(p.amount)}</span>}
                                     </div>
                                 </div>
                             </div>
                         </div>)
                     })}
                 </div>
-             ))}
+             )})}
           </div>
           
-          {/* --- BANK LOANS --- */}
+          {/* --- BANK LOANS (Standard Styling) --- */}
           <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-white/10 pb-4">
                 <h3 className="text-xl font-semibold flex items-center gap-2 text-white">
@@ -282,8 +292,9 @@ export default function LiabilitiesPage() {
                           <span className="text-xs font-mono bg-amber-500/10 text-amber-400 px-2 py-1 rounded border border-amber-500/20">{progress.toFixed(1)}% Paid</span>
                       </div>
                       
-                      {/* FIX: Removed invalid 'indicatorClassName'. Used child selector [&>*] to color the bar Amber */}
-                      <Progress value={progress} className="h-1.5 bg-white/10 mb-4 [&>*]:bg-amber-500" />
+                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-4">
+                         <div className="h-full bg-amber-500" style={{ width: `${progress}%` }} />
+                      </div>
 
                       <div className="grid grid-cols-2 gap-4 text-sm mt-2">
                            <div className="space-y-1">
