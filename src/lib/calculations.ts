@@ -5,55 +5,56 @@ import type { ExchangeRates } from './types';
 const GRAMS_PER_OUNCE = 31.1035;
 
 /**
- * Converts value to display currency.
- * Includes SAFETY SHIELDS to prevent crashes if data is missing.
+ * STRICT CONVERSION FUNCTION
+ * Forces all inputs to be numbers. Never returns NaN.
  */
 export const convert = (
-  amount: number,
+  amount: any, // Accept any to handle strings/numbers safely
   from: string,
   to: string,
   rates: any
 ): number => {
-  // --- SAFETY SHIELD ---
-  // If rates are missing (during loading), return 0 instead of crashing
-  if (!rates || typeof rates !== 'object') {
-    return 0;
-  }
-  
-  // If no conversion needed
-  if (from === to) return amount;
+  // 1. Sanitize Input: Force to Number, default to 0 if invalid
+  const safeAmount = Number(amount);
+  if (isNaN(safeAmount) || !isFinite(safeAmount)) return 0;
 
-  // --- 1. SPECIAL LOGIC FOR LIVE METALS ---
+  // 2. Safety Shield for Rates
+  if (!rates || typeof rates !== 'object') return 0;
+
+  // 3. Optimization: Same Currency
+  if (from === to) return safeAmount;
+
+  // 4. Precious Metals Logic
   if (from === 'GOLD_GRAM') {
-    // Safety: Default to 0 if Gold price is missing
-    const goldPricePerOunce = rates.Gold || 0; 
+    const goldPricePerOunce = Number(rates.Gold) || 0; 
     const pricePerGram = goldPricePerOunce / GRAMS_PER_OUNCE;
-    const valueInUSD = amount * pricePerGram;
+    const valueInUSD = safeAmount * pricePerGram;
     return convert(valueInUSD, 'USD', to, rates);
   }
 
   if (from === 'SILVER_GRAM') {
-    const silverPricePerOunce = rates.Silver || 0;
+    const silverPricePerOunce = Number(rates.Silver) || 0;
     const pricePerGram = silverPricePerOunce / GRAMS_PER_OUNCE;
-    const valueInUSD = amount * pricePerGram;
+    const valueInUSD = safeAmount * pricePerGram;
     return convert(valueInUSD, 'USD', to, rates);
   }
 
-  // --- 2. STANDARD CURRENCY LOGIC ---
-  const fromRate = rates[from] || 1;
-  const amountInUSD = amount / fromRate;
+  // 5. Standard Currency Logic (Base is USD)
+  const fromRate = Number(rates[from]) || 1;
+  const toRate = Number(rates[to]) || 1;
 
-  const toRate = rates[to] || 1;
-
+  // Calculation: (Amount / FromRate) * ToRate
+  // We use USD as the middleman
+  const amountInUSD = safeAmount / fromRate;
   return amountInUSD * toRate;
 };
 
 /**
- * Metric Calculation
- * (Standard logic, relies on the safe convert function above)
+ * STRICT METRICS CALCULATION
+ * Ensures sums never break due to a single bad value.
  */
 export const calculateMetrics = (data: FinancialData, displayCurrency: Currency, rates: ExchangeRates) => {
-    // If data is missing (startup), return a safe empty object
+    // Safety check for empty data
     if (!data || !data.assets) {
        return {
           netWorth: 0, totalAssets: 0, totalLiabilities: 0, netCashFlow: 0,
@@ -67,7 +68,7 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
 
     const { assets, liabilities, monthlyExpenses } = data;
 
-    // --- ASSETS ---
+    // --- ASSETS (Strict Addition) ---
     const realEstateValue = (assets.realEstate || []).reduce((acc, asset) => acc + convert(asset.currentValue, asset.currency, displayCurrency, rates), 0);
     const underDevelopmentValue = (assets.underDevelopment || []).reduce((acc, asset) => acc + convert(asset.currentValue, asset.currency, displayCurrency, rates), 0);
     const cashValue = (assets.cash || []).reduce((acc, asset) => acc + convert(asset.amount, asset.currency, displayCurrency, rates), 0);
@@ -77,21 +78,34 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     
     const totalAssets = realEstateValue + underDevelopmentValue + cashValue + goldValue + silverValue + otherAssetsValue;
 
-    // --- LIABILITIES ---
+    // --- LIABILITIES (Strict Addition) ---
     const loansValue = (liabilities.loans || []).reduce((acc, loan) => acc + convert(loan.remaining, loan.currency, displayCurrency, rates), 0);
-    const installmentsValue = (liabilities.installments || []).reduce((acc, inst) => acc + convert(inst.total - inst.paid, inst.currency, displayCurrency, rates), 0);
+    
+    const installmentsValue = (liabilities.installments || []).reduce((acc, inst) => {
+        // Calculate remaining: (Total - Paid)
+        // Force numbers to prevent string subtraction errors
+        const total = Number(inst.total) || 0;
+        const paid = Number(inst.paid) || 0;
+        const remaining = Math.max(0, total - paid); // Prevent negative debt
+        return acc + convert(remaining, inst.currency, displayCurrency, rates);
+    }, 0);
+
     const totalLiabilities = loansValue + installmentsValue;
     
     // --- NET WORTH ---
     const netWorth = totalAssets - totalLiabilities;
     
-    // --- CASH FLOW ---
+    // --- CASH FLOW (Strict Addition) ---
     const salaryIncome = convert(assets.salary.amount, assets.salary.currency, displayCurrency, rates);
     
     const rentIncome = (assets.realEstate || []).reduce((acc, asset) => {
         let monthlyRent = convert(asset.monthlyRent, asset.rentCurrency || asset.currency, displayCurrency, rates);
         if (asset.rentFrequency === 'semi-annual') {
             monthlyRent = monthlyRent / 6;
+        } else if (asset.rentFrequency === 'annual') { // Added Annual support
+            monthlyRent = monthlyRent / 12;
+        } else if (asset.rentFrequency === 'quarterly') {
+            monthlyRent = monthlyRent / 3;
         }
         return acc + monthlyRent;
     }, 0);
@@ -102,11 +116,16 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     const householdExpenses = (monthlyExpenses.household || []).reduce((acc, expense) => acc + convert(expense.amount, expense.currency, displayCurrency, rates), 0);
     
     const installmentsAvgExpense = (liabilities.installments || []).reduce((acc, inst) => {
+        // Calculate Monthly Load
+        const amount = Number(inst.amount) || 0;
         let monthlyCost = 0;
-        const convertedAmount = convert(inst.amount, inst.currency, displayCurrency, rates);
+        const convertedAmount = convert(amount, inst.currency, displayCurrency, rates);
+        
         if (inst.frequency === 'Annual') monthlyCost = convertedAmount / 12;
         else if (inst.frequency === 'Semi-Annual') monthlyCost = convertedAmount / 6;
         else if (inst.frequency === 'Quarterly') monthlyCost = convertedAmount / 3;
+        else monthlyCost = convertedAmount; // Monthly
+        
         return acc + monthlyCost;
     }, 0);
 
