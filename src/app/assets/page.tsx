@@ -161,14 +161,13 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* --- REAL ESTATE SECTION (Grouped by Location) --- */}
+      {/* --- REAL ESTATE SECTION --- */}
       {Object.keys(groupedAssets).length > 0 && (
         <div className="space-y-10">
             <h2 className="text-2xl font-bold text-emerald-500 flex items-center gap-3 border-b border-white/10 pb-4">
                 <Building2 className="h-7 w-7" /> Real Estate
             </h2>
             
-            {/* Iterate through each location group with extra spacing */}
             {Object.entries(groupedAssets).map(([location, assets]) => (
                 <div key={location} className="space-y-5 p-6 rounded-2xl bg-white/5 border border-white/5">
                     <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -189,10 +188,28 @@ export default function AssetsPage() {
                                 </div>
                                 {/* Card Body */}
                                 <div className="p-5 space-y-4 bg-card/40">
+                                    {/* Market Value */}
                                     <div className="space-y-1">
                                         <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</label>
                                         {isEditing ? <div className="flex gap-2 items-center"><GlassInput type="number" value={p.currentValue} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)}/><span className="text-xs font-mono">{p.currency}</span></div> : <p className="font-mono text-2xl font-bold text-emerald-500">{formatNumber(p.currentValue)} <span className="text-sm text-muted-foreground">{p.currency}</span></p>}
                                     </div>
+
+                                    {/* --- RESTORED: MONTHLY RENT --- */}
+                                    <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                                       <div className="text-xs text-muted-foreground">Monthly Rent</div>
+                                       {isEditing ? (
+                                         <GlassInput 
+                                            type="number" 
+                                            value={p.monthlyRent}
+                                            className="w-24 text-right"
+                                            onChange={(e: any) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}
+                                         />
+                                       ) : (
+                                         <div className="font-mono font-medium text-emerald-400">+{formatNumber(p.monthlyRent)} {p.rentCurrency || p.currency}</div>
+                                       )}
+                                    </div>
+
+                                    {/* Documents */}
                                     <div className="pt-4 border-t border-white/5">
                                         <DocumentManager assetId={p.id} documents={p.documents || []} onUpdate={(newDocs) => handleDocumentUpdate(p.id, newDocs, 'realEstate')} />
                                     </div>
@@ -249,7 +266,7 @@ export default function AssetsPage() {
       {/* --- LIQUID ASSETS SEPARATOR --- */}
       <div className="border-t-2 border-dashed border-white/10 my-12" />
 
-      {/* Liquid Assets Section (Improved Layout) */}
+      {/* Liquid Assets Section */}
       <div className="space-y-8">
           <h2 className="text-2xl font-bold text-blue-400 flex items-center gap-3">
              <Wallet className="h-7 w-7" /> Liquid & Other Assets
