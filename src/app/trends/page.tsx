@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFinancialData } from "@/contexts/FinancialDataContext";
@@ -6,51 +5,60 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
 import { useCurrency } from "@/hooks/use-currency";
 import { format as formatDate, parseISO } from 'date-fns';
-import { AreaChart } from "lucide-react";
-import type { HistoryEntry } from "@/lib/types";
-
+import { AreaChart, Camera } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export default function TrendsPage() {
-  const { data } = useFinancialData();
-  const { format, currency } = useCurrency();
+  const { data, setData, metrics } = useFinancialData();
+  const { format } = useCurrency();
+  const [isSaving, setIsSaving] = useState(false);
 
-  // 1. Sort the history data directly
+  // 1. SAVE SNAPSHOT FUNCTION
+  const handleSaveSnapshot = async () => {
+    setIsSaving(true);
+    try {
+        const newEntry = {
+            date: new Date().toISOString(),
+            netWorth: metrics.netWorth, // Save in Base Currency (USD usually) or Current
+            totalAssets: metrics.totalAssets,
+            totalLiabilities: metrics.totalLiabilities
+        };
+
+        const updatedData = {
+            ...data,
+            history: [...(data.history || []), newEntry]
+        };
+
+        // Update Context (Triggers Cloud Save)
+        setData(updatedData);
+        alert("Snapshot saved! Trend updated.");
+    } catch (e) {
+        console.error(e);
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+  // 2. PREPARE DATA
   const sortedHistory = (data.history || [])
-    .slice() // Create a shallow copy to avoid mutating original data
-    .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // 2. Map sorted data to the format required by the chart
-  const chartData = sortedHistory.map(entry => {
-    // We need to convert the stored values to the currently selected display currency.
-    // The history values are stored in 'USD' by default when snapshot is taken.
-    // Let's assume they are stored in a base currency, e.g. USD and we convert to the current one
-    const baseCurrencyForHistory = 'USD'; // Or whatever base currency is assumed for history snapshots
-
-    // This is a simplified conversion. Ideally, the currency of the snapshot would be stored with it.
-    // For now, we assume all history is stored as USD equivalent at the time of snapshot.
-    
-    // The history entries already store the calculated values. We just need to format the date.
-    // The values are calculated in the currency that was active when the snapshot was taken.
-    // For this chart, let's assume we display them as is, and the user knows which currency was active.
-    // The format function will use the currently selected currency symbol, which might be misleading.
-    
-    // Let's pass the raw numbers to the chart and let the tooltip and Y-axis formatters handle it.
-    return {
-      date: formatDate(parseISO(entry.date), 'MMM d, yyyy'),
+  const chartData = sortedHistory.map(entry => ({
+      date: formatDate(parseISO(entry.date), 'MMM d'),
       "Net Worth": entry.netWorth,
-      "Total Assets": entry.totalAssets,
-      "Total Liabilities": entry.totalLiabilities,
-    };
-  });
-
+      "Assets": entry.totalAssets,
+      "Liabilities": entry.totalLiabilities,
+  }));
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="p-2 bg-background border rounded-md shadow-lg">
-          <p className="font-bold">{label}</p>
+        <div className="p-3 bg-[#0f172a]/95 border border-white/10 rounded-xl shadow-xl backdrop-blur-md">
+          <p className="font-bold text-white mb-2">{label}</p>
           {payload.map((pld: any) => (
-            <p key={pld.dataKey} style={{ color: pld.color }}>
+            <p key={pld.dataKey} style={{ color: pld.color }} className="text-sm font-mono">
               {`${pld.dataKey}: ${format(pld.value)}`}
             </p>
           ))}
@@ -61,47 +69,49 @@ export default function TrendsPage() {
   };
 
   return (
-    <div className="space-y-8">
-       <div className="flex items-start gap-4">
-        <div className="bg-primary text-primary-foreground p-3 rounded-lg">
-            <AreaChart className="h-8 w-8" />
+    <div className="space-y-8 p-4 md:p-8 min-h-screen">
+       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-panel p-6 rounded-xl">
+        <div className="flex items-center gap-4">
+            <div className="bg-blue-600/20 text-blue-400 p-3 rounded-xl border border-blue-500/20">
+                <AreaChart className="h-8 w-8" />
+            </div>
+            <div>
+                <h1 className="text-3xl font-bold text-white">Financial Trends</h1>
+                <p className="text-muted-foreground">Track your wealth journey over time.</p>
+            </div>
         </div>
-        <div>
-            <h1 className="text-3xl font-bold">Financial Trends</h1>
-            <p className="text-muted-foreground">
-                Visualize your financial journey over time. Click "Save Snapshot" in the header to add a new data point.
-            </p>
-        </div>
+        <Button onClick={handleSaveSnapshot} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Camera className="mr-2 h-4 w-4" /> 
+            {isSaving ? "Saving..." : "Take Snapshot"}
+        </Button>
       </div>
-      <Card>
+
+      <Card className="glass-panel border-0">
         <CardHeader>
-          <CardTitle>Historical Financial Metrics</CardTitle>
-          <CardDescription>
-            This chart shows the trends of your Net Worth, Total Assets, and Total Liabilities over time.
-          </CardDescription>
+          <CardTitle>Historical Performance</CardTitle>
+          <CardDescription>Net Worth, Assets, and Liabilities over time.</CardDescription>
         </CardHeader>
         <CardContent>
-          {chartData.length > 1 ? (
-             <div className="h-[400px]">
+          {chartData.length > 0 ? (
+             <div className="h-[400px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis tickFormatter={(value) => format(value).replace(/[^0-9.,-]/g, '')}/>
+                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                        <XAxis dataKey="date" stroke="#94a3b8" tick={{fontSize: 12}} />
+                        <YAxis stroke="#94a3b8" tick={{fontSize: 12}} tickFormatter={(value) => `${(value/1000).toFixed(0)}k`}/>
                         <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                        <Line type="monotone" dataKey="Net Worth" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
-                        <Line type="monotone" dataKey="Total Assets" stroke="hsl(var(--chart-2))" strokeWidth={2} />
-                        <Line type="monotone" dataKey="Total Liabilities" stroke="hsl(var(--destructive))" strokeWidth={2} />
+                        <Legend wrapperStyle={{paddingTop: '20px'}}/>
+                        <Line type="monotone" dataKey="Net Worth" stroke="#fbbf24" strokeWidth={3} activeDot={{ r: 8 }} />
+                        <Line type="monotone" dataKey="Assets" stroke="#10b981" strokeWidth={2} />
+                        <Line type="monotone" dataKey="Liabilities" stroke="#f43f5e" strokeWidth={2} />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
           ) : (
-             <div className="h-[400px] flex items-center justify-center text-center text-muted-foreground">
-                <div>
-                    <p>Not enough data to display a trend.</p>
-                    <p>Please save at least two financial snapshots using the "Save Snapshot" button in the header.</p>
-                </div>
+             <div className="h-[400px] flex flex-col items-center justify-center text-center text-muted-foreground border border-dashed border-white/10 rounded-xl bg-white/5">
+                <AreaChart className="h-16 w-16 mb-4 opacity-20" />
+                <p className="text-lg font-medium text-white">No trend data yet.</p>
+                <p className="text-sm max-w-md mt-2">Click <span className="text-blue-400 font-bold">Take Snapshot</span> above to record your current financial status as the first data point.</p>
             </div>
           )}
         </CardContent>

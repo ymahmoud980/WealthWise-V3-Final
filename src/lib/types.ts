@@ -1,5 +1,12 @@
 export type Currency = string;
 
+export interface HistoryEntry {
+  date: string; // ISO String
+  netWorth: number;
+  totalAssets: number;
+  totalLiabilities: number;
+}
+
 export interface Installment {
   id: string;
   project: string;
@@ -97,6 +104,7 @@ export interface FinancialData {
   monthlyExpenses: {
     household: HouseholdExpense[];
   };
+  history?: HistoryEntry[]; // <--- added
 }
 
 // Ensure ExchangeRates is compatible with our MarketRates
