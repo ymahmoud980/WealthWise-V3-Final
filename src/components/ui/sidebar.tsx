@@ -7,26 +7,11 @@ import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, Building2, Wallet, ArrowRightLeft, Calculator, 
   BrainCircuit, LogOut, Activity, LineChart, FileText, Lightbulb, 
-  FileBarChart, Globe 
+  FileBarChart, Globe, X 
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useFinancialData } from "@/contexts/FinancialDataContext"; // Import Data Context
+import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { Button } from "@/components/ui/button";
-
-// const routes = [
-//   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },
-//   { label: "Assets", icon: Building2, href: "/assets", color: "text-emerald-500" },
-//   { label: "Liabilities", icon: Wallet, href: "/liabilities", color: "text-rose-500" },
-//   { label: "Cash Flow", icon: ArrowRightLeft, href: "/cashflow", color: "text-violet-500" },
-//   { label: "Breakdown", icon: Calculator, href: "/breakdown", color: "text-orange-500" },
-//   { label: "Fin. Health", icon: Activity, href: "/health", color: "text-green-600" },
-//   { label: "Trends", icon: LineChart, href: "/trends", color: "text-blue-400" },
-//   { label: "Calculator", icon: Calculator, href: "/calculator", color: "text-yellow-500" },
-//   { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-700" },
-//   { label: "Insights", icon: Lightbulb, href: "/insights", color: "text-amber-400" },
-//   { label: "Reports", icon: FileBarChart, href: "/report", color: "text-indigo-400" },
-//   { label: "Documents", icon: FileText, href: "/documents", color: "text-slate-400" },
-// ];
 
 const routes = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },
@@ -37,14 +22,14 @@ const routes = [
   { label: "Fin. Health", icon: Activity, href: "/health", color: "text-green-600" },
   { label: "Trends", icon: LineChart, href: "/trends", color: "text-blue-400" },
   { label: "Calculator", icon: Calculator, href: "/calculator", color: "text-yellow-500" },
-  
-  // REMOVED: AI Advisor and Insights as requested
-  
-  { label: "Master Report", icon: FileBarChart, href: "/report", color: "text-indigo-400" }, // Renamed for clarity
+  { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-700" },
+  { label: "Insights", icon: Lightbulb, href: "/insights", color: "text-amber-400" },
+  { label: "Reports", icon: FileBarChart, href: "/report", color: "text-indigo-400" },
   { label: "Documents", icon: FileText, href: "/documents", color: "text-slate-400" },
 ];
 
-export function Sidebar() {
+// Added 'onClose' prop for mobile handling
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { logout } = useAuth();
   
@@ -55,17 +40,28 @@ export function Sidebar() {
       const data = useFinancialData();
       currency = data.currency;
       setCurrency = data.setCurrency;
-  } catch(e) { /* Ignore error during initial load */ }
+  } catch(e) {}
 
-  // Prevent Hydration Error
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   return (
-    <div className="space-y-4 py-4 flex flex-col h-full bg-[#111827] text-white border-r border-white/10">
+    <div className="space-y-4 py-4 flex flex-col h-full bg-[#111827] text-white border-r border-white/10 relative">
       
+      {/* Mobile Close Button (Visible only when passed onClose) */}
+      {onClose && (
+        <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-2 right-2 text-zinc-400 md:hidden" 
+            onClick={onClose}
+        >
+            <X className="h-6 w-6" />
+        </Button>
+      )}
+
       <div className="px-3 py-2 flex-1 overflow-y-auto custom-scrollbar">
-        <Link href="/" className="flex items-center pl-3 mb-10">
+        <Link href="/" className="flex items-center pl-3 mb-10" onClick={onClose}>
            <div className="h-8 w-8 mr-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold">W</div>
            <h1 className="text-2xl font-bold">Wealth Nav</h1>
         </Link>
@@ -75,6 +71,7 @@ export function Sidebar() {
             <Link
               key={route.href}
               href={route.href}
+              onClick={onClose} // Auto-close on mobile click
               className={cn(
                 "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition",
                 pathname === route.href ? "text-white bg-white/10" : "text-zinc-400"
@@ -89,10 +86,7 @@ export function Sidebar() {
         </div>
       </div>
       
-      {/* Footer Area */}
       <div className="px-3 py-2 space-y-3 border-t border-white/10 pt-4 bg-[#0f172a]/50">
-        
-        {/* Safe Currency Switcher */}
         {mounted && (
             <div className="relative group px-1">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -101,7 +95,7 @@ export function Sidebar() {
                 <select 
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="h-10 pl-10 pr-4 w-full rounded-lg border border-white/10 bg-black/40 text-sm text-white focus:ring-primary focus:border-primary appearance-none cursor-pointer hover:bg-white/10 transition-colors font-medium"
+                className="h-10 pl-10 pr-4 w-full rounded-lg border border-white/10 bg-black/40 text-sm text-white focus:ring-primary appearance-none cursor-pointer hover:bg-white/10"
                 >
                 <option value="USD">🇺🇸 USD ($)</option>
                 <option value="KWD">🇰🇼 KWD (KD)</option>
@@ -114,7 +108,6 @@ export function Sidebar() {
                 </select>
             </div>
         )}
-
         <Button onClick={logout} variant="ghost" className="w-full justify-start text-zinc-400 hover:text-red-400 hover:bg-white/10">
             <LogOut className="h-5 w-5 mr-3" /> Logout
         </Button>
