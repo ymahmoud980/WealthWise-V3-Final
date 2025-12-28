@@ -1,22 +1,15 @@
 export type Currency = string;
 
-export interface HistoryEntry {
-  date: string; // ISO String
-  netWorth: number;
-  totalAssets: number;
-  totalLiabilities: number;
-}
-
 export interface Installment {
   id: string;
   project: string;
   developer: string;
-  total: number;
+  total: number; // This should be Base + Maint + Parking
   paid: number;
   amount: number; // Next Installment Amount
   nextDueDate: string;
   currency: Currency;
-  frequency: 'Monthly' | 'Quarterly' | 'Semi-Annual' | 'Annual';
+  frequency: 'Monthly' | 'Quarterly' | 'Semi-Annual' | 'Annual' | 'One-Time';
 }
 
 export interface Loan {
@@ -39,24 +32,27 @@ export interface RealEstateAsset {
   rentCurrency?: Currency;
   rentFrequency: 'monthly' | 'quarterly' | 'semi-annual' | 'annual';
   nextRentDueDate: string;
-  
-  // 2. Add the documents list (Optional)
-  documents?: AssetDocument[]; 
 }
 
 export interface UnderDevelopmentAsset {
   id: string;
   name: string;
   location: string;
-  purchasePrice: number;
+  purchasePrice: number; // Base Price
   currentValue: number;
   currency: Currency;
   linkedInstallmentId?: string;
+  
+  // --- NEW FIELDS ---
+  maintenanceCost?: number;
+  maintenanceDueDate?: string;
+  parkingCost?: number;
+  // We use these to calculate the "Total Contract Value"
 }
 
 export interface CashAsset {
   id: string;
-  location: string; // Bank Name or "Wallet"
+  location: string;
   amount: number;
   currency: Currency;
 }
@@ -104,8 +100,6 @@ export interface FinancialData {
   monthlyExpenses: {
     household: HouseholdExpense[];
   };
-  history?: HistoryEntry[]; // <--- added
 }
 
-// Ensure ExchangeRates is compatible with our MarketRates
 export type ExchangeRates = any;
