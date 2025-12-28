@@ -2,50 +2,53 @@
 
 import { useState } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-full w-full bg-[#020817]">
+    <div className="flex h-screen w-full bg-[#020817] overflow-hidden">
       
-      {/* 1. DESKTOP SIDEBAR (Hidden on Mobile) */}
-      <aside className="hidden md:flex w-64 h-full shrink-0 bg-[#111827] border-r border-white/10 overflow-y-auto z-50">
+      {/* 1. DESKTOP SIDEBAR (Visible on md+, Hidden on mobile) */}
+      <aside className="hidden md:flex w-64 h-full shrink-0 bg-[#111827] border-r border-white/10 z-50">
          <Sidebar />
       </aside>
 
-      {/* 2. MOBILE SIDEBAR (Drawer) */}
-      {/* Only visible when isOpen is true. Covers the screen with a dark overlay */}
+      {/* 2. MOBILE SIDEBAR OVERLAY */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
-           {/* Dark Backdrop (Click to close) */}
+        <div className="fixed inset-0 z-[60] md:hidden">
+           {/* Dark Backdrop */}
            <div 
-             className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
              onClick={() => setIsMobileMenuOpen(false)}
            />
-           
-           {/* The Sliding Menu */}
-           <div className="relative w-64 h-full bg-[#111827] border-r border-white/10 animate-in slide-in-from-left duration-300">
+           {/* Sidebar Slide-in */}
+           <div className="absolute left-0 top-0 h-full w-64 bg-[#111827] border-r border-white/10 animate-in slide-in-from-left duration-300">
+              <div className="absolute top-2 right-2 z-50">
+                  <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                      <X className="h-6 w-6 text-zinc-400" />
+                  </Button>
+              </div>
               <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
            </div>
         </div>
       )}
 
-      {/* 3. MAIN CONTENT AREA */}
+      {/* 3. MAIN CONTENT */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         
-        {/* MOBILE TOP BAR (Hidden on Desktop) */}
-        <div className="md:hidden flex items-center p-4 border-b border-white/10 bg-[#111827]/80 backdrop-blur-xl z-40 sticky top-0">
+        {/* MOBILE HEADER (Menu Button) */}
+        <div className="md:hidden flex items-center p-4 border-b border-white/10 bg-[#111827]/95 backdrop-blur z-40 shrink-0">
            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
               <Menu className="h-6 w-6 text-white" />
            </Button>
            <span className="ml-3 font-bold text-white text-lg">Wealth Navigator</span>
         </div>
 
-        {/* The Page Content */}
-        <main className="flex-1 overflow-y-auto bg-background/50 p-0 md:p-0">
+        {/* PAGE CONTENT */}
+        <main className="flex-1 overflow-y-auto bg-background/50 p-0">
           {children}
         </main>
       </div>
