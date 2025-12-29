@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import { useAuth } from "@/contexts/AuthContext"
-import type { FinancialData, RealEstateAsset, Installment } from "@/lib/types";
+import type { FinancialData } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
-import { Trash2, Wallet, Gem, Scale, Package, Building2, Paperclip, Calendar, Loader2, FileText, Download, MapPin, RefreshCw } from "lucide-react";
+import { Trash2, Wallet, Gem, Scale, Package, Building2, Paperclip, Calendar, Loader2, FileText, Download, MapPin } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress";
@@ -52,7 +52,6 @@ export default function AssetsPage() {
         const newDoc = { name: file.name, url: downloadURL, date: new Date().toLocaleDateString() };
         const updatedData = JSON.parse(JSON.stringify(data));
         
-        // Find asset deeply
         let asset = updatedData.assets.realEstate.find((a:any) => a.id === viewAttachments.id);
         if(!asset) asset = updatedData.assets.underDevelopment.find((a:any) => a.id === viewAttachments.id);
         
@@ -70,44 +69,7 @@ export default function AssetsPage() {
     }
   };
 
-  // --- RENAMING LOGIC (Restored) ---
-  const handleAutoRename = () => {
-    const updatedData = JSON.parse(JSON.stringify(data));
-    let changesMade = false;
-    const renameMap: Record<string, string> = {
-        "Building Apt 1 (GF)": "Gardenia Building (Ground Floor)",
-        "Building Apt 2 (1F)": "Gardenia Building (1st Floor)",
-        "Building Apt 3 (2F)": "Gardenia Building (2nd Floor)",
-        "Building Apt 4 (3F)": "Gardenia Building (3rd Floor)",
-        "Building Apt 5 (4F-1)": "Gardenia Building (4th Floor - Front)",
-        "Building Apt 6 (4F-2)": "Gardenia Building (4th Floor - Back)",
-        "Building Basement": "Gardenia Building (Basement)"
-    };
-    const updateList = (list: any[]) => {
-        list.forEach(asset => {
-            if (renameMap[asset.name]) {
-                asset.name = renameMap[asset.name];
-                asset.location = "Gardenia Building"; 
-                changesMade = true;
-            }
-            if (asset.name.includes("Neurol") || asset.name.includes("Adres") || asset.name.includes("Innovia")) {
-                asset.location = "Istanbul Portfolio";
-                changesMade = true;
-            }
-            if (asset.name.includes("Miami") || asset.name.includes("City Light")) {
-                asset.location = "Alexandria Portfolio";
-                changesMade = true;
-            }
-        });
-    };
-    if (updatedData.assets.realEstate) updateList(updatedData.assets.realEstate);
-    if (updatedData.assets.underDevelopment) updateList(updatedData.assets.underDevelopment);
-
-    if (changesMade) { setData(updatedData); alert("Assets grouped successfully!"); } 
-    else { alert("No ungrouped assets found."); }
-  };
-
-  // --- ADD LOGIC (With Maintenance) ---
+  // --- ADD LOGIC ---
   const handleAddAsset = (newAsset: any, type: string) => {
     const updatedData = JSON.parse(JSON.stringify(data));
     const timestamp = new Date().getTime();
@@ -172,8 +134,8 @@ export default function AssetsPage() {
       });
   };
 
-  // --- GROUPING LOGIC (The Visual Fix) ---
-  const groupedAssets: Record<string, RealEstateAsset[]> = {};
+  // --- GROUPING LOGIC ---
+  const groupedAssets: Record<string, any[]> = {};
   (realEstate || []).forEach(asset => {
     const location = asset.location || "Uncategorized";
     if (!groupedAssets[location]) groupedAssets[location] = [];
@@ -194,7 +156,6 @@ export default function AssetsPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-xl border-l-4 border-emerald-500 shadow-lg">
         <div><h1 className="text-3xl font-bold tracking-tight text-foreground">Assets & Holdings</h1><p className="text-muted-foreground mt-1">Portfolio Breakdown</p></div>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={handleAutoRename} className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"><RefreshCw className="h-4 w-4 mr-2" /> Fix Groups</Button>
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={() => setIsAddAssetDialogOpen(true)}>+ Add Asset</Button>
             <Button variant={isEditing ? "default" : "outline"} onClick={isEditing ? handleSaveClick : handleEditClick}>{isEditing ? "Save Changes" : "Edit Mode"}</Button>
             {isEditing && <Button variant="ghost" onClick={handleCancelClick}>Cancel</Button>}
@@ -226,9 +187,25 @@ export default function AssetsPage() {
                                     {isEditing ? <div className="flex gap-2"><GlassInput type="number" value={p.currentValue} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)} /><GlassInput className="w-16" value={p.currency} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currency', e.target.value)} /></div> : <p className="text-2xl font-bold text-emerald-500">{formatNumber(p.currentValue)} {p.currency}</p>}
                                 </div>
                                 <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                                    <div className="text-xs text-muted-foreground">Monthly Rent</div>
+                                    {/* FIX: Dynamic Label based on Frequency */}
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <Calendar className="h-3 w-3"/> 
+                                        <span className="capitalize">{p.rentFrequency || "Monthly"}</span> Rent
+                                    </div>
                                     {isEditing ? <GlassInput type="number" value={p.monthlyRent} className="w-24 text-right" onChange={(e: any) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}/> : <div className="font-mono font-medium text-emerald-400">+{formatNumber(p.monthlyRent)} {p.rentCurrency || p.currency}</div>}
                                 </div>
+                                {/* Frequency Selector when editing */}
+                                {isEditing && (
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="text-muted-foreground">Frequency</span>
+                                        <select className="bg-black/20 border border-white/10 rounded h-6 text-xs text-white" value={p.rentFrequency} onChange={(e) => handleAssetChange('realEstate', p.id, 'rentFrequency', e.target.value)}>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="quarterly">Quarterly</option>
+                                            <option value="semi-annual">Semi-Annual</option>
+                                            <option value="annual">Annual</option>
+                                        </select>
+                                    </div>
+                                )}
                                 {isEditing && <Button variant="destructive" size="sm" className="w-full mt-2" onClick={() => setDeleteTarget({ type: 'realEstate', id: p.id })}><Trash2 className="h-4 w-4 mr-2" /> Remove Asset</Button>}
                             </div>
                         </div>
@@ -238,7 +215,7 @@ export default function AssetsPage() {
         ))}
       </div>
 
-      {/* --- OFF PLAN (GROUPED + NEW FIELDS) --- */}
+      {/* --- OFF PLAN (Rest of the file remains identical) --- */}
       <div className="space-y-8 pt-6 border-t border-dashed border-white/10">
         {Object.keys(groupedDevelopment).length > 0 && <h2 className="text-xl font-bold text-purple-400 flex items-center gap-2"><Package className="h-6 w-6" /> Off-Plan Projects</h2>}
         {Object.entries(groupedDevelopment).map(([location, assets]) => (
@@ -281,7 +258,6 @@ export default function AssetsPage() {
         ))}
       </div>
 
-      {/* --- LIQUID ASSETS (Restored) --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 border-t border-white/10">
           <div className="space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-emerald-400"><Wallet className="h-5 w-5" /> Cash</div><div className="glass-panel p-1 rounded-xl space-y-1 border border-emerald-500/20">{(cash || []).map(item => (<div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5"><span className="font-medium">{item.location}</span><span className="font-mono font-bold text-emerald-400">{formatNumber(item.amount)} {item.currency}</span>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}</div>))}</div></div>
           <div className="lg:col-span-2 space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Metals</div><div className="grid md:grid-cols-2 gap-4"><div className="glass-panel p-4 rounded-xl border border-amber-500/20"><h4 className="text-amber-500 font-bold mb-2">Gold</h4>{(gold || []).map(item => (<div key={item.id} className="flex justify-between p-2 border-b border-white/5"><span>{item.location}</span>{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}</div>))}</div><div className="glass-panel p-4 rounded-xl border border-slate-500/20"><h4 className="text-slate-300 font-bold mb-2">Silver</h4>{(silver || []).map(item => (<div key={item.id} className="flex justify-between p-2 border-b border-white/5"><span>{item.location}</span>{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}</div>))}</div></div></div>
