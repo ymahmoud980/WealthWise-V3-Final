@@ -2,102 +2,140 @@
 
 import { useState } from "react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-import { FileText, ExternalLink, Search, FolderOpen, Building2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, Download, Trash2, Search, Building2, Package, FolderOpen } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { storage } from "@/lib/firebase";
+import { ref, deleteObject } from "firebase/storage";
 
 export default function DocumentsPage() {
-  const { data } = useFinancialData();
+  const { data, setData } = useFinancialData();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 1. Flatten all documents into one searchable list
-  const allDocuments = [
-    ...(data.assets.realEstate || []).flatMap(asset => 
-      (asset.documents || []).map(doc => ({ ...doc, assetName: asset.name, type: "Real Estate" }))
-    ),
-    ...(data.assets.underDevelopment || []).flatMap(asset => 
-      (asset.documents || []).map(doc => ({ ...doc, assetName: asset.name, type: "Under Development" }))
-    )
-  ];
+  // 1. Group Documents by Asset Name
+  const groupedDocs: Record<string, { type: string, docs: any[], assetId: string }> = {};
 
-  // 2. Filter based on search
-  const filteredDocs = allDocuments.filter(doc => 
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    doc.assetName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const processList = (list: any[], type: string) => {
+    list.forEach(asset => {
+        if (asset.documents && asset.documents.length > 0) {
+            // Filter by search term immediately
+            const matchingDocs = asset.documents.filter((d: any) => 
+                d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                asset.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
 
-  // 3. GROUP BY ASSET NAME (The key change)
-  const groupedDocs = filteredDocs.reduce((groups, doc) => {
-    if (!groups[doc.assetName]) {
-        groups[doc.assetName] = [];
-    }
-    groups[doc.assetName].push(doc);
-    return groups;
-  }, {} as Record<string, typeof filteredDocs>);
+            if (matchingDocs.length > 0) {
+                groupedDocs[asset.name] = {
+                    type: type,
+                    assetId: asset.id,
+                    docs: matchingDocs.map((d: any) => ({ ...d, assetId: asset.id, assetType: type, assetName: asset.name }))
+                };
+            }
+        }
+    });
+  };
+
+  processList(data.assets.realEstate || [], "Real Estate");
+  processList(data.assets.underDevelopment || [], "Off-Plan");
+
+  // 2. Delete Logic
+  const handleDelete = async (doc: any) => {
+    if(!confirm(`Delete ${doc.name}?`)) return;
+    
+    try {
+        // Delete from Cloud
+        try {
+            await deleteObject(ref(storage, `assets/${user?.uid}/${doc.assetId}/${doc.name}`));
+        } catch(e) {}
+
+        // Delete from Data
+        const updatedData = JSON.parse(JSON.stringify(data));
+        const list = doc.assetType === "Real Estate" ? updatedData.assets.realEstate : updatedData.assets.underDevelopment;
+        const asset = list.find((a: any) => a.id === doc.assetId);
+        
+        if (asset && asset.documents) {
+            asset.documents = asset.documents.filter((d: any) => d.name !== doc.name);
+            setData(updatedData);
+        }
+    } catch(err) { alert("Failed to delete."); }
+  };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 lg:p-12 space-y-8">
-      
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-xl border-l-4 border-indigo-500 shadow-lg">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Document Vault</h1>
-          <p className="text-muted-foreground mt-1">Central repository for all asset contracts and files.</p>
+    <div className="p-8 space-y-8 min-h-screen">
+        {/* Header & Search */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-6">
+            <div>
+                <h1 className="text-3xl font-bold text-white">Document Vault</h1>
+                <p className="text-muted-foreground">Organized by Asset & Project.</p>
+            </div>
+            <div className="relative w-full md:w-72">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search files or assets..." 
+                    className="pl-9 bg-[#111827] border-white/10 text-white focus:ring-primary"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
         </div>
-        <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-                placeholder="Search files..." 
-                className="pl-9 bg-black/20 border-white/10 text-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-        </div>
-      </div>
 
-      {/* --- GROUPED DOCUMENTS --- */}
-      <div className="space-y-8">
-        {Object.keys(groupedDocs).length > 0 ? (
-            Object.entries(groupedDocs).map(([assetName, docs]) => (
+        {/* Groups */}
+        <div className="space-y-10">
+            {Object.entries(groupedDocs).map(([assetName, group]) => (
                 <div key={assetName} className="space-y-4">
                     {/* Asset Header */}
-                    <div className="flex items-center gap-2 text-xl font-semibold text-indigo-300 border-b border-white/5 pb-2">
-                        <FolderOpen className="h-5 w-5" />
+                    <div className="flex items-center gap-2 text-lg font-semibold text-slate-200">
+                        <div className={`p-2 rounded-lg ${group.type === 'Real Estate' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-purple-500/10 text-purple-500'}`}>
+                            {group.type === 'Real Estate' ? <Building2 className="h-5 w-5" /> : <Package className="h-5 w-5" />}
+                        </div>
                         {assetName}
+                        <span className="text-xs font-normal text-muted-foreground ml-2 px-2 py-0.5 rounded-full border border-white/10">
+                            {group.docs.length} file{group.docs.length !== 1 ? 's' : ''}
+                        </span>
                     </div>
 
-                    {/* Grid for this Asset */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {docs.map((doc, index) => (
-                            <div key={`${doc.id}-${index}`} className="glass-panel p-4 rounded-xl border border-white/5 hover:border-indigo-500/50 transition-all group bg-black/20">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
-                                            <FileText className="h-6 w-6 text-indigo-400" />
-                                        </div>
-                                        <div className="overflow-hidden">
-                                            <p className="font-semibold text-white truncate w-40" title={doc.name}>{doc.name}</p>
-                                            <p className="text-[10px] text-slate-500 uppercase">{doc.uploadedAt || "Unknown Date"}</p>
+                    {/* Documents Grid for this Asset */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-2 border-l-2 border-white/5">
+                        {group.docs.map((doc: any, i: number) => (
+                            <div key={i} className="group flex flex-col justify-between p-4 bg-[#111827]/50 border border-white/5 rounded-xl hover:border-primary/30 transition-all hover:bg-[#111827]">
+                                <div>
+                                    <div className="flex items-start justify-between mb-3">
+                                        <FileText className="h-8 w-8 text-slate-500 group-hover:text-primary transition-colors" />
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <a href={doc.url} target="_blank" className="p-1.5 hover:bg-white/10 rounded text-emerald-400" title="Download">
+                                                <Download className="h-4 w-4"/>
+                                            </a>
+                                            <button onClick={() => handleDelete(doc)} className="p-1.5 hover:bg-white/10 rounded text-red-400" title="Delete">
+                                                <Trash2 className="h-4 w-4"/>
+                                            </button>
                                         </div>
                                     </div>
-                                    <a href={doc.url} target="_blank" rel="noreferrer">
-                                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                                            <ExternalLink className="h-4 w-4" />
-                                        </Button>
-                                    </a>
+                                    <p className="font-medium text-sm text-slate-200 truncate" title={doc.name}>
+                                        {doc.name}
+                                    </p>
+                                </div>
+                                <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-[10px] text-muted-foreground">
+                                    <span>{doc.date}</span>
+                                    <span className="bg-white/5 px-1.5 py-0.5 rounded">PDF/IMG</span>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
-            ))
-        ) : (
-            <div className="col-span-full flex flex-col items-center justify-center p-12 text-muted-foreground border border-dashed border-white/10 rounded-xl bg-white/5">
-                <FileText className="h-12 w-12 mb-4 opacity-20" />
-                <p>No documents found matching your search.</p>
-            </div>
-        )}
-      </div>
+            ))}
+
+            {Object.keys(groupedDocs).length === 0 && (
+                <div className="text-center py-20">
+                    <div className="inline-flex p-4 rounded-full bg-white/5 mb-4">
+                        <FolderOpen className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">No documents found matching your search.</p>
+                </div>
+            )}
+        </div>
     </div>
   );
 }

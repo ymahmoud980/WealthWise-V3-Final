@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { format, addMonths, isValid, parse } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-import { Building2, ArrowDownLeft } from "lucide-react"; // New Icons
+import { Building2, ArrowDownLeft } from "lucide-react";
 
 interface UpcomingRentsProps {
     rents: RealEstateAsset[];
@@ -42,6 +42,8 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
       
       if (rentAsset.rentFrequency === 'monthly') nextDate = addMonths(currentDueDate, 1);
       else if (rentAsset.rentFrequency === 'semi-annual') nextDate = addMonths(currentDueDate, 6);
+      else if (rentAsset.rentFrequency === 'quarterly') nextDate = addMonths(currentDueDate, 3);
+      else if (rentAsset.rentFrequency === 'annual') nextDate = addMonths(currentDueDate, 12);
       else nextDate = currentDueDate;
 
       rentAsset.nextRentDueDate = format(nextDate, 'yyyy-MM-dd');
@@ -55,8 +57,10 @@ export function UpcomingRents({ rents: initialRents }: UpcomingRentsProps) {
     return new Date(parts[0], parts[1] - 1, parts[2]);
   }
   
+  // --- THE FIX ---
+  // Filter ensures we strictly ignore any asset where rent is 0 or missing
   const sortedRents = [...(initialRents || [])]
-    .filter(r => r.monthlyRent > 0)
+    .filter(r => Number(r.monthlyRent) > 0) 
     .sort((a,b) => parseDate(a.nextRentDueDate).getTime() - parseDate(b.nextRentDueDate).getTime());
 
   return (
