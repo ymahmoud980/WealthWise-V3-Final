@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import { useAuth } from "@/contexts/AuthContext"
-import type { FinancialData } from "@/lib/types";
+import type { FinancialData, RealEstateAsset } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
-import { Trash2, Wallet, Gem, Scale, Package, Building2, Paperclip, Calendar, Loader2, FileText, Download, MapPin } from "lucide-react";
+import { Trash2, Wallet, Gem, MapPin, Building2, Paperclip, Calendar, Loader2, FileText, Download, Package } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress";
@@ -69,33 +69,23 @@ export default function AssetsPage() {
     }
   };
 
-  // --- DELETE DOCUMENT LOGIC ---
   const handleDeleteDocument = async (docName: string) => {
     if(!viewAttachments || !user || !storage) return;
     if(!confirm("Delete this document?")) return;
-
     try {
-        // 1. Delete from Cloud
-        try {
-            const storageRef = ref(storage, `assets/${user.uid}/${viewAttachments.id}/${docName}`);
-            await deleteObject(storageRef);
-        } catch(e) { console.warn("File missing from cloud, removing link."); }
-
-        // 2. Delete from DB
+        try { await deleteObject(ref(storage, `assets/${user.uid}/${viewAttachments.id}/${docName}`)); } catch(e) {}
         const updatedData = JSON.parse(JSON.stringify(data));
         let asset = updatedData.assets.realEstate.find((a:any) => a.id === viewAttachments.id);
         if(!asset) asset = updatedData.assets.underDevelopment.find((a:any) => a.id === viewAttachments.id);
-
         if(asset && asset.documents) {
             asset.documents = asset.documents.filter((d: any) => d.name !== docName);
             setData(updatedData);
             setViewAttachments(prev => ({ ...prev!, docs: asset.documents }));
         }
-    } catch (error) {
-        alert("Delete failed.");
-    }
+    } catch (error) { alert("Delete failed."); }
   };
 
+  // --- ADD LOGIC ---
   const handleAddAsset = (newAsset: any, type: string) => {
     const updatedData = JSON.parse(JSON.stringify(data));
     const timestamp = new Date().getTime();
@@ -151,11 +141,16 @@ export default function AssetsPage() {
   const { realEstate, underDevelopment, cash, gold, silver, otherAssets } = currentData.assets;
   const { installments } = currentData.liabilities;
 
+  // FIX: Updated to handle Cash and Metal editing
   const handleAssetChange = (section: string, id: string, field: string, val: string) => {
       setEditableData(prev => {
           const list = (prev.assets as any)[section];
           const idx = list.findIndex((item: any) => item.id === id);
-          if (idx > -1) list[idx][field] = ['name','location','currency','rentFrequency'].includes(field) ? val : (parseFloat(val) || 0);
+          if (idx > -1) {
+              // Fields that should be strings
+              const stringFields = ['name', 'location', 'currency', 'rentFrequency'];
+              list[idx][field] = stringFields.includes(field) ? val : (parseFloat(val) || 0);
+          }
           return { ...prev };
       });
   };
@@ -187,6 +182,7 @@ export default function AssetsPage() {
         </div>
       </div>
 
+      {/* --- REAL ESTATE --- */}
       <div className="space-y-8">
         {Object.keys(groupedAssets).length > 0 && <h2 className="text-xl font-bold text-emerald-500 flex items-center gap-2 border-b border-white/10 pb-2"><Building2 className="h-6 w-6" /> Real Estate Portfolio</h2>}
         {Object.entries(groupedAssets).map(([location, assets]) => (
@@ -234,6 +230,7 @@ export default function AssetsPage() {
         ))}
       </div>
 
+      {/* --- OFF PLAN --- */}
       <div className="space-y-8 pt-6 border-t border-dashed border-white/10">
         {Object.keys(groupedDevelopment).length > 0 && <h2 className="text-xl font-bold text-purple-400 flex items-center gap-2"><Package className="h-6 w-6" /> Off-Plan Projects</h2>}
         {Object.entries(groupedDevelopment).map(([location, assets]) => (
@@ -257,7 +254,7 @@ export default function AssetsPage() {
                                         {((p as any).documents?.length > 0) && <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>}
                                     </Button>
                                 </div>
-                                <div className="p-5 space-y-4 bg-card/40">
+                                <div className="p-5 space-y-4 bg-black/20">
                                     <div className="space-y-1"><div className="flex justify-between text-xs text-muted-foreground"><span>Paid: {progress.toFixed(1)}%</span><span>Total: {formatNumber(total)}</span></div><Progress value={progress} className="h-1.5 bg-white/10" /></div>
                                     <div className="bg-white/5 p-3 rounded-lg text-xs space-y-2 border border-white/5">
                                         <div className="flex justify-between items-center text-muted-foreground"><span>Contract:</span> {isEditing ? <GlassInput className="w-24 text-right" type="number" value={base} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'purchasePrice', e.target.value)} /> : <span>{formatNumber(base)}</span>}</div>
@@ -277,25 +274,75 @@ export default function AssetsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 border-t border-white/10">
-          <div className="space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-emerald-400"><Wallet className="h-5 w-5" /> Cash</div><div className="glass-panel p-1 rounded-xl space-y-1 border border-emerald-500/20">{(cash || []).map(item => (<div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5"><span className="font-medium">{item.location}</span><span className="font-mono font-bold text-emerald-400">{formatNumber(item.amount)} {item.currency}</span>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}</div>))}</div></div>
-          <div className="lg:col-span-2 space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Metals</div><div className="grid md:grid-cols-2 gap-4"><div className="glass-panel p-4 rounded-xl border border-amber-500/20"><h4 className="text-amber-500 font-bold mb-2">Gold</h4>{(gold || []).map(item => (<div key={item.id} className="flex justify-between p-2 border-b border-white/5"><span>{item.location}</span>{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}</div>))}</div><div className="glass-panel p-4 rounded-xl border border-slate-500/20"><h4 className="text-slate-300 font-bold mb-2">Silver</h4>{(silver || []).map(item => (<div key={item.id} className="flex justify-between p-2 border-b border-white/5"><span>{item.location}</span>{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}</div>))}</div></div></div>
+          {/* --- CASH HOLDINGS (NOW FULLY EDITABLE) --- */}
+          <div className="space-y-4">
+             <div className="flex items-center gap-2 text-lg font-semibold text-emerald-400"><Wallet className="h-5 w-5" /> Cash</div>
+             <div className="glass-panel p-1 rounded-xl space-y-1 border border-emerald-500/20">
+                 {(cash || []).map(item => (
+                     <div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5">
+                        <div className="flex-1">
+                            {isEditing ? (
+                                <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('cash', item.id, 'location', e.target.value)} className="w-full" placeholder="Bank Name" />
+                            ) : (
+                                <span className="font-medium">{item.location}</span>
+                            )}
+                        </div>
+                        <div className="text-right flex items-center gap-2">
+                            {isEditing ? (
+                                <>
+                                    <GlassInput type="number" value={item.amount} className="w-24 text-right" onChange={(e: any) => handleAssetChange('cash', item.id, 'amount', e.target.value)} />
+                                    <GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('cash', item.id, 'currency', e.target.value)} />
+                                </>
+                            ) : (
+                                <span className="font-mono font-bold text-emerald-400">{formatNumber(item.amount)} {item.currency}</span>
+                            )}
+                        </div>
+                        {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive ml-2" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}
+                     </div>
+                 ))}
+             </div>
+          </div>
+
+          {/* --- METALS (FULLY EDITABLE) --- */}
+          <div className="lg:col-span-2 space-y-4">
+             <div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Metals</div>
+             <div className="grid md:grid-cols-2 gap-4">
+                 <div className="glass-panel p-4 rounded-xl border border-amber-500/20">
+                    <h4 className="text-amber-500 font-bold mb-2">Gold</h4>
+                    {(gold || []).map(item => (
+                        <div key={item.id} className="flex justify-between items-center p-2 border-b border-white/5">
+                            {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('gold', item.id, 'location', e.target.value)} /> : <span>{item.location}</span>}
+                            <div className="flex items-center gap-2">
+                                {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}
+                                {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}
+                            </div>
+                        </div>
+                    ))}
+                 </div>
+                 <div className="glass-panel p-4 rounded-xl border border-slate-500/20">
+                    <h4 className="text-slate-300 font-bold mb-2">Silver</h4>
+                    {(silver || []).map(item => (
+                        <div key={item.id} className="flex justify-between items-center p-2 border-b border-white/5">
+                            {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('silver', item.id, 'location', e.target.value)} /> : <span>{item.location}</span>}
+                            <div className="flex items-center gap-2">
+                                {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}
+                                {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}
+                            </div>
+                        </div>
+                    ))}
+                 </div>
+             </div>
+          </div>
       </div>
 
       <Dialog open={!!viewAttachments} onOpenChange={() => setViewAttachments(null)}>
         <DialogContent className="bg-[#0f172a] border-white/10 text-white sm:max-w-[425px]">
-            <DialogHeader><DialogTitle>Documents: {viewAttachments?.name}</DialogTitle><DialogDescription>Manage attached files.</DialogDescription></DialogHeader>
+            <DialogHeader><DialogTitle>Documents: {viewAttachments?.name}</DialogTitle><DialogDescription>Contracts, receipts, and deeds.</DialogDescription></DialogHeader>
             <div className="space-y-4 py-4">
                 <div className="space-y-2 max-h-[200px] overflow-y-auto">
                     {viewAttachments?.docs && viewAttachments.docs.length > 0 ? (
                         viewAttachments.docs.map((doc: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between p-2 bg-black/40 rounded-lg border border-white/10 group">
-                                <div className="flex items-center gap-2 overflow-hidden"><FileText className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm truncate max-w-[150px]">{doc.name}</span></div>
-                                <div className="flex items-center gap-2">
-                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white/10 rounded-md text-emerald-400"><Download className="h-4 w-4" /></a>
-                                    {/* FIX: Trash Icon Restored */}
-                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-500" onClick={() => handleDeleteDocument(doc.name)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                            </div>
+                            <div key={i} className="flex items-center justify-between p-2 bg-black/40 rounded-lg border border-white/10 group"><div className="flex items-center gap-2 overflow-hidden"><FileText className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm truncate">{doc.name}</span></div><div className="flex items-center gap-2"><a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white/10 rounded-md text-emerald-400"><Download className="h-4 w-4" /></a><Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-500" onClick={() => handleDeleteDocument(doc.name)}><Trash2 className="h-4 w-4" /></Button></div></div>
                         ))
                     ) : (<p className="text-center text-sm text-muted-foreground py-4 border-2 border-dashed border-white/10 rounded-lg">No documents yet.</p>)}
                 </div>
