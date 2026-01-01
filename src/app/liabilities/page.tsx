@@ -26,7 +26,6 @@ export default function LiabilitiesPage() {
   const [isAddLoanDialogOpen, setIsAddLoanDialogOpen] = useState(false);
   const [isAddInstallmentDialogOpen, setIsAddInstallmentDialogOpen] = useState(false);
   
-  // Payment History State
   const [activeHistory, setActiveHistory] = useState<Installment | null>(null);
   const [newPayment, setNewPayment] = useState({ date: "", amount: "", desc: "" });
 
@@ -34,10 +33,8 @@ export default function LiabilitiesPage() {
   const handleSaveClick = () => { setData(editableData); setIsEditing(false); };
   const handleCancelClick = () => { setEditableData(JSON.parse(JSON.stringify(data))); setIsEditing(false); };
 
-  // --- PAYMENT HISTORY LOGIC ---
   const handleAddPayment = () => {
     if (!activeHistory || !newPayment.amount) return;
-    
     const amount = parseFloat(newPayment.amount);
     const newRecord: PaymentRecord = {
         id: `pay${Date.now()}`,
@@ -48,18 +45,12 @@ export default function LiabilitiesPage() {
 
     const newData = JSON.parse(JSON.stringify(isEditing ? editableData : data));
     const instIdx = newData.liabilities.installments.findIndex((i:any) => i.id === activeHistory.id);
-    
     if (instIdx > -1) {
         const inst = newData.liabilities.installments[instIdx];
         if (!inst.paymentHistory) inst.paymentHistory = [];
         inst.paymentHistory.push(newRecord);
-        // Auto-calculate Total Paid
         inst.paid = inst.paymentHistory.reduce((sum: number, p: PaymentRecord) => sum + p.amount, 0);
-        
-        if (isEditing) setEditableData(newData);
-        else setData(newData);
-        
-        // Update local view
+        if (isEditing) setEditableData(newData); else setData(newData);
         setActiveHistory(inst);
         setNewPayment({ date: "", amount: "", desc: "" });
     }
@@ -69,24 +60,22 @@ export default function LiabilitiesPage() {
     if (!activeHistory) return;
     const newData = JSON.parse(JSON.stringify(isEditing ? editableData : data));
     const instIdx = newData.liabilities.installments.findIndex((i:any) => i.id === activeHistory.id);
-    
     if (instIdx > -1) {
         const inst = newData.liabilities.installments[instIdx];
         inst.paymentHistory = inst.paymentHistory.filter((p: PaymentRecord) => p.id !== paymentId);
         inst.paid = inst.paymentHistory.reduce((sum: number, p: PaymentRecord) => sum + p.amount, 0);
-        
-        if (isEditing) setEditableData(newData);
-        else setData(newData);
+        if (isEditing) setEditableData(newData); else setData(newData);
         setActiveHistory(inst);
     }
   };
 
-  // --- GENERAL HANDLERS ---
   const handleInstallmentChange = (id: string, key: string, value: string) => {
     const newData = { ...editableData };
     const inst = newData.liabilities.installments.find(i => i.id === id);
     if (inst) {
-        (inst as any)[key] = key === 'notes' ? value : (parseFloat(value) || 0);
+        // FIX: Ensure Date and Notes are treated as strings, not numbers
+        const isString = ['notes', 'nextDueDate', 'frequency'].includes(key);
+        (inst as any)[key] = isString ? value : (parseFloat(value) || 0);
         setEditableData(newData);
     }
   };
@@ -95,7 +84,8 @@ export default function LiabilitiesPage() {
     const newData = { ...editableData };
     const loan = newData.liabilities.loans.find(l => l.id === id);
     if (loan) {
-        (loan as any)[key] = key === 'notes' ? value : (parseFloat(value) || 0);
+        const isString = ['notes', 'currency'].includes(key);
+        (loan as any)[key] = isString ? value : (parseFloat(value) || 0);
         setEditableData(newData);
     }
   };
@@ -126,7 +116,6 @@ export default function LiabilitiesPage() {
   }
 
   const formatNumber = (num: number) => num.toLocaleString();
-  
   const currentData = isEditing ? editableData : data;
   const { loans, installments } = currentData.liabilities;
   
@@ -158,19 +147,12 @@ export default function LiabilitiesPage() {
                 <div key={projectGroup} className="space-y-3">
                     <h4 className="text-sm font-semibold text-slate-400 flex items-center gap-2 pl-1 uppercase tracking-wider"><FolderOpen className="h-4 w-4" /> {projectGroup}</h4>
                     {projectInstallments.map(p => {
-                        // --- FIX: LOOK UP REAL TOTAL FROM ASSETS ---
-                        // We find the asset that links to this installment ID
                         const parentAsset = data.assets.underDevelopment.find((a: any) => a.linkedInstallmentId === p.id);
-                        
-                        // If found, calculate Base + Maint + Parking. If not, fallback to p.total
                         const calculatedTotal = parentAsset 
                             ? (Number(parentAsset.purchasePrice) || 0) + (Number(parentAsset.maintenanceCost) || 0) + (Number(parentAsset.parkingCost) || 0)
                             : p.total;
-
                         const progress = calculatedTotal > 0 ? (p.paid / calculatedTotal) * 100 : 0;
                         const remaining = calculatedTotal - p.paid;
-                        
-                        // Handle date formatting safely
                         const dateParts = p.nextDueDate.split('-').map(part => parseInt(part, 10));
                         const nextDueDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                         const formattedDueDate = isValid(nextDueDate) ? format(nextDueDate, 'MMM d, yyyy') : 'Invalid Date';
@@ -179,48 +161,46 @@ export default function LiabilitiesPage() {
                         <div key={p.id} className="glass-panel p-5 rounded-xl relative group border-l-4 border-l-rose-500 bg-black/20">
                             <div className="flex justify-between items-start mb-2">
                                 <div><h4 className="font-bold text-lg text-white">{p.project}</h4><p className="text-xs text-muted-foreground">{p.developer}</p></div>
-                                <div className="text-right">
-                                    <div className="text-xs uppercase text-muted-foreground">Paid</div>
-                                    <div className="font-mono font-bold text-emerald-400">{progress.toFixed(1)}%</div>
-                                </div>
+                                <div className="text-right"><div className="text-xs uppercase text-muted-foreground">Paid</div><div className="font-mono font-bold text-emerald-400">{progress.toFixed(1)}%</div></div>
                             </div>
                             <Progress value={progress} className="h-2 bg-white/10 mb-4" />
 
                             <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase text-muted-foreground">Total Cost</label>
-                                    {/* FIX: Displays the Calculated Total, Non-Editable */}
-                                    <p className="font-mono text-white opacity-80">{formatNumber(calculatedTotal)} {p.currency}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase text-muted-foreground">Outstanding</label>
-                                    <p className="font-mono font-bold text-rose-400">{formatNumber(remaining)}</p>
-                                </div>
+                                <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Total Cost</label><p className="font-mono text-white opacity-80">{formatNumber(calculatedTotal)} {p.currency}</p></div>
+                                <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Outstanding</label><p className="font-mono font-bold text-rose-400">{formatNumber(remaining)}</p></div>
                                 
-                                {/* PAYMENT HISTORY BUTTON */}
                                 <div className="col-span-2 pt-2">
                                     <div className="flex justify-between items-center bg-white/5 p-2 rounded">
-                                        <div>
-                                            <span className="text-[10px] text-muted-foreground block">TOTAL PAID</span>
-                                            <span className="font-bold text-emerald-400">{formatNumber(p.paid)}</span>
-                                        </div>
-                                        <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-7 text-xs" onClick={() => setActiveHistory(p)}>
-                                            <ScrollText className="h-3 w-3 mr-1" /> Manage Payments
-                                        </Button>
+                                        <div><span className="text-[10px] text-muted-foreground block">TOTAL PAID</span><span className="font-bold text-emerald-400">{formatNumber(p.paid)}</span></div>
+                                        <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-7 text-xs" onClick={() => setActiveHistory(p)}><ScrollText className="h-3 w-3 mr-1" /> Manage Payments</Button>
                                     </div>
                                 </div>
 
                                 <div className="space-y-1 mt-1 col-span-2">
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-muted-foreground">Next Installment</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] text-muted-foreground">{formattedDueDate}</span>
-                                            {isEditing ? <GlassInput type="number" className="w-24 text-right" defaultValue={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)}/> : <span className="font-mono font-bold text-rose-300">{formatNumber(p.amount)}</span>}
+                                        <div className="flex flex-col items-end gap-1">
+                                            {/* FIX: DATE IS NOW EDITABLE */}
+                                            {isEditing ? (
+                                                <input 
+                                                    type="date" 
+                                                    value={p.nextDueDate} 
+                                                    onChange={(e) => handleInstallmentChange(p.id, 'nextDueDate', e.target.value)}
+                                                    className="bg-black/40 border border-rose-500/50 rounded text-xs text-white p-1 mb-1"
+                                                />
+                                            ) : (
+                                                <span className="text-[10px] text-muted-foreground">{formattedDueDate}</span>
+                                            )}
+                                            
+                                            {isEditing ? (
+                                                <GlassInput type="number" className="w-24 text-right" defaultValue={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)}/>
+                                            ) : (
+                                                <span className="font-mono font-bold text-rose-300">{formatNumber(p.amount)}</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* NOTES FIELD */}
                                 {(p.notes || isEditing) && (
                                     <div className="col-span-2 bg-rose-500/10 p-2 rounded border border-rose-500/20 mt-2">
                                         <label className="text-[10px] text-rose-400 flex items-center gap-1"><StickyNote className="h-3 w-3"/> Notes</label>
@@ -236,10 +216,7 @@ export default function LiabilitiesPage() {
           </div>
           
           <div className="space-y-6">
-              <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                <h3 className="text-xl font-semibold flex items-center gap-2 text-white"><Landmark className="text-amber-500 h-5 w-5"/> Bank Loans</h3>
-                <Button variant="ghost" size="sm" className="text-amber-500 hover:bg-amber-500/10" onClick={() => setIsAddLoanDialogOpen(true)}>+ Add</Button>
-              </div>
+              <div className="flex justify-between items-center border-b border-white/10 pb-2"><h3 className="text-xl font-semibold flex items-center gap-2 text-white"><Landmark className="text-amber-500 h-5 w-5"/> Bank Loans</h3><Button variant="ghost" size="sm" className="text-amber-500 hover:bg-amber-500/10" onClick={() => setIsAddLoanDialogOpen(true)}>+ Add</Button></div>
               <div className="space-y-4">
               {loans.map(l => (
                   <div key={l.id} className="glass-panel p-5 rounded-xl border-l-4 border-l-amber-500 bg-black/20">
@@ -256,29 +233,8 @@ export default function LiabilitiesPage() {
           </div>
       </div>
 
-      {/* --- PAYMENT HISTORY DIALOG --- */}
       <Dialog open={!!activeHistory} onOpenChange={() => setActiveHistory(null)}>
-        <DialogContent className="bg-[#0f172a] border-white/10 text-white sm:max-w-[500px]">
-            <DialogHeader><DialogTitle>Payment History: {activeHistory?.project}</DialogTitle><DialogDescription>Track every installment paid.</DialogDescription></DialogHeader>
-            <div className="space-y-4">
-                <div className="bg-black/40 p-4 rounded-lg border border-white/5 max-h-[300px] overflow-y-auto space-y-2">
-                    {activeHistory?.paymentHistory && activeHistory.paymentHistory.length > 0 ? (
-                        activeHistory.paymentHistory.map((rec: PaymentRecord) => (
-                            <div key={rec.id} className="flex justify-between items-center p-2 bg-white/5 rounded border border-white/5">
-                                <div><p className="text-sm font-bold text-emerald-400">{formatNumber(rec.amount)}</p><p className="text-[10px] text-muted-foreground">{rec.date} • {rec.description}</p></div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={() => handleDeletePayment(rec.id)}><X className="h-3 w-3"/></Button>
-                            </div>
-                        ))
-                    ) : <p className="text-center text-sm text-muted-foreground">No payments recorded yet.</p>}
-                </div>
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
-                    <Input type="date" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.date} onChange={e => setNewPayment({...newPayment, date: e.target.value})} />
-                    <Input placeholder="Amount" type="number" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.amount} onChange={e => setNewPayment({...newPayment, amount: e.target.value})} />
-                    <Input placeholder="Desc (e.g. Inst 1)" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.desc} onChange={e => setNewPayment({...newPayment, desc: e.target.value})} />
-                </div>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={handleAddPayment}><Plus className="h-4 w-4 mr-2"/> Add Payment</Button>
-            </div>
-        </DialogContent>
+        <DialogContent className="bg-[#0f172a] border-white/10 text-white sm:max-w-[500px]"><DialogHeader><DialogTitle>Payment History: {activeHistory?.project}</DialogTitle><DialogDescription>Track every installment paid.</DialogDescription></DialogHeader><div className="space-y-4"><div className="bg-black/40 p-4 rounded-lg border border-white/5 max-h-[300px] overflow-y-auto space-y-2">{activeHistory?.paymentHistory && activeHistory.paymentHistory.length > 0 ? (activeHistory.paymentHistory.map((rec: PaymentRecord) => (<div key={rec.id} className="flex justify-between items-center p-2 bg-white/5 rounded border border-white/5"><div><p className="text-sm font-bold text-emerald-400">{formatNumber(rec.amount)}</p><p className="text-[10px] text-muted-foreground">{rec.date} • {rec.description}</p></div><Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={() => handleDeletePayment(rec.id)}><X className="h-3 w-3"/></Button></div>))) : <p className="text-center text-sm text-muted-foreground">No payments recorded yet.</p>}</div><div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10"><Input type="date" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.date} onChange={e => setNewPayment({...newPayment, date: e.target.value})} /><Input placeholder="Amount" type="number" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.amount} onChange={e => setNewPayment({...newPayment, amount: e.target.value})} /><Input placeholder="Desc (e.g. Inst 1)" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.desc} onChange={e => setNewPayment({...newPayment, desc: e.target.value})} /></div><Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={handleAddPayment}><Plus className="h-4 w-4 mr-2"/> Add Payment</Button></div></DialogContent>
       </Dialog>
 
       <AddLiabilityDialog isOpen={isAddLoanDialogOpen} onClose={() => setIsAddLoanDialogOpen(false)} onAddLiability={handleAddLoan} />
