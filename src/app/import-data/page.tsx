@@ -7,28 +7,11 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Loader2, CheckCircle, Terminal } from "lucide-react";
 import Link from "next/link";
-import { addMonths, format } from "date-fns";
 
 export default function ImportDataPage() {
   const { user } = useAuth();
   const [status, setStatus] = useState("idle");
   const [log, setLog] = useState<string[]>([]);
-
-  // --- HELPER: Generate Quarterly Installments ---
-  const generateQuarterly = (startCount: number, count: number, startDate: string, amount: number) => {
-    const installments = [];
-    let currentDate = new Date(startDate);
-    
-    for (let i = 0; i < count; i++) {
-        installments.push({
-            desc: `Installment ${startCount + i}`,
-            date: format(currentDate, 'yyyy-MM-dd'),
-            amount: amount
-        });
-        currentDate = addMonths(currentDate, 3); // Add 3 months
-    }
-    return installments;
-  };
 
   const runImport = async () => {
     if (!user) return alert("Please log in first");
@@ -43,129 +26,147 @@ export default function ImportDataPage() {
       const assets = currentData.assets || { underDevelopment: [] };
       const liabilities = currentData.liabilities || { installments: [] };
 
-      // ==========================================
-      // PROJECT 1: MERCON NURAI
-      // ==========================================
-      addLog("Processing NURAI...");
-      
-      const nuraiBase = 4104550;
-      const nuraiPark = 230000;
-      const nuraiMaint = 328360;
-      const nuraiTotal = nuraiBase + nuraiPark + nuraiMaint;
+      const today = new Date().toISOString().split('T')[0];
 
-      // Nurai Schedule
-      const nuraiSchedule = [
-        { desc: "Downpayment", date: "2024-09-25", amount: 205227 },
-        { desc: "Other Payment", date: "2024-12-25", amount: 205227 },
-        // Generated 1-31 (Simplified for brevity, logic handles full list)
-        ...generateQuarterly(1, 31, "2025-03-25", 135593).map((item, i) => {
-            // Adjust specific installment amounts based on your sheet
-            if(i === 13) return { ...item, amount: 135587 }; // Inst 14
-            if(i >= 14 && i < 30) return { ...item, amount: 119164 }; // Inst 15-30
-            if(i === 30) return { ...item, amount: 119176 }; // Inst 31
-            return item;
-        }),
-        // Maintenance 
-        ...generateQuarterly(1, 8, "2026-02-28", 41045).map(i => ({...i, desc: `Maintenance ${i.desc.split(' ')[1]}`}))
-      ].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-
-      // ==========================================
-      // PROJECT 2: TAJ MISR - DEJOYA PRIMERO
-      // ==========================================
-      addLog("Processing DEJOYA PRIMERO...");
-
-      const tajBase = 7875000;
-      const tajMaint = 787500; // 10%
-      const tajTotal = 8662500;
-
-      // Taj Schedule Construction
-      const tajSchedule = [
-        { desc: "Downpayment", date: "2025-04-21", amount: 1181250 },
-        { desc: "Installment 1", date: "2025-08-17", amount: 157500 },
-        { desc: "Installment 2", date: "2025-11-17", amount: 157500 },
-        { desc: "Installment 3", date: "2026-02-17", amount: 157500 },
-        { desc: "Installment 4", date: "2026-05-17", amount: 157500 },
-        { desc: "Installment 5", date: "2026-08-17", amount: 157500 },
-        { desc: "Installment 6", date: "2026-11-17", amount: 157500 },
-        { desc: "Installment 7", date: "2027-02-17", amount: 157500 },
-        { desc: "Special Payment", date: "2027-05-17", amount: 393750 },
-        { desc: "Installment 8", date: "2027-05-17", amount: 157500 },
-        // Installments 9 - 23 (15 payments starting Aug 2027)
-        ...generateQuarterly(9, 15, "2027-08-17", 157500),
-        // Installments 24 - 40 (17 payments starting May 2031)
-        ...generateQuarterly(24, 17, "2031-05-17", 157500),
-        // Maintenance Payment (Single Shot)
-        { desc: "Maintenance", date: "2028-04-21", amount: 787500 }
-      ].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-
-      // ==========================================
-      // UNIVERSAL PROCESSING LOGIC
-      // ==========================================
-      const today = new Date().toISOString().split('T')[0]; // "2026-01-01"
-
-      const processProject = (name: string, location: string, base: number, maint: number, park: number, total: number, schedule: any[]) => {
+      // --- HELPER ---
+      const processProject = (name: string, developer: string, location: string, base: number, maint: number, schedule: any[]) => {
+        const total = base + maint;
         const history: any[] = [];
         let paidSum = 0;
         let nextDate = "";
         let nextAmount = 0;
 
-        schedule.forEach(p => {
+        schedule.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        schedule.forEach((p, index) => {
             if (p.date < today) {
-                history.push({ id: `hist_${p.date}_${p.amount}`, date: p.date, amount: p.amount, description: p.desc });
+                // Unique History ID
+                history.push({ 
+                    id: `pay_${Date.now()}_${index}_${Math.floor(Math.random() * 1000)}`, 
+                    date: p.date, 
+                    amount: p.amount, 
+                    description: p.desc 
+                });
                 paidSum += p.amount;
-            } else if (!nextDate) {
-                nextDate = p.date;
-                nextAmount = p.amount;
+            } else {
+                if (!nextDate) {
+                    nextDate = p.date;
+                    nextAmount = p.amount;
+                }
             }
         });
 
+        const cleanName = name.replace(/[^a-zA-Z0-9]/g, '');
+        const randomSuffix = Math.floor(Math.random() * 1000000); 
+        const uniqueId = `ast_${cleanName}_${randomSuffix}`;
+        const uniqueLiabId = `liab_${cleanName}_${randomSuffix}`;
+
         return {
             asset: {
-                id: `ast_${name.substring(0,3)}_${Date.now()}`,
+                id: uniqueId,
                 name: name,
                 location: location,
                 purchasePrice: base,
                 maintenanceCost: maint,
-                parkingCost: park,
+                parkingCost: 0,
                 currentValue: total,
                 currency: "EGP",
-                linkedInstallmentId: `liab_${name.substring(0,3)}`,
+                linkedInstallmentId: uniqueLiabId,
                 maintenanceDueDate: schedule.find((s: any) => s.desc.includes("Maintenance"))?.date || "",
-                paymentFrequency: "Quarterly",
+                paymentFrequency: "Annual",
                 documents: [],
-                notes: `Auto-Imported. Base: ${base.toLocaleString()}, Maint: ${maint.toLocaleString()}`
+                notes: `Developer: ${developer}. Auto-Imported.`
             },
             liability: {
-                id: `liab_${name.substring(0,3)}`,
+                id: uniqueLiabId,
                 project: name,
-                developer: location, // Using location as developer for now
+                developer: developer,
                 total: total,
                 paid: paidSum,
                 amount: nextAmount,
                 nextDueDate: nextDate,
                 currency: "EGP",
-                frequency: "Quarterly",
+                frequency: "Annual",
                 paymentHistory: history,
-                notes: "Full schedule imported."
+                notes: "Imported schedule."
             }
         };
       };
 
-      // Generate Objects
-      const nuraiObj = processProject("NURAI (NUI-11A1-23)", "Mercon", nuraiBase, nuraiMaint, nuraiPark, nuraiTotal, nuraiSchedule);
-      const tajObj = processProject("Dejoya Primero (S1/S-24)", "Taj Misr - New Zayed", tajBase, tajMaint, 0, tajTotal, tajSchedule);
+      // ==========================================
+      // PROJECT 1: Nile Admin (A4719)
+      // ==========================================
+      addLog("Processing Nile Admin...");
+      // Total Price: 2,655,895 (Base ~2.4M)
+      const adminSchedule = [
+        { date: "2025-12-01", amount: 241500, desc: "Installment (Paid)" },
+        { date: "2026-07-01", amount: 241500, desc: "Upcoming Installment" },
+        { date: "2027-07-01", amount: 241500, desc: "Future Installment" },
+        { date: "2028-07-01", amount: 241500, desc: "Future Installment" },
+        { date: "2029-07-01", amount: 241060, desc: "Future Installment" },
+        { date: "2030-07-01", amount: 241500, desc: "Final Installment" },
+      ];
+      // Approx Base: 2414450, Maint: 241445
+      const objAdmin = processProject("Nile Admin (A4719)", "Nile Business City", "New Capital", 2414450, 241445, adminSchedule);
 
-      // Filter out old versions of these specific projects to avoid dupes
-      let cleanAssets = (assets.underDevelopment || []).filter((a: any) => !a.name.includes("NURAI") && !a.name.includes("Dejoya"));
-      let cleanLiabs = (liabilities.installments || []).filter((l: any) => !l.project.includes("NURAI") && !l.project.includes("Dejoya"));
+      // ==========================================
+      // PROJECT 2: Nile Commercial (Co-A1050)
+      // ==========================================
+      addLog("Processing Nile Commercial...");
+      // Total Price: 9,375,224
+      const commSchedule = [
+        { date: "2025-12-01", amount: 928240, desc: "Installment (Paid)" },
+        { date: "2026-07-01", amount: 844700, desc: "Upcoming Installment" },
+        { date: "2027-07-01", amount: 844700, desc: "Future Installment" },
+        { date: "2028-07-01", amount: 844700, desc: "Future Installment" },
+        { date: "2029-07-01", amount: 844700, desc: "Future Installment" },
+        { date: "2030-07-01", amount: 844687, desc: "Final Installment" },
+      ];
+      const objComm = processProject("Nile Commercial (Co-A1050)", "Nile Business City", "New Capital", 9282400, 928240, commSchedule);
 
-      // Push New
-      cleanAssets.push(nuraiObj.asset, tajObj.asset);
-      cleanLiabs.push(nuraiObj.liability, tajObj.liability);
+      // ==========================================
+      // RE-IMPORT TYCOON (With Correct Name)
+      // ==========================================
+      addLog("Updating Tycoon Details...");
+      // (Using your previous Tycoon schedules, just updating Developer Name)
+      const tycoonDev = "Nile Business City - Grand Millennium";
+      
+      // H2203
+      const h2203_Schedule = [
+        { date: "2023-03-15", amount: 1002205, desc: "Downpayment" }, { date: "2023-09-01", amount: 820000, desc: "Installment 1" },
+        { date: "2024-03-01", amount: 820000, desc: "Installment 2" }, { date: "2024-09-01", amount: 820000, desc: "Installment 3" },
+        { date: "2025-03-01", amount: 820000, desc: "Installment 4" }, { date: "2025-09-01", amount: 820000, desc: "Installment 5" },
+        { date: "2026-03-01", amount: 820000, desc: "Installment 6" }, { date: "2026-09-01", amount: 820000, desc: "Installment 7" },
+        { date: "2027-02-01", amount: 1151960, desc: "Maintenance" }, { date: "2027-03-01", amount: 820000, desc: "Installment 8" },
+        { date: "2027-09-01", amount: 820000, desc: "Installment 9" }, { date: "2028-03-01", amount: 820000, desc: "Installment 10" },
+        { date: "2028-09-01", amount: 819847, desc: "Final" }
+      ];
+      const obj2203 = processProject("Tycoon H2203", tycoonDev, "New Capital", 10022052, 1151960, h2203_Schedule);
 
-      // Save
+      // H2222
+      const h2222_Schedule = [
+        { date: "2023-03-15", amount: 948761, desc: "Downpayment" }, { date: "2023-09-01", amount: 776300, desc: "Installment 1" },
+        { date: "2024-03-01", amount: 776300, desc: "Installment 2" }, { date: "2024-09-01", amount: 776300, desc: "Installment 3" },
+        { date: "2025-03-01", amount: 776300, desc: "Installment 4" }, { date: "2025-09-01", amount: 776300, desc: "Installment 5" },
+        { date: "2026-03-01", amount: 776300, desc: "Installment 6" }, { date: "2026-09-01", amount: 776300, desc: "Installment 7" },
+        { date: "2027-02-01", amount: 1090530, desc: "Maintenance" }, { date: "2027-03-01", amount: 776300, desc: "Installment 8" },
+        { date: "2027-09-01", amount: 776300, desc: "Installment 9" }, { date: "2028-03-01", amount: 776300, desc: "Installment 10" },
+        { date: "2028-09-01", amount: 775850, desc: "Final" }
+      ];
+      const obj2222 = processProject("Tycoon H2222", tycoonDev, "New Capital", 9487611, 1090530, h2222_Schedule);
+
+      // ==========================================
+      // CLEANUP & SAVE
+      // ==========================================
+      // Remove old entries for these 4 projects
+      const namesToRemove = ["Nile Admin", "Nile Commercial", "Tycoon H2203", "Tycoon H2222"];
+      let cleanAssets = (assets.underDevelopment || []).filter((a: any) => !namesToRemove.some(n => a.name.includes(n)));
+      let cleanLiabs = (liabilities.installments || []).filter((l: any) => !namesToRemove.some(n => l.project.includes(n)));
+
+      // Add New
+      cleanAssets.push(objAdmin.asset, objComm.asset, obj2203.asset, obj2222.asset);
+      cleanLiabs.push(objAdmin.liability, objComm.liability, obj2203.liability, obj2222.liability);
+
       await setDoc(userRef, {
         ...currentData,
         assets: { ...currentData.assets, underDevelopment: cleanAssets },
@@ -173,8 +174,7 @@ export default function ImportDataPage() {
       }, { merge: true });
 
       setStatus("success");
-      addLog("SUCCESS: Nurai and Dejoya imported.");
-      addLog(`Dejoya Status: Paid ${tajObj.liability.paid.toLocaleString()} / Next Due: ${tajObj.liability.nextDueDate}`);
+      addLog("SUCCESS: Nile Business City Projects Updated.");
 
     } catch (error: any) {
       console.error(error);
@@ -186,50 +186,19 @@ export default function ImportDataPage() {
   return (
     <div className="min-h-screen bg-[#020817] text-white p-8 flex flex-col items-center justify-center">
       <div className="max-w-xl w-full space-y-6">
-        <h1 className="text-2xl font-bold text-center">Master Data Importer</h1>
+        <h1 className="text-2xl font-bold text-center">Nile Business City Importer</h1>
         <div className="p-4 border border-white/10 rounded-lg bg-white/5 space-y-2 text-sm text-slate-300">
-            <p className="font-bold text-emerald-400">Projects to Import:</p>
+            <p className="font-bold text-blue-400">Importing Projects:</p>
             <ul className="list-disc pl-5 space-y-1">
-                <li><strong>Mercon Nurai:</strong> 4.3M EGP (Cityscape Offer)</li>
-                <li><strong>Taj Misr Dejoya:</strong> 8.6M EGP (New Zayed)</li>
+                <li>Nile Admin (A4719)</li>
+                <li>Nile Commercial (Co-A1050)</li>
+                <li>Tycoon H2203 & H2222 (Updated Name)</li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">
-                * Calculates paid amounts based on Date: {new Date().toLocaleDateString()}
-            </p>
         </div>
-
-        {status === 'idle' && (
-            <Button onClick={runImport} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12">
-                Run Multi-Project Import
-            </Button>
-        )}
-
-        {status === 'loading' && (
-            <Button disabled className="w-full bg-blue-600/50 text-white h-12">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Data...
-            </Button>
-        )}
-
-        {status === 'success' && (
-            <div className="space-y-4">
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-3 text-emerald-400">
-                    <CheckCircle className="h-6 w-6" />
-                    <div>
-                        <p className="font-bold">Database Updated Successfully</p>
-                    </div>
-                </div>
-                <Link href="/">
-                    <Button variant="outline" className="w-full border-white/10">Go to Dashboard</Button>
-                </Link>
-            </div>
-        )}
-
-        <div className="mt-4 p-4 bg-black rounded-lg font-mono text-xs text-green-400 h-64 overflow-y-auto border border-white/10">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-2 mb-2 text-white">
-                <Terminal className="h-4 w-4" /> Import Log
-            </div>
-            {log.map((l, i) => <div key={i} className="mb-1">{`> ${l}`}</div>)}
-        </div>
+        {status === 'idle' && <Button onClick={runImport} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12">Run Import</Button>}
+        {status === 'loading' && <Button disabled className="w-full bg-blue-600/50 text-white h-12"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</Button>}
+        {status === 'success' && <div className="space-y-4 text-center"><p className="text-emerald-400 font-bold">Success!</p><Link href="/"><Button variant="outline">Return to Dashboard</Button></Link></div>}
+        <div className="mt-4 p-4 bg-black rounded-lg font-mono text-xs text-green-400 h-48 overflow-y-auto border border-white/10">{log.map((l, i) => <div key={i}>{`> ${l}`}</div>)}</div>
       </div>
     </div>
   );
