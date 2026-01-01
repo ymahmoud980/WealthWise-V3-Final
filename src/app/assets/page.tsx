@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea" // Need to ensure you have this UI component or use standard textarea
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import { useAuth } from "@/contexts/AuthContext"
 import type { FinancialData, RealEstateAsset } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
-import { Trash2, Wallet, Gem, MapPin, Building2, Paperclip, Calendar, Loader2, FileText, Download, Package } from "lucide-react";
+import { Trash2, Wallet, Gem, Package, Building2, Paperclip, Calendar, Loader2, FileText, Download, MapPin, StickyNote } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress";
@@ -28,7 +29,6 @@ export default function AssetsPage() {
   const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{type: string, id: string} | null>(null);
   
-  // Attachment States
   const [viewAttachments, setViewAttachments] = useState<{name: string, id: string, docs?: any[]} | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
@@ -61,22 +61,16 @@ export default function AssetsPage() {
             setData(updatedData); 
             setViewAttachments(prev => ({ ...prev!, docs: asset.documents }));
         }
-    } catch (error) {
-        alert("Upload failed. Check console.");
-    } finally {
-        setIsUploading(false);
-        e.target.value = '';
-    }
+    } catch (error) { alert("Upload failed."); } finally { setIsUploading(false); e.target.value = ''; }
   };
 
   const handleDeleteDocument = async (docName: string) => {
-    if(!viewAttachments || !user || !storage) return;
-    if(!confirm("Delete this document?")) return;
+    if(!confirm("Delete document?")) return;
     try {
-        try { await deleteObject(ref(storage, `assets/${user.uid}/${viewAttachments.id}/${docName}`)); } catch(e) {}
+        try { await deleteObject(ref(storage, `assets/${user?.uid}/${viewAttachments?.id}/${docName}`)); } catch(e){}
         const updatedData = JSON.parse(JSON.stringify(data));
-        let asset = updatedData.assets.realEstate.find((a:any) => a.id === viewAttachments.id);
-        if(!asset) asset = updatedData.assets.underDevelopment.find((a:any) => a.id === viewAttachments.id);
+        let asset = updatedData.assets.realEstate.find((a:any) => a.id === viewAttachments?.id);
+        if(!asset) asset = updatedData.assets.underDevelopment.find((a:any) => a.id === viewAttachments?.id);
         if(asset && asset.documents) {
             asset.documents = asset.documents.filter((d: any) => d.name !== docName);
             setData(updatedData);
@@ -103,7 +97,8 @@ export default function AssetsPage() {
             id: installmentId, project: newAsset.name, developer: newAsset.location,
             total: totalContractPrice, paid: 0, amount: 0,
             nextDueDate: newAsset.maintenanceDueDate || new Date().toISOString().split('T')[0],
-            currency: newAsset.currency, frequency: newAsset.paymentFrequency || 'Quarterly'
+            currency: newAsset.currency, frequency: newAsset.paymentFrequency || 'Quarterly',
+            paymentHistory: [] 
         });
     } else if (['gold', 'silver', 'cash'].includes(type)) {
         const assetKey = type as 'gold' | 'silver' | 'cash';
@@ -124,12 +119,11 @@ export default function AssetsPage() {
 
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
-    const { type, id } = deleteTarget;
     const updatedData = JSON.parse(JSON.stringify(data));
-    const key = type === 'other' ? 'otherAssets' : type as keyof FinancialData['assets'];
-    if (updatedData.assets[key]) updatedData.assets[key] = updatedData.assets[key].filter((item: any) => item.id !== id);
-    if (type === 'underDevelopment') {
-       const asset = data.assets.underDevelopment.find(a => a.id === id);
+    const key = deleteTarget.type === 'other' ? 'otherAssets' : deleteTarget.type as keyof FinancialData['assets'];
+    if (updatedData.assets[key]) updatedData.assets[key] = updatedData.assets[key].filter((item: any) => item.id !== deleteTarget.id);
+    if (deleteTarget.type === 'underDevelopment') {
+       const asset = data.assets.underDevelopment.find(a => a.id === deleteTarget.id);
        if (asset?.linkedInstallmentId) updatedData.liabilities.installments = updatedData.liabilities.installments.filter((i: any) => i.id !== asset.linkedInstallmentId);
     }
     setData(updatedData);
@@ -141,32 +135,30 @@ export default function AssetsPage() {
   const { realEstate, underDevelopment, cash, gold, silver, otherAssets } = currentData.assets;
   const { installments } = currentData.liabilities;
 
-  // FIX: Updated to handle Cash and Metal editing
   const handleAssetChange = (section: string, id: string, field: string, val: string) => {
       setEditableData(prev => {
           const list = (prev.assets as any)[section];
           const idx = list.findIndex((item: any) => item.id === id);
           if (idx > -1) {
-              // Fields that should be strings
-              const stringFields = ['name', 'location', 'currency', 'rentFrequency'];
-              list[idx][field] = stringFields.includes(field) ? val : (parseFloat(val) || 0);
+             const isString = ['name','location','currency','rentFrequency','notes'].includes(field);
+             list[idx][field] = isString ? val : (parseFloat(val) || 0);
           }
           return { ...prev };
       });
   };
 
+  // Grouping
   const groupedAssets: Record<string, RealEstateAsset[]> = {};
   (realEstate || []).forEach(asset => {
-    const location = asset.location || "Uncategorized";
-    if (!groupedAssets[location]) groupedAssets[location] = [];
-    groupedAssets[location].push(asset);
+    const loc = asset.location || "Uncategorized";
+    if (!groupedAssets[loc]) groupedAssets[loc] = [];
+    groupedAssets[loc].push(asset);
   });
-
   const groupedDevelopment: Record<string, any[]> = {};
   (underDevelopment || []).forEach(asset => {
-    const location = asset.location || "Uncategorized";
-    if (!groupedDevelopment[location]) groupedDevelopment[location] = [];
-    groupedDevelopment[location].push(asset);
+    const loc = asset.location || "Uncategorized";
+    if (!groupedDevelopment[loc]) groupedDevelopment[loc] = [];
+    groupedDevelopment[loc].push(asset);
   });
 
   return (
@@ -182,9 +174,8 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* --- REAL ESTATE --- */}
+      {/* READY PROPERTIES */}
       <div className="space-y-8">
-        {Object.keys(groupedAssets).length > 0 && <h2 className="text-xl font-bold text-emerald-500 flex items-center gap-2 border-b border-white/10 pb-2"><Building2 className="h-6 w-6" /> Real Estate Portfolio</h2>}
         {Object.entries(groupedAssets).map(([location, assets]) => (
             <div key={location} className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 pl-2"><MapPin className="h-4 w-4 text-emerald-500" /> {location}</h3>
@@ -196,32 +187,21 @@ export default function AssetsPage() {
                                     {isEditing ? <GlassInput value={p.name} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'name', e.target.value)} className="font-bold w-full mb-1"/> : <h4 className="font-bold text-lg">{p.name}</h4>}
                                     <p className="text-xs text-muted-foreground">{p.location}</p>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white relative" onClick={() => setViewAttachments({ name: p.name, id: p.id, docs: (p as any).documents || [] })}>
-                                    <Paperclip className="h-4 w-4" />
-                                    {((p as any).documents?.length > 0) && <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>}
-                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white relative" onClick={() => setViewAttachments({ name: p.name, id: p.id, docs: (p as any).documents || [] })}><Paperclip className="h-4 w-4" />{((p as any).documents?.length > 0) && <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>}</Button>
                             </div>
                             <div className="p-5 space-y-4 bg-card/40">
                                 <div className="space-y-1">
                                     <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</label>
                                     {isEditing ? <div className="flex gap-2"><GlassInput type="number" value={p.currentValue} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currentValue', e.target.value)} /><GlassInput className="w-16" value={p.currency} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'currency', e.target.value)} /></div> : <p className="text-2xl font-bold text-emerald-500">{formatNumber(p.currentValue)} {p.currency}</p>}
                                 </div>
-                                <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                                    <div className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3"/><span className="capitalize">{p.rentFrequency || "Monthly"}</span> Rent</div>
-                                    {isEditing ? <GlassInput type="number" value={p.monthlyRent} className="w-24 text-right" onChange={(e: any) => handleAssetChange('realEstate', p.id, 'monthlyRent', e.target.value)}/> : <div className="font-mono font-medium text-emerald-400">+{formatNumber(p.monthlyRent)} {p.rentCurrency || p.currency}</div>}
-                                </div>
-                                {isEditing && (
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="text-muted-foreground">Frequency</span>
-                                        <select className="bg-black/20 border border-white/10 rounded h-6 text-xs text-white" value={p.rentFrequency} onChange={(e) => handleAssetChange('realEstate', p.id, 'rentFrequency', e.target.value)}>
-                                            <option value="monthly">Monthly</option>
-                                            <option value="quarterly">Quarterly</option>
-                                            <option value="semi-annual">Semi-Annual</option>
-                                            <option value="annual">Annual</option>
-                                        </select>
+                                {/* NEW: NOTES FIELD */}
+                                {(p.notes || isEditing) && (
+                                    <div className="bg-amber-500/10 p-2 rounded border border-amber-500/20">
+                                        <label className="text-[10px] text-amber-500 flex items-center gap-1"><StickyNote className="h-3 w-3"/> Notes</label>
+                                        {isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={p.notes || ""} onChange={(e) => handleAssetChange('realEstate', p.id, 'notes', e.target.value)} placeholder="Add private notes..." /> : <p className="text-xs text-slate-300 italic">{p.notes}</p>}
                                     </div>
                                 )}
-                                {isEditing && <Button variant="destructive" size="sm" className="w-full mt-2" onClick={() => setDeleteTarget({ type: 'realEstate', id: p.id })}><Trash2 className="h-4 w-4 mr-2" /> Remove Asset</Button>}
+                                {isEditing && <Button variant="destructive" size="sm" className="w-full mt-2" onClick={() => setDeleteTarget({ type: 'realEstate', id: p.id })}><Trash2 className="h-4 w-4 mr-2" /> Remove</Button>}
                             </div>
                         </div>
                     ))}
@@ -230,9 +210,8 @@ export default function AssetsPage() {
         ))}
       </div>
 
-      {/* --- OFF PLAN --- */}
+      {/* OFF PLAN */}
       <div className="space-y-8 pt-6 border-t border-dashed border-white/10">
-        {Object.keys(groupedDevelopment).length > 0 && <h2 className="text-xl font-bold text-purple-400 flex items-center gap-2"><Package className="h-6 w-6" /> Off-Plan Projects</h2>}
         {Object.entries(groupedDevelopment).map(([location, assets]) => (
             <div key={location} className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 pl-2"><MapPin className="h-4 w-4 text-purple-500" /> {location}</h3>
@@ -249,10 +228,7 @@ export default function AssetsPage() {
                                         {isEditing ? <GlassInput value={p.name} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'name', e.target.value)} className="font-bold w-full mb-1"/> : <h4 className="font-bold text-lg">{p.name}</h4>}
                                         <p className="text-xs text-purple-300">Off-Plan • {p.location}</p>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-300/50 hover:text-white" onClick={() => setViewAttachments({ name: p.name, id: p.id, docs: (p as any).documents || [] })}>
-                                        <Paperclip className="h-4 w-4" />
-                                        {((p as any).documents?.length > 0) && <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>}
-                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-300/50 hover:text-white" onClick={() => setViewAttachments({ name: p.name, id: p.id, docs: (p as any).documents || [] })}><Paperclip className="h-4 w-4" />{((p as any).documents?.length > 0) && <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>}</Button>
                                 </div>
                                 <div className="p-5 space-y-4 bg-black/20">
                                     <div className="space-y-1"><div className="flex justify-between text-xs text-muted-foreground"><span>Paid: {progress.toFixed(1)}%</span><span>Total: {formatNumber(total)}</span></div><Progress value={progress} className="h-1.5 bg-white/10" /></div>
@@ -262,7 +238,13 @@ export default function AssetsPage() {
                                         <div className="flex justify-between items-center text-purple-300"><span>Parking:</span>{isEditing ? <GlassInput className="w-24 text-right" type="number" value={park} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'parkingCost', e.target.value)} /> : <span>{formatNumber(park)}</span>}</div>
                                         <div className="flex justify-between font-bold border-t border-white/10 pt-2 mt-1 text-white"><span>Total:</span> <span>{formatNumber(total)} {p.currency}</span></div>
                                     </div>
-                                    <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</p>{isEditing ? <GlassInput value={p.currentValue} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'currentValue', e.target.value)} /> : <p className="text-xl font-bold text-purple-400">{formatNumber(p.currentValue)}</p>}</div>
+                                    {/* NEW: NOTES FIELD */}
+                                    {(p.notes || isEditing) && (
+                                        <div className="bg-indigo-500/10 p-2 rounded border border-indigo-500/20">
+                                            <label className="text-[10px] text-indigo-400 flex items-center gap-1"><StickyNote className="h-3 w-3"/> Notes</label>
+                                            {isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={p.notes || ""} onChange={(e) => handleAssetChange('underDevelopment', p.id, 'notes', e.target.value)} placeholder="Add private notes..." /> : <p className="text-xs text-slate-300 italic">{p.notes}</p>}
+                                        </div>
+                                    )}
                                     {isEditing && <Button variant="destructive" size="sm" className="w-full" onClick={() => setDeleteTarget({ type: 'underDevelopment', id: p.id })}><Trash2 className="h-4 w-4 mr-2" /> Remove</Button>}
                                 </div>
                             </div>
@@ -273,78 +255,12 @@ export default function AssetsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 border-t border-white/10">
-          {/* --- CASH HOLDINGS (NOW FULLY EDITABLE) --- */}
-          <div className="space-y-4">
-             <div className="flex items-center gap-2 text-lg font-semibold text-emerald-400"><Wallet className="h-5 w-5" /> Cash</div>
-             <div className="glass-panel p-1 rounded-xl space-y-1 border border-emerald-500/20">
-                 {(cash || []).map(item => (
-                     <div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5">
-                        <div className="flex-1">
-                            {isEditing ? (
-                                <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('cash', item.id, 'location', e.target.value)} className="w-full" placeholder="Bank Name" />
-                            ) : (
-                                <span className="font-medium">{item.location}</span>
-                            )}
-                        </div>
-                        <div className="text-right flex items-center gap-2">
-                            {isEditing ? (
-                                <>
-                                    <GlassInput type="number" value={item.amount} className="w-24 text-right" onChange={(e: any) => handleAssetChange('cash', item.id, 'amount', e.target.value)} />
-                                    <GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('cash', item.id, 'currency', e.target.value)} />
-                                </>
-                            ) : (
-                                <span className="font-mono font-bold text-emerald-400">{formatNumber(item.amount)} {item.currency}</span>
-                            )}
-                        </div>
-                        {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive ml-2" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}
-                     </div>
-                 ))}
-             </div>
-          </div>
-
-          {/* --- METALS (FULLY EDITABLE) --- */}
-          <div className="lg:col-span-2 space-y-4">
-             <div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Metals</div>
-             <div className="grid md:grid-cols-2 gap-4">
-                 <div className="glass-panel p-4 rounded-xl border border-amber-500/20">
-                    <h4 className="text-amber-500 font-bold mb-2">Gold</h4>
-                    {(gold || []).map(item => (
-                        <div key={item.id} className="flex justify-between items-center p-2 border-b border-white/5">
-                            {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('gold', item.id, 'location', e.target.value)} /> : <span>{item.location}</span>}
-                            <div className="flex items-center gap-2">
-                                {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}
-                                {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}
-                            </div>
-                        </div>
-                    ))}
-                 </div>
-                 <div className="glass-panel p-4 rounded-xl border border-slate-500/20">
-                    <h4 className="text-slate-300 font-bold mb-2">Silver</h4>
-                    {(silver || []).map(item => (
-                        <div key={item.id} className="flex justify-between items-center p-2 border-b border-white/5">
-                            {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('silver', item.id, 'location', e.target.value)} /> : <span>{item.location}</span>}
-                            <div className="flex items-center gap-2">
-                                {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}
-                                {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3"/></Button>}
-                            </div>
-                        </div>
-                    ))}
-                 </div>
-             </div>
-          </div>
-      </div>
-
       <Dialog open={!!viewAttachments} onOpenChange={() => setViewAttachments(null)}>
         <DialogContent className="bg-[#0f172a] border-white/10 text-white sm:max-w-[425px]">
             <DialogHeader><DialogTitle>Documents: {viewAttachments?.name}</DialogTitle><DialogDescription>Contracts, receipts, and deeds.</DialogDescription></DialogHeader>
             <div className="space-y-4 py-4">
                 <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {viewAttachments?.docs && viewAttachments.docs.length > 0 ? (
-                        viewAttachments.docs.map((doc: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between p-2 bg-black/40 rounded-lg border border-white/10 group"><div className="flex items-center gap-2 overflow-hidden"><FileText className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm truncate">{doc.name}</span></div><div className="flex items-center gap-2"><a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white/10 rounded-md text-emerald-400"><Download className="h-4 w-4" /></a><Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-500" onClick={() => handleDeleteDocument(doc.name)}><Trash2 className="h-4 w-4" /></Button></div></div>
-                        ))
-                    ) : (<p className="text-center text-sm text-muted-foreground py-4 border-2 border-dashed border-white/10 rounded-lg">No documents yet.</p>)}
+                    {viewAttachments?.docs && viewAttachments.docs.length > 0 ? (viewAttachments.docs.map((doc: any, i: number) => (<div key={i} className="flex items-center justify-between p-2 bg-black/40 rounded-lg border border-white/10 group"><div className="flex items-center gap-2 overflow-hidden"><FileText className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm truncate">{doc.name}</span></div><div className="flex items-center gap-2"><a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white/10 rounded-md text-emerald-400"><Download className="h-4 w-4" /></a><Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-500" onClick={() => handleDeleteDocument(doc.name)}><Trash2 className="h-4 w-4" /></Button></div></div>))) : (<p className="text-center text-sm text-muted-foreground py-4 border-2 border-dashed border-white/10 rounded-lg">No documents yet.</p>)}
                 </div>
                 <div className="pt-2 border-t border-white/10 text-center">{isUploading ? <Button disabled className="w-full bg-emerald-600/50"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</Button> : <Button onClick={handleUploadClick} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold">Upload New File</Button>}</div>
             </div>

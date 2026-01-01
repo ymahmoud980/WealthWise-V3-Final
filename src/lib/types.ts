@@ -1,15 +1,27 @@
 export type Currency = string;
 
+// NEW: Definition of a single payment record
+export interface PaymentRecord {
+  id: string;
+  date: string;
+  amount: number;
+  description: string; // e.g. "Down Payment", "Installment 1"
+}
+
 export interface Installment {
   id: string;
   project: string;
   developer: string;
-  total: number; // This should be Base + Maint + Parking
-  paid: number;
-  amount: number; // Next Installment Amount
+  total: number; // Base + Maint + Parking
+  paid: number;  // Sum of paymentHistory
+  amount: number; // Next Installment Amount (The only manually editable money field on Liability page)
   nextDueDate: string;
   currency: Currency;
   frequency: 'Monthly' | 'Quarterly' | 'Semi-Annual' | 'Annual' | 'One-Time';
+  
+  // NEW FIELDS
+  paymentHistory?: PaymentRecord[];
+  notes?: string;
 }
 
 export interface Loan {
@@ -19,6 +31,7 @@ export interface Loan {
   remaining: number;
   monthlyPayment: number;
   currency: Currency;
+  notes?: string; // New
 }
 
 export interface RealEstateAsset {
@@ -32,22 +45,24 @@ export interface RealEstateAsset {
   rentCurrency?: Currency;
   rentFrequency: 'monthly' | 'quarterly' | 'semi-annual' | 'annual';
   nextRentDueDate: string;
+  documents?: any[];
+  notes?: string; // New
 }
 
 export interface UnderDevelopmentAsset {
   id: string;
   name: string;
   location: string;
-  purchasePrice: number; // Base Price
+  purchasePrice: number;
   currentValue: number;
   currency: Currency;
   linkedInstallmentId?: string;
-  
-  // --- NEW FIELDS ---
   maintenanceCost?: number;
   maintenanceDueDate?: string;
   parkingCost?: number;
-  // We use these to calculate the "Total Contract Value"
+  paymentFrequency?: 'Monthly' | 'Quarterly' | 'Semi-Annual' | 'Annual';
+  documents?: any[];
+  notes?: string; // New
 }
 
 export interface CashAsset {
@@ -55,18 +70,21 @@ export interface CashAsset {
   location: string;
   amount: number;
   currency: Currency;
+  notes?: string; // New
 }
 
 export interface GoldAsset {
   id: string;
   location: string;
   grams: number;
+  notes?: string; // New
 }
 
 export interface SilverAsset {
   id: string;
   location: string;
   grams: number;
+  notes?: string; // New
 }
 
 export interface OtherAsset {
@@ -74,6 +92,7 @@ export interface OtherAsset {
   description: string;
   value: number;
   currency: Currency;
+  notes?: string; // New
 }
 
 export interface HouseholdExpense {
