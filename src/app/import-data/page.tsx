@@ -37,37 +37,40 @@ export default function ImportDataPage() {
       const assets = currentData.assets || { underDevelopment: [] };
       const liabilities = currentData.liabilities || { installments: [] };
 
-      const today = new Date().toISOString().split('T')[0];
+      // SYSTEM DATE: Adjust this if you want to simulate a different "Today"
+      const today = new Date().toISOString().split('T')[0]; 
 
-      // --- HELPER FUNCTION ---
-      // ARGS: Name, Developer, Location, BasePrice, MaintCost, ParkingCost, Schedule
+      // --- HELPER ---
       const processProject = (name: string, developer: string, location: string, base: number, maint: number, park: number, schedule: any[]) => {
-        
-        // Safety check to prevent crash if schedule is missing
-        if (!schedule) {
-            throw new Error(`Schedule missing for ${name}`);
-        }
-
         const total = base + maint + park;
         const history: any[] = [];
-        const fullSchedule: any[] = [];
+        const futureSchedule: any[] = []; // Renamed for clarity
         let paidSum = 0;
         let nextDate = "";
         let nextAmount = 0;
 
-        // Sort by date
         schedule.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         schedule.forEach((p, i) => {
-            // Add to Full Schedule
-            fullSchedule.push({ id: `sch_${i}_${Math.random()}`, date: p.date, amount: p.amount, description: p.desc });
-
             if (p.date < today) {
-                 // Paid History
-                 history.push({ id: `pay_${i}_${Math.random()}`, date: p.date, amount: p.amount, description: p.desc });
+                 // --- PAST: GOES TO HISTORY ONLY ---
+                 history.push({ 
+                     id: `pay_${i}_${Math.random()}`, 
+                     date: p.date, 
+                     amount: p.amount, 
+                     description: p.desc 
+                 });
                  paidSum += p.amount;
             } else {
-                 // Future
+                 // --- FUTURE: GOES TO SCHEDULE ONLY ---
+                 futureSchedule.push({ 
+                     id: `sch_${i}_${Math.random()}`, 
+                     date: p.date, 
+                     amount: p.amount, 
+                     description: p.desc 
+                 });
+                 
+                 // Capture the very first future item as "Next Due"
                  if(!nextDate) { nextDate = p.date; nextAmount = p.amount; }
             }
         });
@@ -79,16 +82,16 @@ export default function ImportDataPage() {
         return {
             asset: {
                 id: uid, name, location, purchasePrice: base, maintenanceCost: maint, parkingCost: park, currentValue: total, currency: "EGP",
-                linkedInstallmentId: lid, maintenanceDueDate: schedule.find((s:any)=>s.desc.includes("Maintenance"))?.date || "", paymentFrequency: "Quarterly", documents: [], notes: `Developer: ${developer}. Imported.`
+                linkedInstallmentId: lid, maintenanceDueDate: schedule.find((s:any)=>s.desc.includes("Maintenance"))?.date || "", paymentFrequency: "Annual", documents: [], notes: `Developer: ${developer}. Imported.`
             },
             liability: {
-                id: lid, project: name, developer: developer, total, paid: paidSum, amount: nextAmount, nextDueDate: nextDate, currency: "EGP", frequency: "Quarterly",
-                paymentHistory: history, schedule: fullSchedule, notes: "Full schedule imported."
+                id: lid, project: name, developer: developer, total, paid: paidSum, amount: nextAmount, nextDueDate: nextDate, currency: "EGP", frequency: "Annual",
+                paymentHistory: history, schedule: futureSchedule, notes: "Clean split schedule."
             }
         };
       };
 
-      // ================= 1. NILE ADMIN =================
+      // ================= 1. NILE ADMIN (A4719) =================
       addLog("Processing Nile Admin...");
       const adminSched = [
         { date: "2022-10-12", amount: 482890, desc: "Downpayment / Initial" },
@@ -99,13 +102,13 @@ export default function ImportDataPage() {
         { date: "2026-07-01", amount: 241500, desc: "Upcoming Installment" },
         { date: "2027-07-01", amount: 241500, desc: "Future Installment" },
         { date: "2028-07-01", amount: 241500, desc: "Future Installment" },
-        { date: "2029-07-01", amount: 241500, desc: "Future Installment" },
-        { date: "2030-07-01", amount: 241060, desc: "Final Installment" },
+        { date: "2029-07-01", amount: 241060, desc: "Future Installment" },
+        { date: "2030-07-01", amount: 241500, desc: "Final Installment" },
       ];
-      // CORRECTED ARGS: Name, Dev, Location, Base, Maint, Park, Schedule
       const nileAdmin = processProject("Nile Admin (A4719)", "Nile Business City", "New Capital", 2414450, 241445, 0, adminSched);
 
-      // ================= 2. NILE COMMERCIAL =================
+
+      // ================= 2. NILE COMMERCIAL (Co-A1050) =================
       addLog("Processing Nile Commercial...");
       const commSched = [
         { date: "2022-10-12", amount: 1689400, desc: "Downpayment / Initial" },
@@ -121,6 +124,7 @@ export default function ImportDataPage() {
       ];
       const nileComm = processProject("Nile Commercial (Co-A1050)", "Nile Business City", "New Capital", 8446987, 928240, 0, commSched);
 
+
       // ================= 3. NURAI =================
       addLog("Processing Nurai...");
       const nuraiSched = [
@@ -132,7 +136,6 @@ export default function ImportDataPage() {
         }),
         ...genQuarterly(1, 8, "2026-02-28", 41045).map(i => ({...i, desc: `Maintenance ${i.desc.split(' ')[1]}`}))
       ];
-      // Added "New Cairo" as location to fix the argument count
       const nurai = processProject("Nurai (NUI-11A1-23)", "Mercon", "New Cairo", 4104550, 328360, 230000, nuraiSched);
 
       // ================= 4. DEJOYA =================
@@ -146,13 +149,12 @@ export default function ImportDataPage() {
          ...genQuarterly(24, 17, "2031-05-17", 157500),
          { desc: "Maintenance", date: "2028-04-21", amount: 787500 }
       ];
-      // Added "New Zayed" as location
       const dejoya = processProject("Dejoya Primero", "Taj Misr", "New Zayed", 7875000, 787500, 0, dejoyaSched);
 
       // ================= 5. TYCOON 2203 =================
       addLog("Processing Tycoon H2203...");
       const t2203Sched = [
-        { date: "2023-03-15", amount: 1002205, desc: "Downpayment" }, { date: "2023-09-01", amount: 820000, desc: "Installment" },
+        { date: "2023-03-15", amount: 1002205, desc: "Downpayment" }, { date: "2023-09-01", amount: 820000, desc: "Installment 1" },
         { date: "2024-03-01", amount: 820000, desc: "Installment" }, { date: "2024-09-01", amount: 820000, desc: "Installment" },
         { date: "2025-03-01", amount: 820000, desc: "Installment" }, { date: "2025-09-01", amount: 820000, desc: "Installment" },
         { date: "2026-03-01", amount: 820000, desc: "Installment" }, { date: "2026-09-01", amount: 820000, desc: "Installment" },
@@ -160,7 +162,6 @@ export default function ImportDataPage() {
         { date: "2027-09-01", amount: 820000, desc: "Installment" }, { date: "2028-03-01", amount: 820000, desc: "Installment" },
         { date: "2028-09-01", amount: 819847, desc: "Final" }
       ];
-      // Added "New Capital" as location
       const t2203 = processProject("Tycoon H2203", "Grand Millennium Hotel", "New Capital", 10022052, 1151960, 0, t2203Sched);
 
       // ================= 6. TYCOON 2222 =================
@@ -174,7 +175,6 @@ export default function ImportDataPage() {
         { date: "2027-09-01", amount: 776300, desc: "Installment" }, { date: "2028-03-01", amount: 776300, desc: "Installment" },
         { date: "2028-09-01", amount: 775850, desc: "Final" }
       ];
-      // Added "New Capital" as location
       const t2222 = processProject("Tycoon H2222", "Grand Millennium Hotel", "New Capital", 9487611, 1090530, 0, t2222Sched);
 
 
@@ -201,7 +201,7 @@ export default function ImportDataPage() {
       }, { merge: true });
 
       setStatus("success");
-      addLog("SUCCESS: All 6 Projects Imported.");
+      addLog("SUCCESS: All Projects Cleaned and Updated.");
 
     } catch (error: any) {
       console.error(error);
@@ -212,8 +212,8 @@ export default function ImportDataPage() {
 
   return (
     <div className="min-h-screen bg-[#020817] text-white p-8 flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold mb-4">Master Data Importer (Full History)</h1>
-        {status === 'idle' && <Button onClick={runImport} className="bg-blue-600 h-12 px-8 font-bold">Update All Project Data</Button>}
+        <h1 className="text-2xl font-bold mb-4">Master Data Importer (Clean Split)</h1>
+        {status === 'idle' && <Button onClick={runImport} className="bg-blue-600 h-12 px-8 font-bold">Update All Projects</Button>}
         {status === 'loading' && <Button disabled><Loader2 className="animate-spin mr-2"/> Processing...</Button>}
         {status === 'success' && <Link href="/"><Button variant="outline" className="text-green-400">Done! Return to Dashboard</Button></Link>}
         <div className="mt-4 p-4 bg-black rounded text-xs h-64 overflow-y-auto w-full max-w-lg border border-white/10">{log.map((l, i) => <div key={i}>{l}</div>)}</div>
