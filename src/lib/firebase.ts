@@ -10,6 +10,15 @@ import { getStorage } from "firebase/storage"; // <--- NEW
 // NOTE: This connects to the Firebase Project labeled "WealthWise V3 Final"
 // The ID "web-archive-harvester" is correct! Do not change it.
 // ---------------------------------------------------------
+// const firebaseConfig = {
+//   apiKey: "AIzaSyD235oKmaCDNC9sv1BetoBCn-5CyaNmmxk",
+//   authDomain: "web-archive-harvester.firebaseapp.com",
+//   projectId: "web-archive-harvester",
+//   storageBucket: "web-archive-harvester.firebasestorage.app",
+//   messagingSenderId: "536596374039",
+//   appId: "1:536596374039:web:ca213c8c6159457e123252"
+// };
+
 const firebaseConfig = {
   apiKey: "AIzaSyD235oKmaCDNC9sv1BetoBCn-5CyaNmmxk",
   authDomain: "web-archive-harvester.firebaseapp.com",
