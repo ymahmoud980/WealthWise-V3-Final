@@ -1,8 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { TrendingUp, TrendingDown, Wallet, DollarSign, Calculator } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { TrendingUp, TrendingDown, Wallet, DollarSign, Calculator, Building2, Coins, Briefcase } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency";
 import { convert } from "@/lib/calculations";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
@@ -31,72 +30,86 @@ export default function BreakdownPage() {
   const { data, metrics } = useFinancialData();
 
   return (
-    <div className="space-y-8 p-8">
+    <div className="space-y-8 p-4 md:p-8">
       <div className="glass-panel p-6 rounded-xl">
           <h1 className="text-3xl font-bold flex items-center gap-3 text-white">
             <Calculator className="h-8 w-8 text-primary" />
             Financial Ledger
           </h1>
-          <p className="text-muted-foreground mt-2">Detailed audit trail of all calculations converted to {currency}.</p>
+          <p className="text-muted-foreground mt-2">Complete breakdown of all assets, liabilities, and cash flow in {currency}.</p>
       </div>
       
       <div className="grid gap-8 lg:grid-cols-2">
 
-        {/* Net Worth Breakdown */}
-        <div className="glass-panel p-6 rounded-xl border-t-4 border-t-amber-500">
-          <div className="flex items-center gap-2 mb-6">
-            <DollarSign className="h-6 w-6 text-amber-500" />
-            <h2 className="text-xl font-bold text-white">Net Worth Formula</h2>
-          </div>
-          <div className="space-y-1">
-            <Row label="Total Asset Value" value={metrics.totalAssets} format={format} />
-            <Row label="Total Liabilities" value={metrics.totalLiabilities} isNegative={true} format={format} />
-            <Row label="Net Worth" value={metrics.netWorth} isGrandTotal={true} format={format} />
-          </div>
+        {/* --- 1. ASSETS DETAIL --- */}
+        <div className="glass-panel p-6 rounded-xl">
+           <div className="flex items-center gap-2 mb-4"><TrendingUp className="h-5 w-5 text-emerald-500" /><h3 className="font-bold text-white">Assets</h3></div>
+           <div className="space-y-1">
+             <Row label="Ready Properties" value={metrics.assets.existingRealEstate} isTotal format={format} />
+             {(data.assets.realEstate || []).map(a => <Row key={a.id} label={a.name} value={convert(a.currentValue, a.currency, currency, rates)} isSub format={format} />)}
+             
+             <Row label="Off-Plan Projects" value={metrics.assets.offPlanRealEstate} isTotal format={format} />
+             {(data.assets.underDevelopment || []).map(a => <Row key={a.id} label={a.name} value={convert(a.currentValue, a.currency, currency, rates)} isSub format={format} />)}
+
+             <Row label="Cash & Bank" value={metrics.assets.cash} isTotal format={format} />
+             {(data.assets.cash || []).map(a => <Row key={a.id} label={a.location} value={convert(a.amount, a.currency, currency, rates)} isSub format={format} />)}
+
+             <Row label="Gold & Silver" value={metrics.assets.gold + metrics.assets.silver} isTotal format={format} />
+             
+             <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
+             {(data.assets.otherAssets || []).map(a => <Row key={a.id} label={a.description} value={convert(a.value, a.currency, currency, rates)} isSub format={format} />)}
+
+             <Row label="TOTAL ASSETS" value={metrics.totalAssets} isGrandTotal={true} format={format} />
+           </div>
         </div>
 
-        {/* Asset Value Breakdown */}
+        {/* --- 2. LIABILITIES DETAIL --- */}
         <div className="glass-panel p-6 rounded-xl">
-           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-emerald-500" />
-            <h3 className="font-bold text-white">Asset Details</h3>
-          </div>
-          <div className="space-y-1">
-            <Row label="Existing Real Estate" value={metrics.assets.existingRealEstate} isTotal format={format} />
-            {(data.assets.realEstate || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
+           <div className="flex items-center gap-2 mb-4"><TrendingDown className="h-5 w-5 text-rose-500" /><h3 className="font-bold text-white">Liabilities</h3></div>
+           <div className="space-y-1">
+             <Row label="Bank Loans" value={metrics.liabilities.loans} isTotal isNegative format={format} />
+             {(data.liabilities.loans || []).map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.remaining, l.currency, currency, rates)} isSub isNegative format={format} />)}
 
-            <Row label="Off-Plan Real Estate" value={metrics.assets.offPlanRealEstate} isTotal format={format} />
-            {(data.assets.underDevelopment || []).map(asset => <Row key={asset.id} label={asset.name} value={convert(asset.currentValue, asset.currency, currency, rates)} isSub format={format} />)}
-            
-            <Row label="Cash Holdings" value={metrics.assets.cash} isTotal format={format} />
-            {(data.assets.cash || []).map(asset => <Row key={asset.id} label={asset.location} value={convert(asset.amount, asset.currency, currency, rates)} isSub format={format} />)}
+             <Row label="Outstanding Installments" value={metrics.liabilities.installments} isTotal isNegative format={format} />
+             {(data.liabilities.installments || []).map(i => <Row key={i.id} label={i.project} value={convert(i.total - i.paid, i.currency, currency, rates)} isSub isNegative format={format} />)}
 
-            <Row label="Gold" value={metrics.assets.gold} isTotal format={format} />
-            <Row label="Silver" value={metrics.assets.silver} isTotal format={format} />
-            
-            {/* FIX: OTHER ASSETS ADDED HERE */}
-            <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
-            {(data.assets.otherAssets || []).map(asset => <Row key={asset.id} label={asset.description} value={convert(asset.value, asset.currency, currency, rates)} isSub format={format} />)}
-            
-            <Row label="Total Asset Value" value={metrics.totalAssets} isGrandTotal={true} format={format} />
-          </div>
+             <Row label="TOTAL LIABILITIES" value={metrics.totalLiabilities} isGrandTotal={true} isNegative format={format} />
+           </div>
         </div>
 
-        {/* Liabilities Breakdown */}
+        {/* --- 3. INCOME DETAIL --- */}
         <div className="glass-panel p-6 rounded-xl">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingDown className="h-5 w-5 text-rose-500" />
-            <h3 className="font-bold text-white">Liabilities Details</h3>
-          </div>
-          <div className="space-y-1">
-            <Row label="Loans" value={metrics.liabilities.loans} isTotal isNegative format={format} />
-            {(data.liabilities.loans || []).map(l => <Row key={l.id} label={`${l.lender} Loan`} value={convert(l.remaining, l.currency, currency, rates)} isSub isNegative format={format} />)}
+           <div className="flex items-center gap-2 mb-4"><Wallet className="h-5 w-5 text-emerald-500" /><h3 className="font-bold text-white">Monthly Income</h3></div>
+           <div className="space-y-1">
+             <Row label="Salary" value={metrics.income.salary} isTotal format={format} />
+             <Row label="Rental Income (Avg)" value={metrics.income.rent} isTotal format={format} />
+             {(data.assets.realEstate || []).filter(r => Number(r.monthlyRent) > 0).map(r => {
+                let val = convert(r.monthlyRent, r.rentCurrency || r.currency, currency, rates);
+                if(r.rentFrequency === 'quarterly') val /= 3;
+                if(r.rentFrequency === 'semi-annual') val /= 6;
+                if(r.rentFrequency === 'annual') val /= 12;
+                return <Row key={r.id} label={`${r.name} (${r.rentFrequency})`} value={val} isSub format={format} />
+             })}
+             <Row label="TOTAL MONTHLY IN" value={metrics.totalIncome} isGrandTotal={true} format={format} />
+           </div>
+        </div>
 
-            <Row label="Installments Remaining" value={metrics.liabilities.installments} isTotal isNegative format={format} />
-            {(data.liabilities.installments || []).map(i => <Row key={i.id} label={i.project} value={convert(i.total - i.paid, i.currency, currency, rates)} isSub isNegative format={format} />)}
-
-            <Row label="Total Liabilities" value={metrics.totalLiabilities} isGrandTotal={true} isNegative format={format} />
-          </div>
+        {/* --- 4. EXPENSE DETAIL --- */}
+        <div className="glass-panel p-6 rounded-xl">
+           <div className="flex items-center gap-2 mb-4"><TrendingDown className="h-5 w-5 text-rose-500" /><h3 className="font-bold text-white">Monthly Expenses</h3></div>
+           <div className="space-y-1">
+             <Row label="Loan Payments" value={metrics.expenses.loans} isTotal isNegative format={format} />
+             <Row label="Household" value={metrics.expenses.household} isTotal isNegative format={format} />
+             <Row label="Installments (Avg/Mo)" value={metrics.expenses.installmentsAvg} isTotal isNegative format={format} />
+             {(data.liabilities.installments || []).map(i => {
+                let val = convert(i.amount, i.currency, currency, rates);
+                if(i.frequency === 'Quarterly') val /= 3;
+                if(i.frequency === 'Semi-Annual') val /= 6;
+                if(i.frequency === 'Annual') val /= 12;
+                return <Row key={i.id} label={i.project} value={val} isSub isNegative format={format} />
+             })}
+             <Row label="TOTAL MONTHLY OUT" value={metrics.totalExpenses} isGrandTotal={true} isNegative format={format} />
+           </div>
         </div>
 
       </div>
