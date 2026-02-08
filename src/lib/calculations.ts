@@ -5,15 +5,14 @@ const GRAMS_PER_OUNCE = 31.1035;
 
 /**
  * Converts value to display currency.
- * FIX: Forces input to Number() to prevent string concatenation bugs.
  */
 export const convert = (
-  amount: any, // Accept any type
+  amount: any,
   from: string,
   to: string,
   rates: any
 ): number => {
-  const safeAmount = Number(amount) || 0; // Force Number
+  const safeAmount = Number(amount) || 0;
   if (!rates || typeof rates !== 'object') return 0;
   
   if (from === to) return safeAmount;
@@ -37,7 +36,6 @@ export const convert = (
 };
 
 export const calculateMetrics = (data: FinancialData, displayCurrency: Currency, rates: ExchangeRates) => {
-    // Safety check for empty data
     if (!data || !data.assets) {
        return {
           netWorth: 0, totalAssets: 0, totalLiabilities: 0, netCashFlow: 0,
@@ -85,13 +83,36 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     const loanExpenses = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.monthlyPayment, l.currency, displayCurrency, rates), 0);
     const householdExpenses = (monthlyExpenses.household || []).reduce((acc, e) => acc + convert(e.amount, e.currency, displayCurrency, rates), 0);
     
+    // --- FIX: TRUE ANNUALIZED INSTALLMENT COST ---
     const installmentsAvgExpense = (liabilities.installments || []).reduce((acc, inst) => {
-        // Calculate average monthly cost based on next payment
-        const amount = convert(inst.amount, inst.currency, displayCurrency, rates);
-        if (inst.frequency === 'Quarterly') return acc + (amount / 3);
-        if (inst.frequency === 'Semi-Annual') return acc + (amount / 6);
-        if (inst.frequency === 'Annual') return acc + (amount / 12);
-        return acc + amount; // Monthly
+        let annualBurden = 0;
+        
+        // Method A: Smart Schedule Scan (Most Accurate)
+        if (inst.schedule && inst.schedule.length > 0) {
+            const today = new Date();
+            const nextYear = new Date();
+            nextYear.setFullYear(today.getFullYear() + 1);
+
+            // Sum ALL payments (Installment + Maint + Parking) due in next 365 days
+            inst.schedule.forEach(item => {
+                const itemDate = new Date(item.date);
+                if (itemDate >= today && itemDate <= nextYear) {
+                    annualBurden += convert(item.amount, inst.currency, displayCurrency, rates);
+                }
+            });
+        } 
+        
+        // Method B: Fallback if no schedule (Frequency Logic)
+        if (annualBurden === 0) {
+            const amount = convert(inst.amount, inst.currency, displayCurrency, rates);
+            if (inst.frequency === 'Monthly') annualBurden = amount * 12;
+            else if (inst.frequency === 'Quarterly') annualBurden = amount * 4;
+            else if (inst.frequency === 'Semi-Annual') annualBurden = amount * 2;
+            else annualBurden = amount; // Annual
+        }
+
+        // Return Monthly Average (Total Next Year / 12)
+        return acc + (annualBurden / 12);
     }, 0);
 
     const totalExpenses = loanExpenses + householdExpenses + installmentsAvgExpense;
