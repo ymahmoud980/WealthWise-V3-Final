@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import type { FinancialData, Loan, Installment, PaymentRecord } from "@/lib/types";
-import { Trash2, Landmark, Building, CalendarClock, AlertCircle, FolderOpen, ScrollText, StickyNote, Plus, X, Calendar, CheckCircle2 } from "lucide-react";
+import { Trash2, Landmark, Building, CalendarClock, AlertCircle, FolderOpen, ScrollText, StickyNote, Plus, X, Calendar } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress";
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox"; // Ensure you have this component
+import { Checkbox } from "@/components/ui/checkbox";
 
 const GlassInput = (props: any) => (
   <Input {...props} className={cn("bg-black/20 border-white/10 text-foreground focus:ring-destructive/50 h-8", props.className)} 
@@ -37,55 +37,27 @@ export default function LiabilitiesPage() {
   const handleSaveClick = () => { setData(editableData); setIsEditing(false); };
   const handleCancelClick = () => { setEditableData(JSON.parse(JSON.stringify(data))); setIsEditing(false); };
 
-  // --- SMART CHECKBOX LOGIC (NEW) ---
   const handleMarkScheduleAsPaid = (scheduleId: string) => {
     if (!activeHistory) return;
-
     const newData = JSON.parse(JSON.stringify(isEditing ? editableData : data));
     const instIdx = newData.liabilities.installments.findIndex((i:any) => i.id === activeHistory.id);
-
     if (instIdx > -1) {
         const inst = newData.liabilities.installments[instIdx];
-        
-        // 1. Find the item in Schedule
         const itemIndex = inst.schedule.findIndex((s: any) => s.id === scheduleId);
         if (itemIndex === -1) return;
         const item = inst.schedule[itemIndex];
-
-        // 2. Move to History (Mark as Paid)
         if (!inst.paymentHistory) inst.paymentHistory = [];
-        // Give it a new ID to avoid collisions, but keep the date/desc
-        inst.paymentHistory.push({
-            ...item,
-            id: `pay_moved_${Date.now()}`,
-            description: item.description + " (Paid)"
-        });
-
-        // 3. Remove from Schedule
+        inst.paymentHistory.push({ ...item, id: `pay_moved_${Date.now()}`, description: item.description + " (Paid)" });
         inst.schedule.splice(itemIndex, 1);
-
-        // 4. Recalculate Totals
         inst.paid = inst.paymentHistory.reduce((sum: number, p: PaymentRecord) => sum + p.amount, 0);
-
-        // 5. Update "Next Due" to the TOP item remaining in schedule
-        // Sort schedule first to be safe
         inst.schedule.sort((a:any,b:any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
-        if (inst.schedule.length > 0) {
-            inst.nextDueDate = inst.schedule[0].date;
-            inst.amount = inst.schedule[0].amount;
-        } else {
-            inst.nextDueDate = "Completed";
-            inst.amount = 0;
-        }
-
-        // Save
+        if (inst.schedule.length > 0) { inst.nextDueDate = inst.schedule[0].date; inst.amount = inst.schedule[0].amount; } 
+        else { inst.nextDueDate = "Completed"; inst.amount = 0; }
         if (isEditing) setEditableData(newData); else setData(newData);
         setActiveHistory(inst);
     }
   };
 
-  // --- STANDARD HISTORY LOGIC ---
   const handleAddPayment = () => {
     if (!activeHistory || !newPayment.amount) return;
     const amount = parseFloat(newPayment.amount);
@@ -126,7 +98,6 @@ export default function LiabilitiesPage() {
         if(!inst.schedule) inst.schedule = [];
         inst.schedule.push(newRecord);
         inst.schedule.sort((a:any,b:any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        // Update Next Due
         const next = inst.schedule.find((s:any) => new Date(s.date) >= new Date());
         if(next) { inst.nextDueDate = next.date; inst.amount = next.amount; }
         if (isEditing) setEditableData(newData); else setData(newData);
@@ -197,7 +168,26 @@ export default function LiabilitiesPage() {
           
           <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-white/10 pb-2"><h3 className="text-xl font-semibold flex items-center gap-2 text-white"><Landmark className="text-amber-500 h-5 w-5"/> Bank Loans</h3><Button variant="ghost" size="sm" className="text-amber-500 hover:bg-amber-500/10" onClick={() => setIsAddLoanDialogOpen(true)}>+ Add</Button></div>
-              <div className="space-y-4">{loans.map(l => (<div key={l.id} className="glass-panel p-5 rounded-xl border-l-4 border-l-amber-500 bg-black/20"><div className="flex justify-between items-center mb-3"><p className="font-bold text-lg text-white">{l.lender}</p><span className="text-xs font-mono bg-amber-500/10 text-amber-400 px-2 py-1 rounded">Active Loan</span></div><div className="grid grid-cols-2 gap-4 text-sm mt-2"><div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Original Loan</label>{isEditing ? <GlassInput type="number" defaultValue={l.initial} onChange={(e: any) => handleLoanChange(l.id, 'initial', e.target.value)}/> : <p className="font-mono text-slate-300">{formatNumber(l.initial)} {l.currency}</p>}</div><div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Remaining Debt</label>{isEditing ? <GlassInput type="number" defaultValue={l.remaining} onChange={(e: any) => handleLoanChange(l.id, 'remaining', e.target.value)}/> : <p className="font-mono font-bold text-rose-400 text-lg">{formatNumber(l.remaining)}</p>}</div>{(l.notes || isEditing) && <div className="col-span-2 bg-amber-500/10 p-2 rounded border border-amber-500/20"><label className="text-[10px] text-amber-400 flex items-center gap-1"><StickyNote className="h-3 w-3"/> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={l.notes || ""} onChange={(e) => handleLoanChange(l.id, 'notes', e.target.value)} /> : <p className="text-xs text-slate-300 italic">{l.notes}</p>}</div>}</div>{isEditing && <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'loan', id: l.id })}><Trash2 className="h-4 w-4" /></Button>}</div>))}</div>
+              <div className="space-y-4">
+              {loans.map(l => (
+                  <div key={l.id} className="glass-panel p-5 rounded-xl border-l-4 border-l-amber-500 bg-black/20">
+                      <div className="flex justify-between items-center mb-3"><p className="font-bold text-lg text-white">{l.lender}</p><span className="text-xs font-mono bg-amber-500/10 text-amber-400 px-2 py-1 rounded">Active Loan</span></div>
+                      <div className="grid grid-cols-2 gap-4 text-sm mt-2">
+                           <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Original Loan</label>{isEditing ? <GlassInput type="number" defaultValue={l.initial} onChange={(e: any) => handleLoanChange(l.id, 'initial', e.target.value)}/> : <p className="font-mono text-slate-300">{formatNumber(l.initial)} {l.currency}</p>}</div>
+                           <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Remaining Debt</label>{isEditing ? <GlassInput type="number" defaultValue={l.remaining} onChange={(e: any) => handleLoanChange(l.id, 'remaining', e.target.value)}/> : <p className="font-mono font-bold text-rose-400 text-lg">{formatNumber(l.remaining)}</p>}</div>
+                           
+                           {/* FIX: ADDED MONTHLY PAYMENT DISPLAY */}
+                           <div className="col-span-2 pt-2 border-t border-white/5 flex justify-between items-center">
+                                <span className="text-xs text-muted-foreground">Monthly Payment</span>
+                                {isEditing ? <GlassInput className="w-32 text-right" type="number" defaultValue={l.monthlyPayment} onChange={(e: any) => handleLoanChange(l.id, 'monthlyPayment', e.target.value)}/> : <p className="font-mono font-medium text-rose-300">-{l.monthlyPayment.toLocaleString()} {l.currency}</p>}
+                           </div>
+
+                           {(l.notes || isEditing) && <div className="col-span-2 bg-amber-500/10 p-2 rounded border border-amber-500/20"><label className="text-[10px] text-amber-400 flex items-center gap-1"><StickyNote className="h-3 w-3"/> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={l.notes || ""} onChange={(e) => handleLoanChange(l.id, 'notes', e.target.value)} /> : <p className="text-xs text-slate-300 italic">{l.notes}</p>}</div>}
+                      </div>
+                      {isEditing && <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'loan', id: l.id })}><Trash2 className="h-4 w-4" /></Button>}
+                  </div>
+              ))}
+              </div>
           </div>
       </div>
 
@@ -206,7 +196,6 @@ export default function LiabilitiesPage() {
             <Tabs defaultValue="schedule" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-black/40"><TabsTrigger value="schedule">Future Schedule</TabsTrigger><TabsTrigger value="history">Paid History</TabsTrigger></TabsList>
                 
-                {/* SCHEDULE TAB - WITH CHECKBOXES */}
                 <TabsContent value="schedule" className="space-y-4">
                     <div className="bg-black/40 p-4 rounded-lg border border-white/5 max-h-[300px] overflow-y-auto space-y-2">
                         {activeHistory?.schedule && activeHistory.schedule.length > 0 ? (activeHistory.schedule.map((rec: PaymentRecord) => {
@@ -214,50 +203,24 @@ export default function LiabilitiesPage() {
                              return (
                                 <div key={rec.id} className={`flex justify-between items-center p-2 rounded border ${isPast ? 'bg-red-900/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
                                     <div className="flex items-center gap-3">
-                                        {/* NEW: MARK PAID CHECKBOX */}
-                                        <Checkbox 
-                                            id={`check-${rec.id}`} 
-                                            className="border-white/50 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                                            onCheckedChange={(checked) => { if(checked) handleMarkScheduleAsPaid(rec.id); }}
-                                        />
-                                        <div>
-                                            <p className={`text-sm font-bold ${isPast ? 'text-red-400' : 'text-white'}`}>{formatNumber(rec.amount)}</p>
-                                            <p className="text-[10px] text-muted-foreground">{rec.date} • {rec.description}</p>
-                                        </div>
+                                        <Checkbox id={`check-${rec.id}`} className="border-white/50 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" onCheckedChange={(checked) => { if(checked) handleMarkScheduleAsPaid(rec.id); }} />
+                                        <div><p className={`text-sm font-bold ${isPast ? 'text-red-400' : 'text-white'}`}>{formatNumber(rec.amount)}</p><p className="text-[10px] text-muted-foreground">{rec.date} • {rec.description}</p></div>
                                     </div>
                                     <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={() => handleDeleteSchedule(rec.id)}><X className="h-3 w-3"/></Button>
                                 </div>
                              )
                         })) : <p className="text-center text-sm text-muted-foreground">No future schedule.</p>}
                     </div>
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
-                        <Input type="date" className="bg-black/20 text-white border-white/10 text-xs" value={newScheduleItem.date} onChange={e => setNewScheduleItem({...newScheduleItem, date: e.target.value})} />
-                        <Input placeholder="Amount" type="number" className="bg-black/20 text-white border-white/10 text-xs" value={newScheduleItem.amount} onChange={e => setNewScheduleItem({...newScheduleItem, amount: e.target.value})} />
-                        <Input placeholder="Desc" className="bg-black/20 text-white border-white/10 text-xs" value={newScheduleItem.desc} onChange={e => setNewScheduleItem({...newScheduleItem, desc: e.target.value})} />
-                    </div>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleAddSchedule}><Plus className="h-4 w-4 mr-2"/> Add to Schedule</Button>
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10"><Input type="date" className="bg-black/20 text-white border-white/10 text-xs" value={newScheduleItem.date} onChange={e => setNewScheduleItem({...newScheduleItem, date: e.target.value})} /><Input placeholder="Amount" type="number" className="bg-black/20 text-white border-white/10 text-xs" value={newScheduleItem.amount} onChange={e => setNewScheduleItem({...newScheduleItem, amount: e.target.value})} /><Input placeholder="Desc" className="bg-black/20 text-white border-white/10 text-xs" value={newScheduleItem.desc} onChange={e => setNewScheduleItem({...newScheduleItem, desc: e.target.value})} /></div><Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleAddSchedule}><Plus className="h-4 w-4 mr-2"/> Add to Schedule</Button>
                 </TabsContent>
 
-                {/* HISTORY TAB */}
                 <TabsContent value="history" className="space-y-4">
-                    <div className="bg-black/40 p-4 rounded-lg border border-white/5 max-h-[300px] overflow-y-auto space-y-2">
-                        {activeHistory?.paymentHistory && activeHistory.paymentHistory.length > 0 ? (activeHistory.paymentHistory.map((rec: PaymentRecord) => (
-                            <div key={rec.id} className="flex justify-between items-center p-2 bg-emerald-900/10 border border-emerald-500/20 rounded">
-                                <div><p className="text-sm font-bold text-emerald-400">{formatNumber(rec.amount)}</p><p className="text-[10px] text-muted-foreground">{rec.date} • {rec.description}</p></div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={() => handleDeletePayment(rec.id)}><X className="h-3 w-3"/></Button>
-                            </div>
-                        ))) : <p className="text-center text-sm text-muted-foreground">No payments recorded yet.</p>}
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
-                        <Input type="date" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.date} onChange={e => setNewPayment({...newPayment, date: e.target.value})} />
-                        <Input placeholder="Amount" type="number" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.amount} onChange={e => setNewPayment({...newPayment, amount: e.target.value})} />
-                        <Input placeholder="Desc" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.desc} onChange={e => setNewPayment({...newPayment, desc: e.target.value})} />
-                    </div>
-                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={handleAddPayment}><Plus className="h-4 w-4 mr-2"/> Add Paid Record</Button>
+                    <div className="bg-black/40 p-4 rounded-lg border border-white/5 max-h-[300px] overflow-y-auto space-y-2">{activeHistory?.paymentHistory && activeHistory.paymentHistory.length > 0 ? (activeHistory.paymentHistory.map((rec: PaymentRecord) => (<div key={rec.id} className="flex justify-between items-center p-2 bg-emerald-900/10 border border-emerald-500/20 rounded"><div><p className="text-sm font-bold text-emerald-400">{formatNumber(rec.amount)}</p><p className="text-[10px] text-muted-foreground">{rec.date} • {rec.description}</p></div><Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={() => handleDeletePayment(rec.id)}><X className="h-3 w-3"/></Button></div>))) : <p className="text-center text-sm text-muted-foreground">No payments recorded yet.</p>}</div><div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10"><Input type="date" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.date} onChange={e => setNewPayment({...newPayment, date: e.target.value})} /><Input placeholder="Amount" type="number" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.amount} onChange={e => setNewPayment({...newPayment, amount: e.target.value})} /><Input placeholder="Desc" className="bg-black/20 text-white border-white/10 text-xs" value={newPayment.desc} onChange={e => setNewPayment({...newPayment, desc: e.target.value})} /></div><Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={handleAddPayment}><Plus className="h-4 w-4 mr-2"/> Add Paid Record</Button>
                 </TabsContent>
             </Tabs>
         </DialogContent>
       </Dialog>
+
       <AddLiabilityDialog isOpen={isAddLoanDialogOpen} onClose={() => setIsAddLoanDialogOpen(false)} onAddLiability={handleAddLoan} />
       <AddInstallmentDialog isOpen={isAddInstallmentDialogOpen} onClose={() => setIsAddInstallmentDialogOpen(false)} onAddInstallment={handleAddInstallment} />
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}><AlertDialogContent className="glass-panel"><AlertDialogHeader><AlertDialogTitle>Delete Liability?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction className="bg-destructive" onClick={handleDeleteConfirm}>Confirm Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
