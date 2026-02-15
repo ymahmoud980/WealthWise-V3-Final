@@ -49,14 +49,12 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     const goldValue = (assets.gold || []).reduce((acc, a) => acc + convert(a.grams, 'GOLD_GRAM', displayCurrency, rates), 0);
     const silverValue = (assets.silver || []).reduce((acc, a) => acc + convert(a.grams, 'SILVER_GRAM', displayCurrency, rates), 0);
     const otherAssetsValue = (assets.otherAssets || []).reduce((acc, a) => acc + convert(a.value, a.currency, displayCurrency, rates), 0);
-    
     const totalAssets = realEstateValue + underDevelopmentValue + cashValue + goldValue + silverValue + otherAssetsValue;
 
     // LIABILITIES
     const loansValue = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.remaining, l.currency, displayCurrency, rates), 0);
     const installmentsValue = (liabilities.installments || []).reduce((acc, i) => acc + convert(i.total - i.paid, i.currency, displayCurrency, rates), 0);
     const totalLiabilities = loansValue + installmentsValue;
-    
     const netWorth = totalAssets - totalLiabilities;
     
     // INCOME
@@ -74,38 +72,35 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     const loanExpenses = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.monthlyPayment, l.currency, displayCurrency, rates), 0);
     const householdExpenses = (monthlyExpenses.household || []).reduce((acc, e) => acc + convert(e.amount, e.currency, displayCurrency, rates), 0);
     
-    // --- FIX: CALENDAR YEAR AVERAGE (2026) ---
     const installmentsAvgExpense = (liabilities.installments || []).reduce((acc, inst) => {
         let annualBurden = 0;
-        
         if (inst.schedule && inst.schedule.length > 0) {
-            // FIX: Use Current Calendar Year (e.g., 2026)
-            // This excludes the 2027 Maintenance from the monthly average
-            const currentYear = new Date().getFullYear(); // 2026
-
+            const today = new Date();
+            const nextYear = new Date();
+            nextYear.setFullYear(today.getFullYear() + 1);
             inst.schedule.forEach((item: any) => {
                 const d = new Date(item.date);
-                // Include EVERYTHING (Maint, Parking, Installments) that falls in THIS YEAR
-                if (d.getFullYear() === currentYear) {
+                if (d.getFullYear() === new Date().getFullYear()) { // Current Year Only
                     annualBurden += convert(item.amount, inst.currency, displayCurrency, rates);
                 }
             });
         } else {
-            // Fallback for manual entries
             const amount = convert(inst.amount, inst.currency, displayCurrency, rates);
             if (inst.frequency === 'Monthly') annualBurden = amount * 12;
             else if (inst.frequency === 'Quarterly') annualBurden = amount * 4;
             else if (inst.frequency === 'Semi-Annual') annualBurden = amount * 2;
             else annualBurden = amount;
         }
-
-        // Return Monthly Average (Total 2026 / 12)
         return acc + (annualBurden / 12);
     }, 0);
 
     const totalExpenses = loanExpenses + householdExpenses + installmentsAvgExpense;
+    
+    // --- FIX: STRICT SOLVENCY CHECK (SALARY ONLY) ---
+    // User Constraint: Rent is not for installments. Only Salary - Living - Loans.
+    const operatingCashFlow = salaryIncome - (loanExpenses + householdExpenses);
+    
     const netCashFlow = totalIncome - totalExpenses;
-    const operatingCashFlow = totalIncome - (loanExpenses + householdExpenses);
 
     return {
       netWorth, totalAssets, totalLiabilities, netCashFlow, operatingCashFlow,
