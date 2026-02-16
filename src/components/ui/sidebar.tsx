@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, Building2, Wallet, ArrowRightLeft, Calculator, 
-  LogOut, FileText, Globe, X, Telescope
+  LogOut, FileText, Globe, X, Telescope, BrainCircuit, Database
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 const routes = [
   // Core Pages
   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },
-  { label: "Outlook", icon: Telescope, href: "/outlook", color: "text-purple-400" }, // Restored
+  { label: "Outlook", icon: Telescope, href: "/outlook", color: "text-purple-400" },
+  { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-600" }, // <--- RESTORED HERE
   { label: "Assets", icon: Building2, href: "/assets", color: "text-emerald-500" },
   { label: "Liabilities", icon: Wallet, href: "/liabilities", color: "text-rose-500" },
   { label: "Cash Flow", icon: ArrowRightLeft, href: "/cashflow", color: "text-violet-500" },
