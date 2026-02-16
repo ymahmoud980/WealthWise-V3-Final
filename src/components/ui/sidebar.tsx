@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { Button } from "@/components/ui/button";
 
+
 const routes = [
   // Core Pages
   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },

@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
 
+  
   // 3. IMAGES: Allows Google/Dicebear avatars
   images: {
     remotePatterns: [

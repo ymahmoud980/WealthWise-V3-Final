@@ -9,6 +9,7 @@
  * - AdvisorChatOutput - The return type for the function.
  */
 
+
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
