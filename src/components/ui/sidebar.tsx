@@ -6,26 +6,26 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, Building2, Wallet, ArrowRightLeft, Calculator, 
-  BrainCircuit, LogOut, Activity, LineChart, FileText, Lightbulb, 
-  FileBarChart, Globe, X
+  LogOut, FileText, Globe, X, Telescope, BrainCircuit, Database
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { Button } from "@/components/ui/button";
 
+
 const routes = [
+  // Core Pages
   { label: "Dashboard", icon: LayoutDashboard, href: "/", color: "text-sky-500" },
+  { label: "Outlook", icon: Telescope, href: "/outlook", color: "text-purple-400" },
+  { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-600" }, // <--- RESTORED HERE
   { label: "Assets", icon: Building2, href: "/assets", color: "text-emerald-500" },
   { label: "Liabilities", icon: Wallet, href: "/liabilities", color: "text-rose-500" },
   { label: "Cash Flow", icon: ArrowRightLeft, href: "/cashflow", color: "text-violet-500" },
   { label: "Breakdown", icon: Calculator, href: "/breakdown", color: "text-orange-500" },
-  { label: "Fin. Health", icon: Activity, href: "/health", color: "text-green-600" },
-  { label: "Trends", icon: LineChart, href: "/trends", color: "text-blue-400" },
-  { label: "Calculator", icon: Calculator, href: "/calculator", color: "text-yellow-500" },
-  { label: "AI Advisor", icon: BrainCircuit, href: "/advisor", color: "text-pink-700" },
-  { label: "Insights", icon: Lightbulb, href: "/insights", color: "text-amber-400" },
-  { label: "Reports", icon: FileBarChart, href: "/report", color: "text-indigo-400" },
+  
+  // Tools
   { label: "Documents", icon: FileText, href: "/documents", color: "text-slate-400" },
+  { label: "Report", icon: FileText, href: "/report", color: "text-indigo-400" },
 ];
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -46,6 +46,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex flex-col h-full bg-[#111827] text-white relative w-full">
       
+      {/* Header */}
       <div className="p-4 border-b border-white/10 shrink-0 flex items-center justify-between bg-[#111827] z-10">
         <Link href="/" className="flex items-center gap-3 overflow-hidden" onClick={onClose}>
            <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold text-white shadow-lg shrink-0">W</div>
@@ -54,6 +55,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {onClose && <Button variant="ghost" size="icon" className="md:hidden text-zinc-400" onClick={onClose}><X className="h-5 w-5" /></Button>}
       </div>
 
+      {/* Links */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-4">
         <div className="space-y-1">
           {routes.map((route) => (
@@ -64,6 +66,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
       
+      {/* Footer (Currency & Logout) */}
       <div className="px-3 py-4 border-t border-white/10 bg-[#0f172a]/50 shrink-0 space-y-3">
         {mounted && (
             <div className="relative group px-1">

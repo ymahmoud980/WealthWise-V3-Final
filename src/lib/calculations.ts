@@ -42,22 +42,24 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
 
     const { assets, liabilities, monthlyExpenses } = data;
 
-    // ASSETS
+    // --- ASSETS ---
     const realEstateValue = (assets.realEstate || []).reduce((acc, a) => acc + convert(a.currentValue, a.currency, displayCurrency, rates), 0);
     const underDevelopmentValue = (assets.underDevelopment || []).reduce((acc, a) => acc + convert(a.currentValue, a.currency, displayCurrency, rates), 0);
     const cashValue = (assets.cash || []).reduce((acc, a) => acc + convert(a.amount, a.currency, displayCurrency, rates), 0);
     const goldValue = (assets.gold || []).reduce((acc, a) => acc + convert(a.grams, 'GOLD_GRAM', displayCurrency, rates), 0);
     const silverValue = (assets.silver || []).reduce((acc, a) => acc + convert(a.grams, 'SILVER_GRAM', displayCurrency, rates), 0);
     const otherAssetsValue = (assets.otherAssets || []).reduce((acc, a) => acc + convert(a.value, a.currency, displayCurrency, rates), 0);
+    
     const totalAssets = realEstateValue + underDevelopmentValue + cashValue + goldValue + silverValue + otherAssetsValue;
 
-    // LIABILITIES
+    // --- LIABILITIES ---
     const loansValue = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.remaining, l.currency, displayCurrency, rates), 0);
     const installmentsValue = (liabilities.installments || []).reduce((acc, i) => acc + convert(i.total - i.paid, i.currency, displayCurrency, rates), 0);
     const totalLiabilities = loansValue + installmentsValue;
+    
     const netWorth = totalAssets - totalLiabilities;
     
-    // INCOME
+    // --- INCOME ---
     const salaryIncome = convert(assets.salary.amount, assets.salary.currency, displayCurrency, rates);
     const rentIncome = (assets.realEstate || []).reduce((acc, a) => {
         let monthlyRent = convert(a.monthlyRent, a.rentCurrency || a.currency, displayCurrency, rates);
@@ -68,19 +70,27 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     }, 0);
     const totalIncome = salaryIncome + rentIncome;
 
-    // EXPENSES
+    // --- EXPENSES ---
     const loanExpenses = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.monthlyPayment, l.currency, displayCurrency, rates), 0);
+    
+    // Total Household (For Charts)
     const householdExpenses = (monthlyExpenses.household || []).reduce((acc, e) => acc + convert(e.amount, e.currency, displayCurrency, rates), 0);
     
+    // Kuwait Household Only (For Solvency Check)
+    // We filter out anything marked as "EGP" (Egypt)
+    const kuwaitHouseholdExpenses = (monthlyExpenses.household || []).reduce((acc, e) => {
+        if (e.currency === 'EGP') return acc; // Skip Egypt expenses
+        return acc + convert(e.amount, e.currency, displayCurrency, rates);
+    }, 0);
+
     const installmentsAvgExpense = (liabilities.installments || []).reduce((acc, inst) => {
         let annualBurden = 0;
         if (inst.schedule && inst.schedule.length > 0) {
             const today = new Date();
-            const nextYear = new Date();
-            nextYear.setFullYear(today.getFullYear() + 1);
+            const currentYear = today.getFullYear();
             inst.schedule.forEach((item: any) => {
                 const d = new Date(item.date);
-                if (d.getFullYear() === new Date().getFullYear()) { // Current Year Only
+                if (d.getFullYear() === currentYear) {
                     annualBurden += convert(item.amount, inst.currency, displayCurrency, rates);
                 }
             });
@@ -96,9 +106,9 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
 
     const totalExpenses = loanExpenses + householdExpenses + installmentsAvgExpense;
     
-    // --- FIX: STRICT SOLVENCY CHECK (SALARY ONLY) ---
-    // User Constraint: Rent is not for installments. Only Salary - Living - Loans.
-    const operatingCashFlow = salaryIncome - (loanExpenses + householdExpenses);
+    // --- KEY METRIC: OPERATING CASH FLOW (Salary - Kuwait Expenses) ---
+    // This matches your Excel: 4500 - 350 - 977 = 3173
+    const operatingCashFlow = salaryIncome - (loanExpenses + kuwaitHouseholdExpenses);
     
     const netCashFlow = totalIncome - totalExpenses;
 
