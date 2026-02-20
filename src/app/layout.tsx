@@ -21,12 +21,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${mono.variable} font-sans antialiased h-screen overflow-hidden bg-[#020817]`}>
+      <body className={`${inter.variable} ${mono.variable} font-sans antialiased h-screen overflow-hidden bg-[#020817]`} suppressHydrationWarning>
         <AuthProvider>
           <FinancialDataProvider>
             {/* WRAP CONTENT IN APP SHELL */}
             <AppShell>
-               {children}
+              {children}
             </AppShell>
             <Toaster />
           </FinancialDataProvider>
