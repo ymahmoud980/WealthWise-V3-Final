@@ -50,26 +50,27 @@ export default function AdvisorPage() {
 
             ASSETS:
             - Monthly Salary & Income:
-              * Base Salary: ${Number(data.assets.salary.amount).toLocaleString()} ${data.assets.salary.currency || currency}
+              * Base Salary: ${Number(data.assets?.salary?.amount || 0).toLocaleString()} ${data.assets?.salary?.currency || currency}
             - Real Estate:
-            ${data.assets.realEstate.map(a => `   * ${a.name} (${a.location}): Value ${Number(a.currentValue).toLocaleString()} ${a.currency}. Rent Income: ${a.monthlyRent ? Number(a.monthlyRent).toLocaleString() + ' ' + (a.rentCurrency || a.currency) : 'None'} (${a.rentFrequency})`).join('\n')}
+            ${(data.assets?.realEstate || []).map(a => `   * ${a.name} (${a.location}): Value ${Number(a.currentValue).toLocaleString()} ${a.currency}. Rent Income: ${a.monthlyRent ? Number(a.monthlyRent).toLocaleString() + ' ' + (a.rentCurrency || a.currency) : 'None'} (${a.rentFrequency})`).join('\n')}
             - Under Development:
-            ${data.assets.underDevelopment.map(a => `   * ${a.name} (${a.location}): Value ${Number(a.currentValue).toLocaleString()} ${a.currency}. Paid: ${Number(a.purchasePrice).toLocaleString()} ${a.currency}`).join('\n')}
+            ${(data.assets?.underDevelopment || []).map(a => `   * ${a.name} (${a.location}): Value ${Number(a.currentValue).toLocaleString()} ${a.currency}. Paid: ${Number(a.purchasePrice).toLocaleString()} ${a.currency}`).join('\n')}
             - Liquid & Physical:
-            ${data.assets.cash.map(c => `   * Cash (${c.location}): ${Number(c.amount).toLocaleString()} ${c.currency}`).join('\n')}
-            ${data.assets.gold.map(g => `   * Gold: ${g.grams}g (${g.location})`).join('\n')}
-            ${data.assets.silver.map(s => `   * Silver: ${s.grams}g (${s.location})`).join('\n')}
+            ${(data.assets?.cash || []).map(c => `   * Cash (${c.location}): ${Number(c.amount).toLocaleString()} ${c.currency}`).join('\n')}
+            ${(data.assets?.gold || []).map(g => `   * Gold: ${g.grams}g (${g.location})`).join('\n')}
+            ${(data.assets?.silver || []).map(s => `   * Silver: ${s.grams}g (${s.location})`).join('\n')}
             - Other Assets:
-            ${data.assets.otherAssets.map(o => `   * ${o.description}: ${Number(o.value).toLocaleString()} ${o.currency}`).join('\n')}
+            ${(data.assets?.otherAssets || []).map(o => `   * ${o.description}: ${Number(o.value).toLocaleString()} ${o.currency}`).join('\n')}
             
             LIABILITIES & EXPENSES:
-            - Base Monthly Expenses:
-              * Total: ${data.monthlyExpenses.household.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()} ${currency} // Note: This total is naive and doesn't convert foreign expenses for this string
-              ${data.monthlyExpenses.household.map(e => `     -> ${e.description}: ${Number(e.amount).toLocaleString()} ${e.currency}`).join('\n')}
-            - Loans:
-            ${data.liabilities.loans.map(l => `   * ${l.lender}: Owe ${Number(l.remaining).toLocaleString()} / ${Number(l.initial).toLocaleString()} ${l.currency}. Monthly payment: ${Number(l.monthlyPayment).toLocaleString()} ${l.currency}`).join('\n')}
+            - Monthly Household Expenses:
+              * Total Monthly Burn: ${format(metrics.expenses?.household || 0)}
+              ${(data.monthlyExpenses?.household || []).map((e: any) => `     -> ${e.description}: ${Number(e.amount).toLocaleString()} ${e.currency}`).join('\n')}
+            - Bank Loans (Monthly Drain):
+              * Total Monthly Drain: ${format(metrics.expenses?.loans || 0)}
+            ${(data.liabilities?.loans || []).map(l => `   * ${l.lender}: Owe ${Number(l.remaining).toLocaleString()} / ${Number(l.initial).toLocaleString()} ${l.currency}. Monthly payment: ${Number(l.monthlyPayment).toLocaleString()} ${l.currency}`).join('\n')}
             - Installments (Off-plan etc.):
-            ${data.liabilities.installments.map(i => {
+            ${(data.liabilities?.installments || []).map(i => {
         const next3 = i.schedule?.filter((s: any) => new Date(s.date) >= new Date()).slice(0, 3) || [];
         return `   * ${i.project} (${i.developer}): Owe ${Number(i.total - i.paid).toLocaleString()} ${i.currency}. Next payments: ${next3.map((p: any) => `${p.date}: ${Number(p.amount).toLocaleString()} ${i.currency}`).join(", ")}`;
       }).join('\n')}

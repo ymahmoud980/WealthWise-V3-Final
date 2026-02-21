@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useFinancialData } from "@/contexts/FinancialDataContext"
 import { useAuth } from "@/contexts/AuthContext"
+import { useCurrency } from "@/hooks/use-currency";
 import type { FinancialData, RealEstateAsset, Installment } from "@/lib/types";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
-import { Trash2, Wallet, Gem, Package, Building2, Paperclip, Calendar, Loader2, FileText, Download, MapPin, Briefcase } from "lucide-react";
+import { Trash2, Wallet, Gem, Package, Building2, Paperclip, Calendar, Loader2, FileText, Download, MapPin, Briefcase, Landmark } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress";
@@ -20,7 +21,8 @@ const GlassInput = (props: any) => (
 );
 
 export default function AssetsPage() {
-    const { data, setData } = useFinancialData();
+    const { data, setData, metrics } = useFinancialData();
+    const { currency } = useCurrency();
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editableData, setEditableData] = useState<FinancialData>(data);
@@ -162,12 +164,31 @@ export default function AssetsPage() {
         <div className="space-y-10 pb-20">
             <input type="file" ref={attachmentInputRef} onChange={handleFileChange} className="hidden" />
 
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-xl border-l-4 border-emerald-500 shadow-lg">
-                <div><h1 className="text-3xl font-bold tracking-tight text-foreground">Assets & Holdings</h1><p className="text-muted-foreground mt-1">Portfolio Breakdown</p></div>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-xl border-l-4 border-emerald-500 shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)] bg-gradient-to-r from-emerald-950/20 to-transparent">
+                <div><h1 className="text-3xl font-bold tracking-tight text-white">Assets & Holdings</h1><p className="text-emerald-400/80 mt-1 font-medium">Portfolio Breakdown</p></div>
                 <div className="flex gap-2">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={() => setIsAddAssetDialogOpen(true)}>+ Add Asset</Button>
-                    <Button variant={isEditing ? "default" : "outline"} onClick={isEditing ? handleSaveClick : handleEditClick}>{isEditing ? "Save Changes" : "Edit Mode"}</Button>
-                    {isEditing && <Button variant="ghost" onClick={handleCancelClick}>Cancel</Button>}
+                    <Button className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-[0_0_15px_-3px_rgba(16,185,129,0.4)] transition-all" onClick={() => setIsAddAssetDialogOpen(true)}>+ Add Asset</Button>
+                    <Button variant={isEditing ? "default" : "outline"} className={isEditing ? "bg-blue-600 hover:bg-blue-500" : "border-white/10 hover:bg-white/5"} onClick={isEditing ? handleSaveClick : handleEditClick}>{isEditing ? "Save Changes" : "Edit Mode"}</Button>
+                    {isEditing && <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={handleCancelClick}>Cancel</Button>}
+                </div>
+            </div>
+
+            {/* SUMMARY STATS */}
+            <div className="grid gap-4 md:grid-cols-3 mb-8">
+                <div className="glass-panel p-5 rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/40 to-black/20 shadow-lg relative overflow-hidden">
+                    <div className="absolute -right-4 -top-4 opacity-10 text-indigo-500"><Landmark className="w-24 h-24" /></div>
+                    <p className="text-xs uppercase tracking-wider text-indigo-300 font-semibold mb-1 flex items-center gap-2"><Package className="w-4 h-4" /> Total Asset Value</p>
+                    <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.totalAssets || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
+                </div>
+                <div className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 to-black/20 shadow-lg relative overflow-hidden">
+                    <div className="absolute -right-4 -top-4 opacity-10 text-emerald-500"><Building2 className="w-24 h-24" /></div>
+                    <p className="text-xs uppercase tracking-wider text-emerald-300 font-semibold mb-1 flex items-center gap-2"><MapPin className="w-4 h-4" /> Total Real Estate</p>
+                    <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.existingRealEstate || 0) + (metrics?.assets?.offPlanRealEstate || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
+                </div>
+                <div className="glass-panel p-5 rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-950/40 to-black/20 shadow-lg relative overflow-hidden">
+                    <div className="absolute -right-4 -top-4 opacity-10 text-blue-500"><Wallet className="w-24 h-24" /></div>
+                    <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold mb-1 flex items-center gap-2"><Wallet className="w-4 h-4" /> Liquid Reserves</p>
+                    <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.cash || 0) + (metrics?.assets?.gold || 0) + (metrics?.assets?.silver || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
             </div>
 
@@ -178,8 +199,8 @@ export default function AssetsPage() {
                         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 pl-2"><MapPin className="h-4 w-4 text-emerald-500" /> {location}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {assets.map(p => (
-                                <div key={p.id} className="glass-panel p-0 rounded-xl overflow-hidden border border-white/5 shadow-md group">
-                                    <div className="bg-secondary/50 p-4 border-b border-white/5 flex justify-between items-start">
+                                <div key={p.id} className="glass-panel p-0 rounded-xl overflow-hidden border border-emerald-500/30 shadow-[0_4_20px_-5px_rgba(16,185,129,0.1)] group hover:border-emerald-500/50 transition-all duration-300 hover:shadow-[0_4_20px_-5px_rgba(16,185,129,0.2)]">
+                                    <div className="bg-gradient-to-r from-emerald-950/60 to-emerald-900/20 p-4 border-b border-emerald-500/20 flex justify-between items-start">
                                         <div>
                                             {isEditing ? <GlassInput value={p.name} onChange={(e: any) => handleAssetChange('realEstate', p.id, 'name', e.target.value)} className="font-bold w-full mb-1" /> : <h4 className="font-bold text-lg">{p.name}</h4>}
                                             <p className="text-xs text-muted-foreground">{p.location}</p>
@@ -238,8 +259,8 @@ export default function AssetsPage() {
                                 const base = p.purchasePrice || 0; const maint = p.maintenanceCost || 0; const park = p.parkingCost || 0; const total = base + maint + park;
 
                                 return (
-                                    <div key={p.id} className="glass-panel p-0 rounded-xl overflow-hidden border border-dashed border-purple-500/30 group">
-                                        <div className="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 p-4 border-b border-white/5 flex justify-between items-start">
+                                    <div key={p.id} className="glass-panel p-0 rounded-xl overflow-hidden border border-indigo-500/30 shadow-[0_4_20px_-5px_rgba(99,102,241,0.1)] group hover:border-indigo-500/50 transition-all duration-300 hover:shadow-[0_4_20px_-5px_rgba(99,102,241,0.2)]">
+                                        <div className="bg-gradient-to-r from-indigo-950/80 to-purple-900/40 p-4 border-b border-indigo-500/20 flex justify-between items-start">
                                             <div className="flex-1">
                                                 {isEditing ? <GlassInput value={p.name} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'name', e.target.value)} className="font-bold w-full mb-1" /> : <h4 className="font-bold text-lg">{p.name}</h4>}
                                                 <p className="text-xs text-purple-300">Off-Plan • {p.location}</p>
@@ -247,14 +268,14 @@ export default function AssetsPage() {
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-300/50 hover:text-white" onClick={() => setViewAttachments({ name: p.name, id: p.id, docs: (p as any).documents || [] })}><Paperclip className="h-4 w-4" />{((p as any).documents?.length > 0) && <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>}</Button>
                                         </div>
                                         <div className="p-5 space-y-4 bg-black/20">
-                                            <div className="space-y-1"><div className="flex justify-between text-xs text-muted-foreground"><span>Paid: {progress.toFixed(1)}%</span><span>Total: {formatNumber(total)}</span></div><Progress value={progress} className="h-1.5 bg-white/10" /></div>
+                                            <div className="space-y-1"><div className="flex justify-between text-xs text-indigo-200 font-mono"><span>Paid: <strong className="text-white text-sm">{progress.toFixed(1)}%</strong></span><span>Total: {formatNumber(total)}</span></div><Progress value={progress} className="h-2 bg-indigo-950 border border-indigo-500/20" /></div>
                                             <div className="bg-white/5 p-3 rounded-lg text-xs space-y-2 border border-white/5">
                                                 <div className="flex justify-between items-center text-muted-foreground"><span>Contract:</span> {isEditing ? <GlassInput className="w-24 text-right" type="number" value={base} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'purchasePrice', e.target.value)} /> : <span>{formatNumber(base)}</span>}</div>
                                                 <div className="flex justify-between items-center text-purple-300"><span>Maint:</span>{isEditing ? <GlassInput className="w-24 text-right" type="number" value={maint} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'maintenanceCost', e.target.value)} /> : <span>{formatNumber(maint)}</span>}</div>
                                                 <div className="flex justify-between items-center text-purple-300"><span>Parking:</span>{isEditing ? <GlassInput className="w-24 text-right" type="number" value={park} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'parkingCost', e.target.value)} /> : <span>{formatNumber(park)}</span>}</div>
                                                 <div className="flex justify-between font-bold border-t border-white/10 pt-2 mt-1 text-white"><span>Total:</span> <span>{formatNumber(total)} {p.currency}</span></div>
                                             </div>
-                                            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</p>{isEditing ? <GlassInput value={p.currentValue} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'currentValue', e.target.value)} /> : <p className="text-xl font-bold text-purple-400">{formatNumber(p.currentValue)}</p>}</div>
+                                            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</p>{isEditing ? <GlassInput value={p.currentValue} onChange={(e: any) => handleAssetChange('underDevelopment', p.id, 'currentValue', e.target.value)} /> : <p className="text-2xl font-bold font-mono text-purple-400">{formatNumber(p.currentValue)}</p>}</div>
                                             {(p.notes || isEditing) && (<div className="bg-indigo-500/10 p-2 rounded border border-indigo-500/20"><label className="text-[10px] text-indigo-400 flex items-center gap-1">Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={p.notes || ""} onChange={(e) => handleAssetChange('underDevelopment', p.id, 'notes', e.target.value)} placeholder="Add private notes..." /> : <p className="text-xs text-slate-300 italic">{p.notes}</p>}</div>)}
                                             {isEditing && <Button variant="destructive" size="sm" className="w-full" onClick={() => setDeleteTarget({ type: 'underDevelopment', id: p.id })}><Trash2 className="h-4 w-4 mr-2" /> Remove</Button>}
                                         </div>
@@ -266,19 +287,19 @@ export default function AssetsPage() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 border-t border-white/10">
-                <div className="space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-emerald-400"><Wallet className="h-5 w-5" /> Cash</div><div className="glass-panel p-1 rounded-xl space-y-1 border border-emerald-500/20">{(cash || []).map(item => (<div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5"><div className="flex-1">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('cash', item.id, 'location', e.target.value)} className="w-full" placeholder="Bank Name" /> : <span className="font-medium">{item.location}</span>}</div><div className="text-right flex items-center gap-2">{isEditing ? <><GlassInput type="number" value={item.amount} className="w-24 text-right" onChange={(e: any) => handleAssetChange('cash', item.id, 'amount', e.target.value)} /><GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('cash', item.id, 'currency', e.target.value)} /></> : <span className="font-mono font-bold text-emerald-400">{formatNumber(item.amount)} {item.currency}</span>}</div>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive ml-2" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div>))}</div></div>
-                <div className="lg:col-span-2 space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Metals</div><div className="grid md:grid-cols-2 gap-4"><div className="glass-panel p-4 rounded-xl border border-amber-500/20"><h4 className="text-amber-500 font-bold mb-2">Gold</h4>{(gold || []).map(item => (<div key={item.id} className="flex justify-between items-center p-2 border-b border-white/5">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('gold', item.id, 'location', e.target.value)} /> : <span>{item.location}</span>}<div className="flex items-center gap-2">{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div></div>))}</div><div className="glass-panel p-4 rounded-xl border border-slate-500/20"><h4 className="text-slate-300 font-bold mb-2">Silver</h4>{(silver || []).map(item => (<div key={item.id} className="flex justify-between items-center p-2 border-b border-white/5">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('silver', item.id, 'location', e.target.value)} /> : <span>{item.location}</span>}<div className="flex items-center gap-2">{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div></div>))}</div></div></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6 border-t border-white/10">
+                <div className="space-y-4 shadow-lg"><div className="flex items-center gap-2 text-lg font-semibold text-blue-400"><Wallet className="h-5 w-5" /> Liquid Cash</div><div className="glass-panel p-1 rounded-xl space-y-1 border border-blue-500/30 bg-gradient-to-br from-blue-950/20 to-black/40">{(cash || []).map(item => (<div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5 rounded-lg transition-colors"><div className="flex-1">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('cash', item.id, 'location', e.target.value)} className="w-full" placeholder="Bank Name" /> : <span className="font-medium text-slate-200">{item.location}</span>}</div><div className="text-right flex items-center gap-2">{isEditing ? <><GlassInput type="number" value={item.amount} className="w-24 text-right" onChange={(e: any) => handleAssetChange('cash', item.id, 'amount', e.target.value)} /><GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('cash', item.id, 'currency', e.target.value)} /></> : <span className="font-mono font-bold text-blue-400">{formatNumber(item.amount)} {item.currency}</span>}</div>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive ml-2" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div>))}</div></div>
+                <div className="lg:col-span-2 space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Precious Metals</div><div className="grid md:grid-cols-2 gap-4"><div className="glass-panel p-5 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-black/40 shadow-lg"><h4 className="text-amber-500 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Gold Holdings</h4>{(gold || []).map(item => (<div key={item.id} className="flex justify-between items-center p-2 border-b border-amber-500/10 hover:bg-amber-500/5 rounded transition-colors">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('gold', item.id, 'location', e.target.value)} /> : <span className="text-amber-100/80">{item.location}</span>}<div className="flex items-center gap-2">{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-amber-400 text-lg">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div></div>))}</div><div className="glass-panel p-5 rounded-xl border border-slate-400/30 bg-gradient-to-br from-slate-800/20 to-black/40 shadow-lg"><h4 className="text-slate-300 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Silver Holdings</h4>{(silver || []).map(item => (<div key={item.id} className="flex justify-between items-center p-2 border-b border-slate-500/10 hover:bg-slate-500/5 rounded transition-colors">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('silver', item.id, 'location', e.target.value)} /> : <span className="text-slate-300/80">{item.location}</span>}<div className="flex items-center gap-2">{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-slate-300 text-lg">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div></div>))}</div></div></div>
             </div>
 
             {otherAssets.length > 0 && (
                 <div className="space-y-4 pt-4 border-t border-white/10">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-blue-400"><Briefcase className="h-5 w-5" /> Other Assets & Receivables</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="flex items-center gap-2 text-lg font-semibold text-fuchsia-400"><Briefcase className="h-5 w-5" /> Other Assets & Receivables</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {otherAssets.map(item => (
-                            <div key={item.id} className="glass-panel p-4 rounded-xl border border-blue-500/20 flex flex-col justify-between">
-                                <div className="flex justify-between items-start mb-2"><div className="flex-1">{isEditing ? <GlassInput value={item.description} onChange={(e: any) => handleAssetChange('otherAssets', item.id, 'description', e.target.value)} className="font-bold w-full" /> : <h4 className="font-bold">{item.description}</h4>}</div>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive -mt-1 -mr-2" onClick={() => setDeleteTarget({ type: 'other', id: item.id })}><Trash2 className="h-4 w-4" /></Button>}</div>
-                                <div className="flex justify-between items-end"><span className="text-xs text-muted-foreground">Value</span><div className="text-right">{isEditing ? <div className="flex gap-2 justify-end"><GlassInput type="number" value={item.value} className="w-24 text-right" onChange={(e: any) => handleAssetChange('otherAssets', item.id, 'value', e.target.value)} /><GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('otherAssets', item.id, 'currency', e.target.value)} /></div> : <span className="font-mono font-bold text-blue-400 text-lg">{formatNumber(item.value)} {item.currency}</span>}</div></div>
+                            <div key={item.id} className="glass-panel p-5 rounded-xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-950/20 to-black/40 flex flex-col justify-between hover:border-fuchsia-500/50 transition-all duration-300 shadow-lg group">
+                                <div className="flex justify-between items-start mb-4"><div className="flex-1">{isEditing ? <GlassInput value={item.description} onChange={(e: any) => handleAssetChange('otherAssets', item.id, 'description', e.target.value)} className="font-bold w-full" /> : <h4 className="font-bold text-white group-hover:text-fuchsia-100 transition-colors">{item.description}</h4>}</div>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive -mt-1 -mr-2" onClick={() => setDeleteTarget({ type: 'other', id: item.id })}><Trash2 className="h-4 w-4" /></Button>}</div>
+                                <div className="flex justify-between items-end"><span className="text-[10px] uppercase tracking-wider text-muted-foreground">Market Value</span><div className="text-right">{isEditing ? <div className="flex gap-2 justify-end"><GlassInput type="number" value={item.value} className="w-24 text-right" onChange={(e: any) => handleAssetChange('otherAssets', item.id, 'value', e.target.value)} /><GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('otherAssets', item.id, 'currency', e.target.value)} /></div> : <span className="font-mono font-bold text-fuchsia-400 text-2xl">{formatNumber(item.value)} <span className="text-sm font-normal text-fuchsia-400/70">{item.currency}</span></span>}</div></div>
                             </div>
                         ))}
                     </div>

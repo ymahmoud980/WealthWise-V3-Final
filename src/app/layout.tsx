@@ -4,7 +4,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { FinancialDataProvider } from "@/contexts/FinancialDataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
-import { AppShell } from "@/components/layout/AppShell"; // Import Shell
+import { AppShellV3 } from "@/components/layout/AppShellV3";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -21,13 +21,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${mono.variable} font-sans antialiased h-screen overflow-hidden bg-[#020817]`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${mono.variable} font-sans antialiased text-white`} suppressHydrationWarning>
         <AuthProvider>
           <FinancialDataProvider>
-            {/* WRAP CONTENT IN APP SHELL */}
-            <AppShell>
+            {/* WRAP CONTENT IN V3 APP SHELL */}
+            <AppShellV3>
               {children}
-            </AppShell>
+            </AppShellV3>
             <Toaster />
           </FinancialDataProvider>
         </AuthProvider>

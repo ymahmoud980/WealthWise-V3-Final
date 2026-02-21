@@ -1,0 +1,469 @@
+
+> nextn@0.1.0 dev
+> next dev -p 9002
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/yassermahmoud/package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/package-lock.json
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:9002
+   - Network:      http://10.143.163.61:9002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.6s
+ ○ Compiling /breakdown ...
+ ✓ Compiled /breakdown in 6.5s (2818 modules)
+ GET /breakdown 200 in 7073ms
+ ✓ Compiled in 215ms (1257 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 585ms (2784 modules)
+ GET / 200 in 951ms
+ ○ Compiling /assets ...
+ ✓ Compiled /assets in 863ms (2969 modules)
+ GET /assets 200 in 920ms
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 539ms (3019 modules)
+ GET /analytics 200 in 606ms
+ ✓ Compiled /breakdown in 194ms (1671 modules)
+ GET /breakdown 200 in 258ms
+ ○ Compiling /report ...
+ ✓ Compiled /report in 824ms (3044 modules)
+ GET /report 200 in 872ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /advisor in 3.7s (4523 modules)
+ GET /advisor 200 in 3914ms
+ ○ Compiling /documents ...
+ ✓ Compiled /documents in 1462ms (4525 modules)
+ GET /documents 200 in 1545ms
+ ✓ Compiled /calculator in 483ms (4536 modules)
+ GET /calculator 200 in 524ms
+ ○ Compiling /outlook ...
+ ✓ Compiled /outlook in 677ms (4633 modules)
+ GET /outlook 200 in 729ms
+ ○ Compiling /health ...
+ ✓ Compiled /health in 525ms (4642 modules)
+ GET /health 200 in 570ms
+ ○ Compiling /trends ...
+ ✓ Compiled /trends in 551ms (4639 modules)
+ GET /trends 200 in 611ms
+ ○ Compiling /cashflow ...
+ ✓ Compiled /cashflow in 784ms (4666 modules)
+ GET /cashflow 200 in 857ms
+ GET /health 200 in 33ms
+ GET /trends 200 in 36ms
+ GET /cashflow 200 in 19ms
+ ✓ Compiled / in 446ms (3024 modules)
+ GET / 200 in 521ms
+ GET /outlook 200 in 53ms
+ GET /health 200 in 31ms
+ GET / 200 in 50ms
+ GET /cashflow 200 in 83ms
+ GET / 200 in 15ms
+ GET /calculator 200 in 50ms
+ GET / 200 in 35ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1452ms (3327 modules)
+ GET /apple-touch-icon-precomposed.png 404 in 1783ms
+ GET /apple-touch-icon.png 404 in 1780ms
+ GET / 200 in 156ms
+ ○ Compiling /assets ...
+ ✓ Compiled /assets in 798ms (1717 modules)
+ GET /assets 200 in 889ms
+ GET / 200 in 32ms
+ ✓ Compiled in 1435ms (3354 modules)
+ GET / 200 in 43ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET / 200 in 325ms
+ ✓ Compiled in 1207ms (3362 modules)
+ ✓ Compiled /health in 449ms (1729 modules)
+ GET /health 200 in 676ms
+ GET /health 200 in 556ms
+ GET /trends 200 in 52ms
+ GET / 200 in 77ms
+ GET /assets 200 in 58ms
+ ○ Compiling /liabilities ...
+ ✓ Compiled /liabilities in 3s (3398 modules)
+ GET /liabilities 200 in 3091ms
+ GET /liabilities 200 in 16ms
+ GET /liabilities 200 in 26ms
+ GET / 200 in 40ms
+ ✓ Compiled /analytics in 407ms (1756 modules)
+ GET /analytics 200 in 498ms
+ GET /assets 200 in 41ms
+ GET /assets 200 in 259ms
+ GET /liabilities 200 in 34ms
+ GET /analytics 200 in 18ms
+ ✓ Compiled /breakdown in 331ms (1753 modules)
+ GET /breakdown 200 in 398ms
+ ✓ Compiled /report in 278ms (1759 modules)
+ GET /report 200 in 328ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /advisor in 1608ms (3048 modules)
+ GET /advisor 200 in 1958ms
+ ○ Compiling /documents ...
+ ✓ Compiled /documents in 789ms (3055 modules)
+ GET /documents 200 in 874ms
+ ✓ Compiled /calculator in 427ms (3062 modules)
+ GET /calculator 200 in 488ms
+ ✓ Compiled /outlook in 429ms (3076 modules)
+ GET /outlook 200 in 485ms
+ ○ Compiling /health ...
+ ✓ Compiled /health in 817ms (3086 modules)
+ GET /health 200 in 896ms
+ ✓ Compiled /trends in 458ms (3095 modules)
+ GET /trends 200 in 533ms
+ ✓ Compiled /cashflow in 443ms (3066 modules)
+ GET /cashflow 200 in 506ms
+ ✓ Compiled / in 375ms (3039 modules)
+ GET / 200 in 460ms
+ ✓ Compiled in 3.4s (3374 modules)
+ GET / 200 in 163ms
+ ✓ Compiled in 2.2s (3374 modules)
+ GET / 200 in 66ms
+ GET / 200 in 2083ms
+ ○ Compiling /breakdown ...
+ ✓ Compiled /breakdown in 1012ms (1725 modules)
+ GET /breakdown 200 in 1082ms
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 944ms (1730 modules)
+ GET /analytics 200 in 1039ms
+ GET /breakdown 200 in 41ms
+ ○ Compiling /report ...
+ ✓ Compiled /report in 1041ms (1729 modules)
+ GET /report 200 in 1099ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /advisor in 2s (3034 modules)
+ GET /advisor 200 in 2442ms
+ ○ Compiling /documents ...
+ ✓ Compiled /documents in 756ms (3043 modules)
+ GET /documents 200 in 835ms
+ ✓ Compiled /calculator in 374ms (2997 modules)
+ GET /calculator 200 in 436ms
+ ✓ Compiled /outlook in 396ms (3047 modules)
+ GET /outlook 200 in 454ms
+ ○ Compiling /health ...
+ ✓ Compiled /health in 757ms (3057 modules)
+ GET /health 200 in 837ms
+ ✓ Compiled /trends in 388ms (3037 modules)
+ GET /trends 200 in 466ms
+ ✓ Compiled /cashflow in 399ms (3066 modules)
+ GET /cashflow 200 in 466ms
+ ✓ Compiled in 17.7s (4670 modules)
+ GET /cashflow 200 in 3070ms
+ ✓ Compiled in 4.9s (1663 modules)
+ ✓ Compiled in 928ms (1663 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 3.2s (4661 modules)
+ GET /cashflow 404 in 3407ms
+ GET /cashflow 200 in 175ms
+ GET /cashflow 200 in 1202ms
+ ○ Compiling /breakdown ...
+ ✓ Compiled /breakdown in 3s (3024 modules)
+ GET /breakdown 200 in 3888ms
+ GET /cashflow 200 in 42ms
+ GET /breakdown 200 in 26ms
+ ✓ Compiled /analytics in 374ms (1739 modules)
+ GET /analytics 200 in 626ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /liabilities in 11.1s (3044 modules)
+ ✓ Compiled (3071 modules)
+ GET /liabilities 200 in 11485ms
+ GET /advisor 200 in 20851ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1430ms (3052 modules)
+ GET / 200 in 1528ms
+ GET /cashflow 200 in 46ms
+ GET /breakdown 200 in 35ms
+ ⨯ ./src/app/cashflow/page.tsx
+Error:   [31mx[0m You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  [31m|[0m
+  [31m|[0m  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4m/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/src/app/cashflow/page.tsx[0m:2:1]
+ [2m1[0m | import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
+ [2m2[0m | import { useState, useEffect } from "react";
+   : [35;1m         ^^^^^^^^[0m
+ [2m3[0m | import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ [2m4[0m | import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+ [2m5[0m | import { useCurrency } from "@/hooks/use-currency"
+   `----
+  [31mx[0m You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  [31m|[0m
+  [31m|[0m  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4m/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/src/app/cashflow/page.tsx[0m:2:1]
+ [2m1[0m | import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
+ [2m2[0m | import { useState, useEffect } from "react";
+   : [35;1m                   ^^^^^^^^^[0m
+ [2m3[0m | import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ [2m4[0m | import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+ [2m5[0m | import { useCurrency } from "@/hooks/use-currency"
+   `----
+
+Import trace for requested module:
+./src/app/cashflow/page.tsx
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /breakdown 500 in 1272ms
+ ○ Compiling /_error ...
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ ./src/app/cashflow/page.tsx
+Error:   [31mx[0m You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  [31m|[0m
+  [31m|[0m  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4m/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/src/app/cashflow/page.tsx[0m:2:1]
+ [2m1[0m | import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
+ [2m2[0m | import { useState, useEffect } from "react";
+   : [35;1m         ^^^^^^^^[0m
+ [2m3[0m | import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ [2m4[0m | import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+ [2m5[0m | import { useCurrency } from "@/hooks/use-currency"
+   `----
+  [31mx[0m You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  [31m|[0m
+  [31m|[0m  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4m/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/src/app/cashflow/page.tsx[0m:2:1]
+ [2m1[0m | import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
+ [2m2[0m | import { useState, useEffect } from "react";
+   : [35;1m                   ^^^^^^^^^[0m
+ [2m3[0m | import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ [2m4[0m | import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+ [2m5[0m | import { useCurrency } from "@/hooks/use-currency"
+   `----
+
+Import trace for requested module:
+./src/app/cashflow/page.tsx
+ GET /breakdown 500 in 4354ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/.next/cache/webpack/client-development-fallback/0.pack.gz'
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /breakdown 500 in 581ms
+ ⨯ ./src/app/cashflow/page.tsx
+Error:   [31mx[0m You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  [31m|[0m
+  [31m|[0m  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4m/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/src/app/cashflow/page.tsx[0m:2:1]
+ [2m1[0m | import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
+ [2m2[0m | import { useState, useEffect } from "react";
+   : [35;1m         ^^^^^^^^[0m
+ [2m3[0m | import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ [2m4[0m | import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+ [2m5[0m | import { useCurrency } from "@/hooks/use-currency"
+   `----
+  [31mx[0m You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  [31m|[0m
+  [31m|[0m  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4m/Users/yassermahmoud/Documents/CODING/PROJECTS/WealthWise-V3-Final/src/app/cashflow/page.tsx[0m:2:1]
+ [2m1[0m | import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
+ [2m2[0m | import { useState, useEffect } from "react";
+   : [35;1m                   ^^^^^^^^^[0m
+ [2m3[0m | import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ [2m4[0m | import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+ [2m5[0m | import { useCurrency } from "@/hooks/use-currency"
+   `----
+
+Import trace for requested module:
+./src/app/cashflow/page.tsx
+ GET /breakdown 500 in 675ms
+ GET /breakdown 500 in 112ms
+ GET /breakdown 500 in 18ms
+ GET /breakdown 500 in 41ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /breakdown 500 in 1678ms
+ ✓ Compiled /_error in 12.2s (3739 modules)
+ GET /breakdown 200 in 12788ms
+ GET /breakdown 200 in 245ms
+ ✓ Compiled (3725 modules)
+ GET /breakdown 200 in 75ms
+ GET / 200 in 49ms
+ ○ Compiling /assets ...
+ ✓ Compiled /assets in 8s (1942 modules)
+ GET /assets 200 in 9082ms
+ GET /liabilities 200 in 59ms
+ GET /analytics 200 in 752ms
+ GET /breakdown 200 in 145ms
+ ✓ Compiled /report in 378ms (1931 modules)
+ GET /report 200 in 435ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /documents in 24.9s (3236 modules)
+ ✓ Compiled (3243 modules)
+ GET /advisor 200 in 25956ms
+ GET /advisor 200 in 32561ms
+ GET /advisor 200 in 8741ms
+ GET /documents 200 in 8022ms
+ GET /advisor 200 in 3712ms
+ GET /documents 200 in 4071ms
+ GET /report 200 in 184ms
+ GET /advisor 200 in 267ms
+ GET /documents 200 in 192ms
+ ○ Compiling /calculator ...
+ ✓ Compiled /calculator in 9.1s (3148 modules)
+ GET /calculator 200 in 9456ms
+ GET /calculator 200 in 234ms
+ ○ Compiling /outlook ...
+ ✓ Compiled /outlook in 4.7s (3199 modules)
+ GET /outlook 200 in 5018ms
+ ✓ Compiled /health in 434ms (3168 modules)
+ GET /health 200 in 505ms
+ ○ Compiling /trends ...
+ ✓ Compiled /trends in 2.2s (3195 modules)
+ GET /trends 200 in 2476ms
+ ○ Compiling /cashflow ...
+ ✓ Compiled /cashflow in 13.7s (3235 modules)
+ GET /cashflow 200 in 14173ms
+ ○ Compiling /assets ...
+ ✓ Compiled /assets in 2.1s (1939 modules)
+ GET /assets 200 in 2312ms
+ ✓ Compiled /analytics in 456ms (1959 modules)
+ GET /analytics 200 in 559ms
+ ○ Compiling /breakdown ...
+ ✓ Compiled /breakdown in 1203ms (1965 modules)
+ GET /breakdown 200 in 1259ms
+ GET /analytics 200 in 143ms
+ ✓ Compiled /report in 423ms (1951 modules)
+ GET /report 200 in 499ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /advisor in 17.5s (3256 modules)
+ GET /advisor 200 in 18507ms
+ ○ Compiling /documents ...
+ ✓ Compiled /documents in 1383ms (3177 modules)
+ GET /documents 200 in 1478ms
+ ○ Compiling /calculator ...
+ ✓ Compiled /outlook in 1076ms (3183 modules)
+ ✓ Compiled (3233 modules)
+ GET /outlook 200 in 539ms
+ GET /calculator 200 in 1609ms
+ ○ Compiling /health ...
+ ✓ Compiled /health in 9.1s (3132 modules)
+ GET /health 200 in 10287ms
+ GET /health 200 in 369ms
+ GET /breakdown 200 in 42ms
+ GET /report 200 in 69ms
+ GET /advisor 200 in 141ms
+ ○ Compiling / ...
+ ✓ Compiled / in 10.4s (3117 modules)
+ GET / 200 in 11207ms
+ GET / 200 in 859ms
+ GET / 200 in 82ms
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 4.9s (3140 modules)
+ GET /analytics 200 in 5154ms
+ GET /breakdown 200 in 37ms
+ GET /report 200 in 32ms
+ GET /advisor 200 in 53ms
+ ○ Compiling /documents ...
+ ✓ Compiled /calculator in 2.3s (3150 modules)
+ ✓ Compiled in 3ms (3216 modules)
+ ✓ Compiled in 0ms (3216 modules)
+ ✓ Compiled in 1ms (3216 modules)
+ GET /documents 200 in 23958ms
+ GET /documents 200 in 22566ms
+ GET /outlook 200 in 18381ms
+ GET /health 200 in 16267ms
+ GET /calculator 200 in 24948ms
+ GET /outlook 200 in 20705ms
+ GET /health 200 in 3235ms
+ ✓ Compiled in 7.9s (3642 modules)
+ GET /health 200 in 4404ms
+ GET /health 200 in 15ms
+ GET / 200 in 72ms
+ ○ Compiling /assets ...
+ ✓ Compiled /assets in 4.3s (1920 modules)
+ GET /assets 200 in 4458ms
+ ○ Compiling /liabilities ...
+ ✓ Compiled /liabilities in 6.4s (1936 modules)
+ GET /liabilities 200 in 6958ms
+ ○ Compiling /cashflow ...
+ ✓ Compiled /cashflow in 10.8s (1953 modules)
+ GET /cashflow 200 in 11296ms
+ GET /breakdown 200 in 151ms
+ ○ Compiling /outlook ...
+ ✓ Compiled /outlook in 1431ms (1948 modules)
+ GET /outlook 200 in 1774ms
+ ✓ Compiled /report in 289ms (1930 modules)
+ GET /report 200 in 341ms
+ ○ Compiling /documents ...
+ ✓ Compiled /documents in 12.6s (1937 modules)
+ GET /documents 200 in 12990ms
+ GET /documents 200 in 2293ms
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 13.9s (1961 modules)
+ GET /analytics 200 in 8013ms
+ GET /analytics 200 in 16326ms
+ GET /analytics 200 in 370ms
+ GET /analytics 200 in 29ms
+ ○ Compiling /health ...
+ ✓ Compiled /health in 21.5s (1929 modules)
+ GET /health 200 in 14313ms
+ GET /health 200 in 22195ms
+ GET /health 200 in 2092ms
+ ○ Compiling /trends ...
+ ✓ Compiled /trends in 5.6s (1945 modules)
+ GET /tre ✓ Compiled in 2.3s (1424 modules)
+ ✓ Compiled in 1222ms (1424 modules)
+ ✓ Compiled in 1909ms (4265 modules)
+9 modules)
+ GET /calculator 200 in 10592ms
+ GET /calculator 200 in 221ms
+ ○ Compiling /advisor ...
+ ✓ Compiled /advisor in 16.9s (3204 modules)
+ GET /advisor 200 in 8398ms
+ GET /advisor 200 in 20830ms
+ ○ Compiling /guide ...
+ ✓ Compiled /guide in 13.9s (5010 modules)
+ GET /guide 200 in 14099ms
+ GET /guide 200 in 31ms
+ ○ Compiling /cashflow ...
+ ✓ Compiled /analytics in 9.4s (3211 modules)
+ ✓ Compiled (3231 modules)
+ GET /analytics 200 in 13863ms
+ GET /cashflow 200 in 23358ms
+ GET /cashflow 200 in 10433ms
+ GET /cashflow 200 in 13947ms
+ GET /health 200 in 13942ms
+ GET /guide 200 in 226ms
+ GET /cashflow 200 in 117ms
+ ○ Compiling /breakdown ...
+ ✓ Compiled /breakdown in 3.5s (3206 modules)
+ GET /breakdown 200 in 3674ms
+ GET /advisor 200 in 76ms
+ GET /calculator 200 in 58ms
+ GET /trends 200 in 121ms
+ GET /calculator 200 in 66ms
+ GET /advisor 200 in 48ms
+ ○ Compiling /health ...
+ ✓ Compiled /health in 1679ms (3217 modules)
+ GET /health 200 in 1834ms
+ ✓ Compiled in 2.6s (3723 modules)
+ GET /health 200 in 396ms
+ ○ Compiling /guide ...
+ ✓ Compiled /guide in 2.9s (1912 modules)
+ GET /guide 200 in 3055ms
+ GET /guide 200 in 361ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.6s (1881 modules)
+ GET / 200 in 2755ms
+ GET / 200 in 422ms
+ ✓ Compiled in 3.2s (1818 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET / 200 in 743ms
+ GET / 200 in 67ms
+ GET / 200 in 62ms
+ ✓ Compiled in 4s (3692 modules)
+ GET / 200 in 116ms
+ GET / 200 in 370ms

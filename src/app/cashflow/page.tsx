@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+import { CashFlowIntelligence } from "@/components/dashboard/CashFlowIntelligence";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
@@ -25,14 +26,14 @@ export default function CashFlowPage() {
 
     // Get the new metric
     const { income, totalIncome, expenses, totalExpenses, netCashFlow, operatingCashFlow } = metrics;
-    
+
     const chartData = [
         { name: 'Income', Salary: income.salary || 0, Rentals: income.rent || 0 },
         { name: 'Expenses', Loans: expenses.loans || 0, Household: expenses.household || 0, Installments: expenses.installmentsAvg || 0 }
     ];
 
     useEffect(() => {
-        if(isEditing) setEditableData(JSON.parse(JSON.stringify(data)));
+        if (isEditing) setEditableData(JSON.parse(JSON.stringify(data)));
     }, [isEditing, data]);
 
     const handleEditClick = () => setIsEditing(true);
@@ -54,7 +55,7 @@ export default function CashFlowPage() {
             setEditableData(newData);
         }
     };
-    
+
     const handleAddExpense = (newExpense: any) => {
         const fullExpense = { ...newExpense, id: `he${new Date().getTime()}` };
         const updatedData = JSON.parse(JSON.stringify(data));
@@ -62,12 +63,12 @@ export default function CashFlowPage() {
         setData(updatedData);
         setIsAddExpenseDialogOpen(false);
     }
-    
+
     const handleDeleteExpense = (id: string) => {
         const updatedData = { ...editableData };
-        updatedData.monthlyExpenses.household = updatedData.monthlyExpenses.household.filter((h:any) => h.id !== id);
+        updatedData.monthlyExpenses.household = updatedData.monthlyExpenses.household.filter((h: any) => h.id !== id);
         setEditableData(updatedData);
-        if(!isEditing) setData(updatedData); 
+        if (!isEditing) setData(updatedData);
     }
 
     const currentData = isEditing ? editableData : data;
@@ -76,37 +77,40 @@ export default function CashFlowPage() {
         <div className="space-y-8 pb-20">
             <div className="flex justify-between items-center glass-panel p-6 rounded-xl">
                 <div><h1 className="text-3xl font-bold text-white">Cash Flow Analysis</h1><p className="text-muted-foreground">Monthly inflows vs outflows.</p></div>
-                 <div className="flex gap-2">
-                     <Button variant={isEditing ? "default" : "outline"} onClick={isEditing ? handleSaveClick : handleEditClick} className={isEditing ? "bg-blue-600" : "border-white/10"}>{isEditing ? "Save Changes" : "Edit Mode"}</Button>
-                     {isEditing && <Button variant="ghost" onClick={handleCancelClick}>Cancel</Button>}
+                <div className="flex gap-2">
+                    <Button variant={isEditing ? "default" : "outline"} onClick={isEditing ? handleSaveClick : handleEditClick} className={isEditing ? "bg-blue-600" : "border-white/10"}>{isEditing ? "Save Changes" : "Edit Mode"}</Button>
+                    {isEditing && <Button variant="ghost" onClick={handleCancelClick}>Cancel</Button>}
                 </div>
             </div>
+
+            {/* V3 CASH FLOW INTELLIGENCE */}
+            <CashFlowIntelligence />
 
             {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="glass-panel p-6 rounded-xl border-b-4 border-b-emerald-500 relative overflow-hidden">
-                    <div className="absolute right-4 top-4 p-2 bg-emerald-500/10 rounded-lg"><TrendingUp className="h-5 w-5 text-emerald-500"/></div>
+                    <div className="absolute right-4 top-4 p-2 bg-emerald-500/10 rounded-lg"><TrendingUp className="h-5 w-5 text-emerald-500" /></div>
                     <p className="text-sm text-muted-foreground uppercase font-bold">Total Income</p>
                     <p className="text-3xl font-mono font-bold text-emerald-400 mt-2">{format(totalIncome)}</p>
                 </div>
-                
+
                 {/* NEW: OPERATING CASH FLOW */}
                 <div className="glass-panel p-6 rounded-xl border-b-4 border-b-blue-500 relative overflow-hidden">
-                    <div className="absolute right-4 top-4 p-2 bg-blue-500/10 rounded-lg"><PiggyBank className="h-5 w-5 text-blue-500"/></div>
+                    <div className="absolute right-4 top-4 p-2 bg-blue-500/10 rounded-lg"><PiggyBank className="h-5 w-5 text-blue-500" /></div>
                     <p className="text-xs text-muted-foreground uppercase font-bold">Actual Monthly Savings</p>
                     <p className="text-3xl font-mono font-bold text-blue-400 mt-2">{format(operatingCashFlow)}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Before Projects</p>
                 </div>
 
                 <div className="glass-panel p-6 rounded-xl border-b-4 border-b-rose-500 relative overflow-hidden">
-                    <div className="absolute right-4 top-4 p-2 bg-rose-500/10 rounded-lg"><TrendingDown className="h-5 w-5 text-rose-500"/></div>
+                    <div className="absolute right-4 top-4 p-2 bg-rose-500/10 rounded-lg"><TrendingDown className="h-5 w-5 text-rose-500" /></div>
                     <p className="text-sm text-muted-foreground uppercase font-bold">Total Expenses</p>
                     <p className="text-3xl font-mono font-bold text-rose-400 mt-2">{format(totalExpenses)}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Includes Avg Installments</p>
                 </div>
 
                 <div className={cn("glass-panel p-6 rounded-xl border-b-4 relative overflow-hidden", netCashFlow >= 0 ? "border-b-yellow-500" : "border-b-red-500")}>
-                    <div className="absolute right-4 top-4 p-2 bg-yellow-500/10 rounded-lg"><ArrowRightLeft className="h-5 w-5 text-yellow-500"/></div>
+                    <div className="absolute right-4 top-4 p-2 bg-yellow-500/10 rounded-lg"><ArrowRightLeft className="h-5 w-5 text-yellow-500" /></div>
                     <p className="text-xs text-muted-foreground uppercase font-bold">Projected Net Flow</p>
                     <p className={cn("text-3xl font-mono font-bold mt-2", netCashFlow >= 0 ? "text-yellow-400" : "text-red-400")}>{format(netCashFlow)}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">After Project Burden</p>
@@ -117,16 +121,16 @@ export default function CashFlowPage() {
                 {/* Ledger */}
                 <div className="glass-panel p-6 rounded-xl space-y-6">
                     <h3 className="text-xl font-bold text-white">Monthly Breakdown</h3>
-                    
+
                     <div className="space-y-2">
                         <div className="text-xs uppercase text-emerald-500 font-bold tracking-wider">Inflows</div>
                         <div className="bg-black/20 rounded-lg p-4 space-y-3 border border-white/5">
-                            <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Monthly Salary</span>{isEditing ? <div className="flex items-center gap-2"><GlassInput type="number" defaultValue={currentData.assets.salary.amount} onBlur={(e: any) => handleSalaryChange(e.target.value)} className="w-24 text-right"/><span className="text-xs text-white">{currentData.assets.salary.currency}</span></div> : <span className="font-mono font-bold text-emerald-400">{currentData.assets.salary.amount.toLocaleString()} <span className="text-xs">{currentData.assets.salary.currency}</span></span>}</div>
+                            <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Monthly Salary</span>{isEditing ? <div className="flex items-center gap-2"><GlassInput type="number" defaultValue={currentData.assets.salary.amount} onBlur={(e: any) => handleSalaryChange(e.target.value)} className="w-24 text-right" /><span className="text-xs text-white">{currentData.assets.salary.currency}</span></div> : <span className="font-mono font-bold text-emerald-400">{currentData.assets.salary.amount.toLocaleString()} <span className="text-xs">{currentData.assets.salary.currency}</span></span>}</div>
                             <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Rentals (Total)</span><span className="font-mono font-bold text-emerald-400">{format(income.rent)}</span></div>
                         </div>
                     </div>
 
-                     <div className="space-y-2">
+                    <div className="space-y-2">
                         <div className="text-xs uppercase text-rose-500 font-bold tracking-wider">Outflows</div>
                         <div className="bg-black/20 rounded-lg p-4 space-y-3 border border-white/5">
                             <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">Loan Repayments</span><span className="font-mono font-medium text-rose-400">{format(expenses.loans)}</span></div>
@@ -144,10 +148,10 @@ export default function CashFlowPage() {
                     <h3 className="text-xl font-bold text-white mb-6">Flow Visualization</h3>
                     <div className="flex-1 min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                             <BarChart data={chartData}>
+                            <BarChart data={chartData}>
                                 <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#fff' }} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
+                                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#fff' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                                 <Legend />
                                 <Bar dataKey="Salary" stackId="a" fill="#10b981" />
                                 <Bar dataKey="Rentals" stackId="a" fill="#34d399" />
@@ -159,7 +163,7 @@ export default function CashFlowPage() {
                     </div>
                 </div>
             </div>
-             <AddExpenseDialog isOpen={isAddExpenseDialogOpen} onClose={() => setIsAddExpenseDialogOpen(false)} onAddExpense={handleAddExpense} />
+            <AddExpenseDialog isOpen={isAddExpenseDialogOpen} onClose={() => setIsAddExpenseDialogOpen(false)} onAddExpense={handleAddExpense} />
         </div>
     )
 }

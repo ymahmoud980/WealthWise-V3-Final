@@ -3,6 +3,7 @@
 import { useCurrency } from "@/hooks/use-currency";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import CountUp from 'react-countup';
 
 interface StatCardProps {
   title: string;
@@ -36,12 +37,29 @@ export function StatCard({ title, value, icon, isCurrency = false }: StatCardPro
           </div>
         </div>
         <div className="mt-4">
-          {/* FIX: Changed text-3xl to text-xl/2xl and added truncation handling */}
-          <div 
-            className={cn("text-2xl font-bold tracking-tight font-mono truncate", getColor())}
-            title={formattedText.toString()} // Hover to see full number
+          <div
+            className={cn(
+              "font-bold tracking-tight font-mono transition-all duration-300",
+              formattedText.toString().length > 15 ? "text-base" :
+                formattedText.toString().length > 12 ? "text-lg" :
+                  formattedText.toString().length > 9 ? "text-xl" : "text-2xl",
+              getColor()
+            )}
+            title={formattedText.toString()}
           >
-            {formattedText}
+            {isCurrency && typeof displayValue === 'number' ? (
+              <CountUp
+                start={0}
+                end={displayValue}
+                duration={2.5}
+                separator=","
+                // We use formatting extracted substrings so KWD 1,000 matches the visual style
+                prefix={formattedText.toString().split(/[0-9]/)[0] || ""}
+                suffix={formattedText.toString().match(/[0-9]+(.+)/)?.[1]?.replace(/^[.,0-9]+/, "") || ""}
+              />
+            ) : (
+              <CountUp start={0} end={displayValue} duration={2.5} decimals={1} />
+            )}
           </div>
         </div>
       </div>

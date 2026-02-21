@@ -27,34 +27,48 @@
   }
 
   .dark {
-    /* DARK MODE - "FinTech Pro" Theme (Navy, Gold, Emerald) */
-    --background: 224 71% 4%; /* Deepest Navy */
-    --foreground: 210 40% 98%;
-    
-    --card: 222 47% 11%; 
-    --card-foreground: 210 40% 98%;
-    
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    
-    --primary: 45 93% 47%; /* Gold */
-    --primary-foreground: 222 47% 11%;
-    
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    
-    --muted: 217 33% 17%;
+    /* V3: Spectacular Antigravity Theme */
+    --background: 228 66% 3%;
+    /* Deepest Obsidian Space */
+    --foreground: 0 0% 98%;
+
+    --card: 228 30% 6%;
+    /* Deep frosted black */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 228 30% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    /* System Primary (Electric Holographic Blue) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 228 30% 10%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 228 30% 10%;
     --muted-foreground: 215 20% 65%;
-    
-    --accent: 171 77% 64%; /* Electric Teal */
-    --accent-foreground: 222 47% 11%;
-    
-    --destructive: 0 62% 30%;
+
+    /* Core Semantic Colors (Neon Glowing) */
+    --profit: 142 71% 45%;
+    /* Neon Emerald */
+    --liquidity: 199 89% 48%;
+    /* Cyber Blue */
+    --risk: 348 83% 55%;
+    /* Neon Rose */
+    --alert: 45 93% 55%;
+    /* Electric Amber */
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 348 83% 55%;
     --destructive-foreground: 0 0% 98%;
-    
-    --border: 217 33% 20%;
-    --input: 217 33% 17%;
-    --ring: 45 93% 47%;
+
+    --border: 0 0% 15%;
+    /* Barely visible border lines */
+    --input: 228 30% 10%;
+    --ring: 217 91% 60%;
   }
 }
 
@@ -62,33 +76,58 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
-    /* Subtle mesh gradient background */
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-    background-attachment: fixed;
+    @apply bg-background text-foreground font-sans selection:bg-primary/30;
   }
 }
 
 @layer utilities {
+
+  /* V3 Spectacular Elements */
+  .bento-card {
+    @apply bg-white/[0.02] backdrop-blur-[60px] border border-white/[0.05] rounded-[32px] shadow-2xl relative overflow-hidden transition-all duration-500 hover:border-white/[0.12] hover:bg-white/[0.04];
+  }
+
+  .glass-dock {
+    @apply bg-black/40 backdrop-blur-[80px] border border-white/[0.08] rounded-full;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.8);
+  }
+
+  .aurora-orb {
+    @apply absolute rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-pulse pointer-events-none;
+  }
+
+  /* Legacy Fallbacks for transition period */
   .glass-panel {
-    @apply bg-card/40 backdrop-blur-xl border-white/10 shadow-xl;
+    @apply bg-black/40 backdrop-blur-3xl border border-white/10 shadow-2xl rounded-3xl;
   }
-  
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-amber-600;
+
+  .glass-card {
+    @apply bento-card;
   }
-  
-  .text-gradient-blue {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400;
+
+  /* Typography Gradients */
+  .text-gradient-profit {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-500;
   }
-  
+
+  .text-gradient-liquidity {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500;
+  }
+
+  .text-gradient-risk {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-red-500;
+  }
+
+  .text-gradient-alert {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-amber-500;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
