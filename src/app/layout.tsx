@@ -5,6 +5,7 @@ import { FinancialDataProvider } from "@/contexts/FinancialDataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import { AppShellV3 } from "@/components/layout/AppShellV3";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -24,11 +25,13 @@ export default function RootLayout({
       <body className={`${inter.variable} ${mono.variable} font-sans antialiased text-white`} suppressHydrationWarning>
         <AuthProvider>
           <FinancialDataProvider>
-            {/* WRAP CONTENT IN V3 APP SHELL */}
-            <AppShellV3>
-              {children}
-            </AppShellV3>
-            <Toaster />
+            <TooltipProvider>
+              {/* WRAP CONTENT IN V3 APP SHELL */}
+              <AppShellV3>
+                {children}
+              </AppShellV3>
+              <Toaster />
+            </TooltipProvider>
           </FinancialDataProvider>
         </AuthProvider>
       </body>

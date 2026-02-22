@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { AddInstallmentDialog } from "@/components/liabilities/AddInstallmentDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const GlassInput = (props: any) => (
@@ -139,17 +140,26 @@ export default function LiabilitiesPage() {
             <div className="grid gap-4 md:grid-cols-3 mb-8">
                 <div className="glass-panel p-5 rounded-xl border border-rose-500/20 bg-gradient-to-br from-rose-950/40 to-black/20 shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-10 text-rose-500"><TrendingDown className="w-24 h-24" /></div>
-                    <p className="text-xs uppercase tracking-wider text-rose-300 font-semibold mb-1 flex items-center gap-2"><TrendingDown className="w-4 h-4" /> Total Debt</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <TrendingDown className="w-4 h-4 text-rose-300" />
+                        <InfoTooltip label="Total Debt" explanation="Sum of all remaining bank loans and outstanding property installments." className="text-xs uppercase tracking-wider text-rose-300 font-semibold" />
+                    </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.totalLiabilities || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
                 <div className="glass-panel p-5 rounded-xl border border-pink-500/20 bg-gradient-to-br from-pink-950/40 to-black/20 shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-10 text-pink-500"><Building className="w-24 h-24" /></div>
-                    <p className="text-xs uppercase tracking-wider text-pink-300 font-semibold mb-1 flex items-center gap-2"><Building className="w-4 h-4" /> Project Installments</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Building className="w-4 h-4 text-pink-300" />
+                        <InfoTooltip label="Project Installments" explanation="Total outstanding debt owed to developers for off-plan property." className="text-xs uppercase tracking-wider text-pink-300 font-semibold" />
+                    </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.liabilities?.installments || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
                 <div className="glass-panel p-5 rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-950/40 to-black/20 shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-10 text-amber-500"><Landmark className="w-24 h-24" /></div>
-                    <p className="text-xs uppercase tracking-wider text-amber-300 font-semibold mb-1 flex items-center gap-2"><Landmark className="w-4 h-4" /> Bank Loans</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Landmark className="w-4 h-4 text-amber-300" />
+                        <InfoTooltip label="Bank Loans" explanation="Total remaining balance across all active bank loans." className="text-xs uppercase tracking-wider text-amber-300 font-semibold" />
+                    </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.liabilities?.loans || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
             </div>

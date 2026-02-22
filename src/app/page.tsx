@@ -8,6 +8,7 @@ import CountUp from "react-countup";
 import { convert } from "@/lib/calculations";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
   TrendingUp,
   TrendingDown,
@@ -121,7 +122,11 @@ export default function V3Dashboard() {
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-bold tracking-widest text-slate-400 uppercase">Global Net Worth</p>
+              <InfoTooltip
+                label="Global Net Worth"
+                explanation={<>Basis: <strong>Total Assets &minus; Total Liabilities</strong></>}
+                className="text-sm font-bold tracking-widest text-slate-400 uppercase"
+              />
               <h2 className="text-5xl md:text-7xl font-black text-white mt-2 tracking-tighter">
                 {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : ''}
                 <CountUp end={netWorth} separator="," duration={2.5} />
@@ -175,7 +180,10 @@ export default function V3Dashboard() {
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Cash Flow</p>
+            <InfoTooltip
+              label="Cash Flow"
+              explanation={<>Basis: <strong>Salary &minus; (Loan Payments + Household)</strong></>}
+            />
             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-500">
               <CountUp end={cashFlow} separator="," duration={2.5} prefix={currency === 'USD' ? '$' : ''} />
             </h3>
@@ -191,7 +199,10 @@ export default function V3Dashboard() {
             <TrendingUp className="text-emerald-400 h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Total Assets</p>
+            <InfoTooltip
+              label="Total Assets"
+              explanation="Gross value of all holdings, including real estate."
+            />
             <h3 className="text-3xl font-bold text-white">
               {format(assets)}
             </h3>
@@ -207,15 +218,10 @@ export default function V3Dashboard() {
             <ShieldCheck className="text-purple-400 h-6 w-6" />
           </div>
           <div>
-            <div className="flex items-center gap-1 mb-1 relative group inline-flex">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Liquid Capital</p>
-              <Info className="h-3 w-3 text-slate-500 cursor-help" />
-              {/* Tooltip Explanation */}
-              <div className="absolute bottom-full mb-2 left-0 w-64 p-3 bg-slate-800 border border-slate-700 text-[10px] sm:text-xs text-slate-300 rounded shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                <strong className="text-white">Basis: </strong> Cash + Gold + Silver.<br />
-                Excludes hard assets like Real Estate. Represents funds that can be deployed or accessed immediately.
-              </div>
-            </div>
+            <InfoTooltip
+              label="Liquid Capital"
+              explanation={<><strong>Cash + Gold + Silver</strong><br />Excludes hard assets like Real Estate.</>}
+            />
             <h3 className="text-3xl font-bold text-white">
               {format(liquidity)}
             </h3>
@@ -234,7 +240,10 @@ export default function V3Dashboard() {
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Total Debt</p>
+            <InfoTooltip
+              label="Total Debt"
+              explanation="Remaining bank loans and unpaid installments."
+            />
             <h3 className="text-3xl font-bold text-rose-400">
               {format(debt)}
             </h3>

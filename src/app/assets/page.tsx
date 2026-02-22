@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 const GlassInput = (props: any) => (
     <Input {...props} className={cn("bg-black/20 border-white/10 text-foreground focus:ring-primary/50 h-7 text-xs px-2", props.className)} />
@@ -177,17 +178,26 @@ export default function AssetsPage() {
             <div className="grid gap-4 md:grid-cols-3 mb-8">
                 <div className="glass-panel p-5 rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/40 to-black/20 shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-10 text-indigo-500"><Landmark className="w-24 h-24" /></div>
-                    <p className="text-xs uppercase tracking-wider text-indigo-300 font-semibold mb-1 flex items-center gap-2"><Package className="w-4 h-4" /> Total Asset Value</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Package className="w-4 h-4 text-indigo-300" />
+                        <InfoTooltip label="Total Asset Value" explanation="Sum of all properties, cash, metals, and other holdings." className="text-xs uppercase tracking-wider text-indigo-300 font-semibold" />
+                    </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.totalAssets || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
                 <div className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 to-black/20 shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-10 text-emerald-500"><Building2 className="w-24 h-24" /></div>
-                    <p className="text-xs uppercase tracking-wider text-emerald-300 font-semibold mb-1 flex items-center gap-2"><MapPin className="w-4 h-4" /> Total Real Estate</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <MapPin className="w-4 h-4 text-emerald-300" />
+                        <InfoTooltip label="Total Real Estate" explanation="Combined value of both Ready Properties and Off-Plan Projects." className="text-xs uppercase tracking-wider text-emerald-300 font-semibold" />
+                    </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.existingRealEstate || 0) + (metrics?.assets?.offPlanRealEstate || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
                 <div className="glass-panel p-5 rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-950/40 to-black/20 shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-10 text-blue-500"><Wallet className="w-24 h-24" /></div>
-                    <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold mb-1 flex items-center gap-2"><Wallet className="w-4 h-4" /> Liquid Reserves</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Wallet className="w-4 h-4 text-blue-300" />
+                        <InfoTooltip label="Liquid Reserves" explanation={<>Strictly <strong>Cash + Gold + Silver</strong>.</>} className="text-xs uppercase tracking-wider text-blue-300 font-semibold" />
+                    </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.cash || 0) + (metrics?.assets?.gold || 0) + (metrics?.assets?.silver || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
             </div>

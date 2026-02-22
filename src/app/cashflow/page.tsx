@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import type { FinancialData } from "@/lib/types";
 import { AddExpenseDialog } from "@/components/cashflow/AddExpenseDialog";
 import { Trash2, TrendingUp, TrendingDown, ArrowRightLeft, PiggyBank } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { cn } from "@/lib/utils";
 
 const GlassInput = (props: any) => (
@@ -90,28 +91,28 @@ export default function CashFlowPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="glass-panel p-6 rounded-xl border-b-4 border-b-emerald-500 relative overflow-hidden">
                     <div className="absolute right-4 top-4 p-2 bg-emerald-500/10 rounded-lg"><TrendingUp className="h-5 w-5 text-emerald-500" /></div>
-                    <p className="text-sm text-muted-foreground uppercase font-bold">Total Income</p>
+                    <InfoTooltip label="Total Income" explanation="Combined monthly Salary and active Rental yields." className="text-sm text-muted-foreground uppercase font-bold" />
                     <p className="text-3xl font-mono font-bold text-emerald-400 mt-2">{format(totalIncome)}</p>
                 </div>
 
                 {/* NEW: OPERATING CASH FLOW */}
                 <div className="glass-panel p-6 rounded-xl border-b-4 border-b-blue-500 relative overflow-hidden">
                     <div className="absolute right-4 top-4 p-2 bg-blue-500/10 rounded-lg"><PiggyBank className="h-5 w-5 text-blue-500" /></div>
-                    <p className="text-xs text-muted-foreground uppercase font-bold">Actual Monthly Savings</p>
+                    <InfoTooltip label="Actual Monthly Savings" explanation="Pure cash flow strictly from Salary and Household expenses, before property projects." className="text-xs text-muted-foreground uppercase font-bold" />
                     <p className="text-3xl font-mono font-bold text-blue-400 mt-2">{format(operatingCashFlow)}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Before Projects</p>
                 </div>
 
                 <div className="glass-panel p-6 rounded-xl border-b-4 border-b-rose-500 relative overflow-hidden">
                     <div className="absolute right-4 top-4 p-2 bg-rose-500/10 rounded-lg"><TrendingDown className="h-5 w-5 text-rose-500" /></div>
-                    <p className="text-sm text-muted-foreground uppercase font-bold">Total Expenses</p>
+                    <InfoTooltip label="Total Expenses" explanation="All combined outflows including Loans, Household, and annualized Project Installments." className="text-sm text-muted-foreground uppercase font-bold" />
                     <p className="text-3xl font-mono font-bold text-rose-400 mt-2">{format(totalExpenses)}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Includes Avg Installments</p>
                 </div>
 
                 <div className={cn("glass-panel p-6 rounded-xl border-b-4 relative overflow-hidden", netCashFlow >= 0 ? "border-b-yellow-500" : "border-b-red-500")}>
                     <div className="absolute right-4 top-4 p-2 bg-yellow-500/10 rounded-lg"><ArrowRightLeft className="h-5 w-5 text-yellow-500" /></div>
-                    <p className="text-xs text-muted-foreground uppercase font-bold">Projected Net Flow</p>
+                    <InfoTooltip label="Projected Net Flow" explanation="Calculated cash balance left over after all obligations, including off-plan property installments, are met." className="text-xs text-muted-foreground uppercase font-bold" />
                     <p className={cn("text-3xl font-mono font-bold mt-2", netCashFlow >= 0 ? "text-yellow-400" : "text-red-400")}>{format(netCashFlow)}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">After Project Burden</p>
                 </div>
