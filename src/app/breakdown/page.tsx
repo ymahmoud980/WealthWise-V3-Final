@@ -148,6 +148,39 @@ export default function BreakdownPage() {
         </div>
 
       </div>
+
+      {/* --- 6. CALCULATION BASIS (Documentation) --- */}
+      <div className="glass-panel p-6 rounded-xl border border-white/10 mt-8">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-emerald-400" /> Formulas & Calculation Basis
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+          <div>
+            <span className="font-bold text-emerald-400">Total Assets</span>
+            <p className="text-muted-foreground mt-1 mb-3">Sum of all converted values for: Ready Properties + Off-Plan Projects + Cash in Bank + Physical Gold & Silver + Other declared assets.</p>
+          </div>
+          <div>
+            <span className="font-bold text-rose-400">Total Liabilities</span>
+            <p className="text-muted-foreground mt-1 mb-3">Sum of all converted values for: Remaining Bank Loan Balances + Unpaid Project Installments.</p>
+          </div>
+          <div>
+            <span className="font-bold text-white">Global Net Worth</span>
+            <p className="text-muted-foreground mt-1 mb-3">Total Assets &minus; Total Liabilities.</p>
+          </div>
+          <div>
+            <span className="font-bold text-blue-400">Monthly Free Cash Flow</span>
+            <p className="text-muted-foreground mt-1 mb-3">Base Salary &minus; (Bank Loan Payments + Kuwait Household Expenses).</p>
+          </div>
+          <div>
+            <span className="font-bold text-purple-400">Liquid Capital</span>
+            <p className="text-muted-foreground mt-1 mb-3">Strictly: Cash in Bank + Physical Gold + Physical Silver.</p>
+          </div>
+          <div>
+            <span className="font-bold text-amber-500">Leverage Ratio</span>
+            <p className="text-muted-foreground mt-1 mb-3">(Total Liabilities &divide; Total Assets) &times; 100.</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

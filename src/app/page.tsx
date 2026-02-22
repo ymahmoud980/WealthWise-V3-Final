@@ -201,18 +201,19 @@ export default function V3Dashboard() {
         {/* Strategic Liquidity (1 col, 1 row) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.4 }}
-          className="bento-card p-6 flex flex-col justify-between group relative"
+          className="bento-card p-6 flex flex-col justify-between"
         >
           <div className="flex justify-between items-start">
             <ShieldCheck className="text-purple-400 h-6 w-6" />
           </div>
           <div>
-            <div className="flex items-center gap-1 mb-1 group/tooltip">
+            <div className="flex items-center gap-1 mb-1 relative group inline-flex">
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Liquid Capital</p>
               <Info className="h-3 w-3 text-slate-500 cursor-help" />
               {/* Tooltip Explanation */}
-              <div className="absolute bottom-full mb-2 left-0 w-48 p-2 bg-slate-800 border border-slate-700 text-[10px] text-slate-300 rounded shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-10">
-                Calculated strictly from Cash, Gold, and Silver reserves. Excludes hard assets like Real Estate. Represents funds that can be deployed or accessed immediately.
+              <div className="absolute bottom-full mb-2 left-0 w-64 p-3 bg-slate-800 border border-slate-700 text-[10px] sm:text-xs text-slate-300 rounded shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                <strong className="text-white">Basis: </strong> Cash + Gold + Silver.<br />
+                Excludes hard assets like Real Estate. Represents funds that can be deployed or accessed immediately.
               </div>
             </div>
             <h3 className="text-3xl font-bold text-white">
