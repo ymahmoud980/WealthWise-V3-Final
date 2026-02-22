@@ -18,13 +18,11 @@ export function InfoTooltip({ label, explanation, className = "text-xs font-medi
     return (
         <TooltipProvider delayDuration={100}>
             <Tooltip>
-                <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1.5 cursor-help group inline-flex mb-1">
-                        <p className={`${className} group-hover:text-amber-400/80 transition-colors`}>
-                            {label}
-                        </p>
-                        <Info className="h-3.5 w-3.5 text-slate-500 group-hover:text-amber-400/80 transition-colors" />
-                    </div>
+                <TooltipTrigger className="flex items-center gap-1.5 cursor-help group inline-flex mb-1" type="button">
+                    <p className={`${className} group-hover:text-amber-400/80 transition-colors`}>
+                        {label}
+                    </p>
+                    <Info className="h-3.5 w-3.5 text-slate-500 group-hover:text-amber-400/80 transition-colors" />
                 </TooltipTrigger>
                 <TooltipContent
                     side="top"
