@@ -5,6 +5,9 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
+import { convert } from "@/lib/calculations";
+import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
+import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import {
   TrendingUp,
   TrendingDown,
@@ -12,11 +15,13 @@ import {
   Activity,
   ShieldCheck,
   Zap,
-  ArrowUpRight
+  ArrowUpRight,
+  Info
 } from "lucide-react";
-import { ResponsiveContainer, AreaChart, Area, Tooltip } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, Tooltip, YAxis, XAxis } from "recharts";
+
 export default function V3Dashboard() {
-  const { metrics, isLoading, rates } = useFinancialData();
+  const { data, metrics, isLoading, rates } = useFinancialData();
   const { format, currency, setCurrency } = useCurrency();
   const { user } = useAuth();
 
@@ -34,28 +39,30 @@ export default function V3Dashboard() {
   const cashFlow = metrics?.operatingCashFlow || 0;
   const liquidity = metrics?.professional?.liquidAssets || 0;
 
-  const { data } = useFinancialData();
   const history = data?.history || [];
 
-  // Parse Real History for Chart
+  // Parse Real History for Chart - Normalize to Current Currency!
   let sparklineData = [];
 
   if (history.length > 1) {
-    sparklineData = history.map((snap) => ({
-      value: snap.netWorth,
-      date: snap.date, // useful for tooltips later if needed
-    }));
+    sparklineData = history.map((snap) => {
+      // Convert the snapshot's recorded net worth from its recorded currency to the currently selected display currency
+      const normalizedValue = convert(snap.netWorth, snap.currency, currency, rates);
+      return {
+        value: Number(normalizedValue.toFixed(0)), // Round for cleaner tooltip
+        date: snap.date, // YYYY-MM-DD
+      };
+    });
   } else if (history.length === 1) {
-    // If only one data point exists, draw a flat line so the chart doesn't break
+    const normalizedValue = convert(history[0].netWorth, history[0].currency, currency, rates);
     sparklineData = [
-      { value: history[0].netWorth, date: history[0].date },
-      { value: history[0].netWorth, date: "Now" }
+      { value: Number(normalizedValue.toFixed(0)), date: history[0].date },
+      { value: Number(normalizedValue.toFixed(0)), date: "Now" }
     ];
   } else {
-    // Fallback if absolutely no history exists yet
     sparklineData = [
-      { value: netWorth, date: "Start" },
-      { value: netWorth, date: "Now" }
+      { value: Number(netWorth.toFixed(0)), date: "Start" },
+      { value: Number(netWorth.toFixed(0)), date: "Now" }
     ];
   }
 
@@ -125,15 +132,31 @@ export default function V3Dashboard() {
             </div>
           </div>
 
-          <div className="h-[120px] w-full -mx-4 -mb-8 mt-4 opacity-50 group-hover:opacity-100 transition-opacity duration-700">
+          <div className="h-[120px] w-full -mx-4 -mb-8 mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={sparklineData}>
+              <AreaChart data={sparklineData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorWorth" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <XAxis dataKey="date" hide />
+                <YAxis
+                  domain={['auto', 'auto']}
+                  hide={false}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#64748b', fontSize: 10 }}
+                  tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
+                  width={40}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
+                  itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                  formatter={(value) => [new Intl.NumberFormat().format(value as number), currency]}
+                  labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                />
                 <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorWorth)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -178,13 +201,20 @@ export default function V3Dashboard() {
         {/* Strategic Liquidity (1 col, 1 row) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.4 }}
-          className="bento-card p-6 flex flex-col justify-between group"
+          className="bento-card p-6 flex flex-col justify-between group relative"
         >
           <div className="flex justify-between items-start">
             <ShieldCheck className="text-purple-400 h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Liquid Capital</p>
+            <div className="flex items-center gap-1 mb-1 group/tooltip">
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Liquid Capital</p>
+              <Info className="h-3 w-3 text-slate-500 cursor-help" />
+              {/* Tooltip Explanation */}
+              <div className="absolute bottom-full mb-2 left-0 w-48 p-2 bg-slate-800 border border-slate-700 text-[10px] text-slate-300 rounded shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-10">
+                Calculated strictly from Cash, Gold, and Silver reserves. Excludes hard assets like Real Estate. Represents funds that can be deployed or accessed immediately.
+              </div>
+            </div>
             <h3 className="text-3xl font-bold text-white">
               {format(liquidity)}
             </h3>
@@ -210,6 +240,16 @@ export default function V3Dashboard() {
           </div>
         </motion.div>
 
+      </div>
+
+      {/* Upcoming Obligations & Real Estate Rents */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <div className="bento-card p-6 min-h-[400px]">
+          <UpcomingPayments />
+        </div>
+        <div className="bento-card p-6 min-h-[400px]">
+          <UpcomingRents rents={data?.assets?.realEstate || []} />
+        </div>
       </div>
 
     </div>
