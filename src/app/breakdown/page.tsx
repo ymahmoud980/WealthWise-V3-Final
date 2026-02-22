@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, Wallet, DollarSign, Calculator, PiggyBank } from "lucide-react"
+import { TrendingUp, TrendingDown, Wallet, DollarSign, Calculator, PiggyBank, BookOpen } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency";
 import { convert } from "@/lib/calculations";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
