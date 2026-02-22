@@ -15,7 +15,8 @@ const SAFE_DEFAULT_DATA: FinancialData = {
     salary: { amount: 0, currency: 'USD' }
   },
   liabilities: { loans: [], installments: [] },
-  monthlyExpenses: { household: [] }
+  monthlyExpenses: { household: [] },
+  history: []
 };
 
 interface FinancialDataContextType {
@@ -106,6 +107,47 @@ export function FinancialDataProvider({ children }: { children: React.ReactNode 
   const metrics = useMemo(() => {
     return calculateMetrics(data, currency, rates);
   }, [data, currency, rates]);
+
+  // 5. Daily Net Worth Snapshotting
+  useEffect(() => {
+    if (!isDataLoaded || !user || !metrics) return;
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentNetWorth = metrics.netWorth;
+
+    // Don't snapshot if net worth is 0 (might be initial load state before real calculation)
+    if (currentNetWorth === 0) return;
+
+    _setData((prevData) => {
+      const history = prevData.history || [];
+      const hasTodaySnapshot = history.some(snap => snap.date === today);
+      const lastSnapshot = history[history.length - 1];
+
+      // If we don't have a snapshot for today, or the net worth has changed for today
+      if (!hasTodaySnapshot || (lastSnapshot && lastSnapshot.date === today && lastSnapshot.netWorth !== currentNetWorth)) {
+
+        // Remove old snapshot for today if it exists to replace it with the latest
+        const filteredHistory = history.filter(snap => snap.date !== today);
+
+        const newSnapshot = {
+          date: today,
+          netWorth: currentNetWorth,
+          currency: currency // Record the currency this net worth was calculated in
+        };
+
+        const updatedHistory = [...filteredHistory, newSnapshot];
+
+        // Only trigger a save if something actually changed to avoid infinite loops
+        if (!lastSnapshot || lastSnapshot.netWorth !== currentNetWorth) {
+          isLocalChange.current = true;
+          return { ...prevData, history: updatedHistory };
+        }
+      }
+
+      return prevData;
+    });
+
+  }, [metrics.netWorth, currency, isDataLoaded, user]);
 
   // Loading Screen
   if (authLoading) return <div className="flex h-screen w-full items-center justify-center bg-[#020817] text-white"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;

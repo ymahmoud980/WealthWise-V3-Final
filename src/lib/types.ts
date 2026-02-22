@@ -101,6 +101,12 @@ export interface HouseholdExpense {
   currency: Currency;
 }
 
+export interface DailySnapshot {
+  date: string; // ISO format YYYY-MM-DD
+  netWorth: number;
+  currency: string;
+}
+
 export interface FinancialData {
   assets: {
     realEstate: RealEstateAsset[];
@@ -118,6 +124,7 @@ export interface FinancialData {
   monthlyExpenses: {
     household: HouseholdExpense[];
   };
+  history?: DailySnapshot[];
 }
 
 export type ExchangeRates = any;

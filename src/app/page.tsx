@@ -34,10 +34,30 @@ export default function V3Dashboard() {
   const cashFlow = metrics?.operatingCashFlow || 0;
   const liquidity = metrics?.professional?.liquidAssets || 0;
 
-  // Fake sparkline data for V3 dramatic effect
-  const sparklineData = Array.from({ length: 10 }).map((_, i) => ({
-    value: netWorth * (0.8 + (Math.random() * 0.4))
-  }));
+  const { data } = useFinancialData();
+  const history = data?.history || [];
+
+  // Parse Real History for Chart
+  let sparklineData = [];
+
+  if (history.length > 1) {
+    sparklineData = history.map((snap) => ({
+      value: snap.netWorth,
+      date: snap.date, // useful for tooltips later if needed
+    }));
+  } else if (history.length === 1) {
+    // If only one data point exists, draw a flat line so the chart doesn't break
+    sparklineData = [
+      { value: history[0].netWorth, date: history[0].date },
+      { value: history[0].netWorth, date: "Now" }
+    ];
+  } else {
+    // Fallback if absolutely no history exists yet
+    sparklineData = [
+      { value: netWorth, date: "Start" },
+      { value: netWorth, date: "Now" }
+    ];
+  }
 
   return (
     <div className="w-full space-y-6 pb-20">
