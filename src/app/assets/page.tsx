@@ -176,7 +176,7 @@ export default function AssetsPage() {
 
             {/* SUMMARY STATS */}
             <div className="grid gap-4 md:grid-cols-3 mb-8">
-                <div className="glass-panel p-5 rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/40 to-black/20 shadow-lg relative overflow-hidden">
+                <div className="glass-panel p-5 rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/40 to-black/20 shadow-lg relative">
                     <div className="absolute -right-4 -top-4 opacity-10 text-indigo-500"><Landmark className="w-24 h-24" /></div>
                     <div className="flex items-center gap-2 mb-1">
                         <Package className="w-4 h-4 text-indigo-300" />
@@ -184,7 +184,7 @@ export default function AssetsPage() {
                     </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.totalAssets || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
-                <div className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 to-black/20 shadow-lg relative overflow-hidden">
+                <div className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 to-black/20 shadow-lg relative">
                     <div className="absolute -right-4 -top-4 opacity-10 text-emerald-500"><Building2 className="w-24 h-24" /></div>
                     <div className="flex items-center gap-2 mb-1">
                         <MapPin className="w-4 h-4 text-emerald-300" />
@@ -192,7 +192,7 @@ export default function AssetsPage() {
                     </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.existingRealEstate || 0) + (metrics?.assets?.offPlanRealEstate || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
-                <div className="glass-panel p-5 rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-950/40 to-black/20 shadow-lg relative overflow-hidden">
+                <div className="glass-panel p-5 rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-950/40 to-black/20 shadow-lg relative">
                     <div className="absolute -right-4 -top-4 opacity-10 text-blue-500"><Wallet className="w-24 h-24" /></div>
                     <div className="flex items-center gap-2 mb-1">
                         <Wallet className="w-4 h-4 text-blue-300" />
