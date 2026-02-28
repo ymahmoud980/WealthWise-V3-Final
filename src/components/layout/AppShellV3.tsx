@@ -22,10 +22,19 @@ import {
     BookOpen
 } from "lucide-react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
-
+import { useCurrency } from "@/hooks/use-currency";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import type { Currency } from "@/lib/types";
 export function AppShellV3({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const { user, logout, loading: authLoading } = useAuth();
+    const { currency, setCurrency } = useCurrency();
 
     // Dynamic color shift based on wealth data
     let netWorth = 0;
@@ -75,6 +84,23 @@ export function AppShellV3({ children }: { children: React.ReactNode }) {
                     className="aurora-orb w-[500px] h-[500px] bg-violet-600/10 top-[30%] left-[40%]"
                 />
             </div>
+
+            {/* Top Right Controls */}
+            {user && !authLoading && pathname !== '/signin' && pathname !== '/signup' && (
+                <div className="fixed top-6 right-6 z-50 flex items-center">
+                    <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
+                        <SelectTrigger className="w-[100px] h-10 bg-black/40 border-white/10 text-white backdrop-blur-md hover:bg-white/10 transition-colors focus:ring-1 focus:ring-emerald-500 rounded-full pl-4">
+                            <SelectValue placeholder="Currency" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#02040a]/95 backdrop-blur-xl border-white/10 text-white rounded-xl shadow-2xl">
+                            <SelectItem value="USD" className="focus:bg-white/10 focus:text-white cursor-pointer rounded-lg m-1">USD</SelectItem>
+                            <SelectItem value="EGP" className="focus:bg-white/10 focus:text-white cursor-pointer rounded-lg m-1">EGP</SelectItem>
+                            <SelectItem value="KWD" className="focus:bg-white/10 focus:text-white cursor-pointer rounded-lg m-1">KWD</SelectItem>
+                            <SelectItem value="TRY" className="focus:bg-white/10 focus:text-white cursor-pointer rounded-lg m-1">TRY</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
 
             {/* Main Content Area - Rendered above background, behind dock */}
             <main className="relative z-10 w-full h-full min-h-screen pb-32 overflow-y-auto no-scrollbar scroll-smooth">
