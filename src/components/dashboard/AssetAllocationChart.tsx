@@ -27,6 +27,7 @@ export function AssetAllocationChart({ assetsBreakdown, totalAssets = 0, rawAsse
     { name: "Cash", value: Number(assetsBreakdown?.cash) || 0, color: "#3b82f6", gradient: "url(#colorBlue)" },
     { name: "Gold", value: Number(assetsBreakdown?.gold) || 0, color: "#fbbf24", gradient: "url(#colorGold)" },
     { name: "Silver", value: Number(assetsBreakdown?.silver) || 0, color: "#94a3b8", gradient: "url(#colorSilver)" },
+    { name: "Platinum", value: Number(assetsBreakdown?.platinum) || 0, color: "#cbd5e1", gradient: "url(#colorPlatinum)" },
     { name: "Other", value: Number(assetsBreakdown?.other) || 0, color: "#8b5cf6", gradient: "url(#colorPurple)" },
   ].filter(item => item.value > 0).sort((a, b) => b.value - a.value);
 
@@ -81,6 +82,7 @@ export function AssetAllocationChart({ assetsBreakdown, totalAssets = 0, rawAsse
             <linearGradient id="colorBlue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#2563eb" /><stop offset="100%" stopColor="#60a5fa" /></linearGradient>
             <linearGradient id="colorGold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#d97706" /><stop offset="100%" stopColor="#fbbf24" /></linearGradient>
             <linearGradient id="colorSilver" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#64748b" /><stop offset="100%" stopColor="#94a3b8" /></linearGradient>
+            <linearGradient id="colorPlatinum" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#94a3b8" /><stop offset="100%" stopColor="#cbd5e1" /></linearGradient>
             <linearGradient id="colorPurple" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#7c3aed" /><stop offset="100%" stopColor="#a855f7" /></linearGradient>
           </defs>
           <Tooltip content={<CustomTooltip />} />

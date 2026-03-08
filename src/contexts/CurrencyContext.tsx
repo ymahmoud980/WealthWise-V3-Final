@@ -16,6 +16,8 @@ interface CurrencyContextType {
   setGoldPricePerOunce: (price: number) => void;
   silverPricePerOunce: number;
   setSilverPricePerOunce: (price: number) => void;
+  platinumPricePerOunce: number;
+  setPlatinumPricePerOunce: (price: number) => void;
 }
 
 export const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -24,27 +26,34 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('USD');
 
   // Base currency rates need to be part of the component's render cycle to be included in useMemo's dependencies correctly.
-  const currencyRates: Omit<ExchangeRates, 'GOLD_GRAM' | 'SILVER_GRAM'> = { 
-    USD: 1, 
-    EGP: 47.75, 
-    KWD: 0.3072, 
-    TRY: 41.88 
+  const currencyRates: Omit<ExchangeRates, 'GOLD_GRAM' | 'SILVER_GRAM'> = {
+    USD: 1,
+    EGP: 47.75,
+    KWD: 0.3072,
+    TRY: 41.88
   };
-  
+
   // State for user-defined metal prices, initialized from localStorage or defaults.
   const [goldPricePerOunce, setGoldPricePerOunce] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-        const savedGoldPrice = localStorage.getItem('goldPricePerOunce');
-        return savedGoldPrice ? parseFloat(savedGoldPrice) : 4080;
+      const savedGoldPrice = localStorage.getItem('goldPricePerOunce');
+      return savedGoldPrice ? parseFloat(savedGoldPrice) : 4080;
     }
     return 4080;
   });
   const [silverPricePerOunce, setSilverPricePerOunce] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-        const savedSilverPrice = localStorage.getItem('silverPricePerOunce');
-        return savedSilverPrice ? parseFloat(savedSilverPrice) : 50;
+      const savedSilverPrice = localStorage.getItem('silverPricePerOunce');
+      return savedSilverPrice ? parseFloat(savedSilverPrice) : 50;
     }
     return 50;
+  });
+  const [platinumPricePerOunce, setPlatinumPricePerOunce] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const savedPlatinumPrice = localStorage.getItem('platinumPricePerOunce');
+      return savedPlatinumPrice ? parseFloat(savedPlatinumPrice) : 950;
+    }
+    return 950;
   });
 
   // Effect to save gold price to localStorage whenever it changes.
@@ -53,7 +62,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('goldPricePerOunce', goldPricePerOunce.toString());
     }
   }, [goldPricePerOunce]);
-  
+
   // Effect to save silver price to localStorage whenever it changes.
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -61,19 +70,28 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     }
   }, [silverPricePerOunce]);
 
+  // Effect to save platinum price to localStorage whenever it changes.
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('platinumPricePerOunce', platinumPricePerOunce.toString());
+    }
+  }, [platinumPricePerOunce]);
+
 
   // Combined rates object derived from currency rates and manual metal prices
   const combinedRates = useMemo(() => {
     const goldPricePerGram = goldPricePerOunce / GRAMS_PER_TROY_OUNCE;
     const silverPricePerGram = silverPricePerOunce / GRAMS_PER_TROY_OUNCE;
-    
+    const platinumPricePerGram = platinumPricePerOunce / GRAMS_PER_TROY_OUNCE;
+
     return {
       ...currencyRates,
       GOLD_GRAM: goldPricePerGram,
       SILVER_GRAM: silverPricePerGram,
+      PLATINUM_GRAM: platinumPricePerGram,
     } as ExchangeRates;
     // Adding currencyRates to the dependency array is critical.
-  }, [goldPricePerOunce, silverPricePerOunce, currencyRates]);
+  }, [goldPricePerOunce, silverPricePerOunce, platinumPricePerOunce, currencyRates]);
 
 
   const format = (value: number) => {
@@ -94,7 +112,9 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     setGoldPricePerOunce,
     silverPricePerOunce,
     setSilverPricePerOunce,
-  }), [currency, combinedRates, format, goldPricePerOunce, silverPricePerOunce]);
+    platinumPricePerOunce,
+    setPlatinumPricePerOunce,
+  }), [currency, combinedRates, format, goldPricePerOunce, silverPricePerOunce, platinumPricePerOunce]);
 
   return (
     <CurrencyContext.Provider value={value}>

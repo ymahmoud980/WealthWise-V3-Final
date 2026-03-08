@@ -11,7 +11,7 @@ import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
 const SAFE_DEFAULT_DATA: FinancialData = {
   assets: {
-    realEstate: [], underDevelopment: [], cash: [], gold: [], silver: [], otherAssets: [],
+    realEstate: [], underDevelopment: [], cash: [], gold: [], silver: [], platinum: [], otherAssets: [],
     salary: { amount: 0, currency: 'USD' }
   },
   liabilities: { loans: [], installments: [] },

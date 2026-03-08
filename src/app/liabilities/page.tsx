@@ -37,7 +37,20 @@ export default function LiabilitiesPage() {
     const [newScheduleItem, setNewScheduleItem] = useState({ date: "", amount: "", desc: "" });
 
     const handleEditClick = () => { setEditableData(JSON.parse(JSON.stringify(data))); setIsEditing(true); };
-    const handleSaveClick = () => { setData(editableData); setIsEditing(false); };
+    const handleSaveClick = () => {
+        const cleanedData = JSON.parse(JSON.stringify(editableData));
+        cleanedData.liabilities.installments.forEach((inst: any) => {
+            inst.amount = parseFloat(inst.amount) || 0;
+            inst.paid = parseFloat(inst.paid) || 0;
+        });
+        cleanedData.liabilities.loans.forEach((loan: any) => {
+            if (loan.initial !== undefined) loan.initial = parseFloat(loan.initial) || 0;
+            if (loan.remaining !== undefined) loan.remaining = parseFloat(loan.remaining) || 0;
+            if (loan.monthlyPayment !== undefined) loan.monthlyPayment = parseFloat(loan.monthlyPayment) || 0;
+        });
+        setData(cleanedData);
+        setIsEditing(false);
+    };
     const handleCancelClick = () => { setEditableData(JSON.parse(JSON.stringify(data))); setIsEditing(false); };
 
     const handleMarkScheduleAsPaid = (scheduleId: string) => {
@@ -50,9 +63,13 @@ export default function LiabilitiesPage() {
             if (itemIndex === -1) return;
             const item = inst.schedule[itemIndex];
             if (!inst.paymentHistory) inst.paymentHistory = [];
-            inst.paymentHistory.push({ ...item, id: `pay_moved_${Date.now()}`, description: item.description + " (Paid)" });
+
+            // Push as number and increment paid
+            const cleanAmount = Number(item.amount) || 0;
+            inst.paymentHistory.push({ ...item, amount: cleanAmount, id: `pay_moved_${Date.now()}`, description: item.description + " (Paid)" });
             inst.schedule.splice(itemIndex, 1);
-            inst.paid = inst.paymentHistory.reduce((sum: number, p: PaymentRecord) => sum + p.amount, 0);
+            inst.paid = Number(inst.paid || 0) + cleanAmount;
+
             inst.schedule.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
             if (inst.schedule.length > 0) { inst.nextDueDate = inst.schedule[0].date; inst.amount = inst.schedule[0].amount; }
             else { inst.nextDueDate = "Completed"; inst.amount = 0; }
@@ -71,7 +88,7 @@ export default function LiabilitiesPage() {
             const inst = newData.liabilities.installments[instIdx];
             if (!inst.paymentHistory) inst.paymentHistory = [];
             inst.paymentHistory.push(newRecord);
-            inst.paid = inst.paymentHistory.reduce((sum: number, p: PaymentRecord) => sum + p.amount, 0);
+            inst.paid = Number(inst.paid || 0) + amount;
             if (isEditing) setEditableData(newData); else setData(newData);
             setActiveHistory(inst);
             setNewPayment({ date: "", amount: "", desc: "" });
@@ -84,8 +101,11 @@ export default function LiabilitiesPage() {
         const instIdx = newData.liabilities.installments.findIndex((i: any) => i.id === activeHistory.id);
         if (instIdx > -1) {
             const inst = newData.liabilities.installments[instIdx];
-            inst.paymentHistory = inst.paymentHistory.filter((p: PaymentRecord) => p.id !== paymentId);
-            inst.paid = inst.paymentHistory.reduce((sum: number, p: PaymentRecord) => sum + p.amount, 0);
+            const paymentToDelete = inst.paymentHistory?.find((p: PaymentRecord) => p.id === paymentId);
+            if (paymentToDelete) {
+                inst.paid = Math.max(0, Number(inst.paid || 0) - Number(paymentToDelete.amount || 0));
+                inst.paymentHistory = inst.paymentHistory.filter((p: PaymentRecord) => p.id !== paymentId);
+            }
             if (isEditing) setEditableData(newData); else setData(newData);
             setActiveHistory(inst);
         }
@@ -126,8 +146,8 @@ export default function LiabilitiesPage() {
     const groupedInstallments: Record<string, Installment[]> = {};
     installments.forEach(inst => { const groupName = inst.developer || inst.project || "Other"; if (!groupedInstallments[groupName]) groupedInstallments[groupName] = []; groupedInstallments[groupName].push(inst); });
 
-    const handleInstallmentChange = (id: string, key: string, value: string) => { const newData = { ...editableData }; const inst = newData.liabilities.installments.find(i => i.id === id); if (inst) { (inst as any)[key] = ['notes', 'nextDueDate'].includes(key) ? value : (parseFloat(value) || 0); setEditableData(newData); } };
-    const handleLoanChange = (id: string, key: string, value: string) => { const newData = { ...editableData }; const loan = newData.liabilities.loans.find(l => l.id === id); if (loan) { (loan as any)[key] = key === 'notes' ? value : (parseFloat(value) || 0); setEditableData(newData); } };
+    const handleInstallmentChange = (id: string, key: string, value: string) => { const newData = { ...editableData }; const inst = newData.liabilities.installments.find(i => i.id === id); if (inst) { (inst as any)[key] = value; setEditableData(newData); } };
+    const handleLoanChange = (id: string, key: string, value: string) => { const newData = { ...editableData }; const loan = newData.liabilities.loans.find(l => l.id === id); if (loan) { (loan as any)[key] = value; setEditableData(newData); } };
     const handleDeleteConfirm = () => { if (!deleteTarget) return; const updatedData = JSON.parse(JSON.stringify(data)); if (deleteTarget.type === 'installment') updatedData.liabilities.installments = updatedData.liabilities.installments.filter((item: any) => item.id !== deleteTarget.id); else updatedData.liabilities.loans = updatedData.liabilities.loans.filter((item: any) => item.id !== deleteTarget.id); setData(updatedData); setDeleteTarget(null); };
     const handleAddLoan = (newLoan: any) => { const fullLoan = { ...newLoan, id: `l${Date.now()}` }; const updatedData = JSON.parse(JSON.stringify(data)); updatedData.liabilities.loans.push(fullLoan); setData(updatedData); setIsAddLoanDialogOpen(false); }
     const handleAddInstallment = (newInstallment: any) => { const fullInstallment = { ...newInstallment, id: `i${Date.now()}` }; const updatedData = JSON.parse(JSON.stringify(data)); updatedData.liabilities.installments.push(fullInstallment); setData(updatedData); setIsAddInstallmentDialogOpen(false); }
@@ -186,8 +206,8 @@ export default function LiabilitiesPage() {
                                         <div className="grid grid-cols-2 gap-4 text-sm">
                                             <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Total Cost</label><p className="font-mono text-white opacity-80">{formatNumber(calculatedTotal)} {p.currency}</p></div>
                                             <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Outstanding</label><p className="font-mono font-bold text-rose-400">{formatNumber(remaining)}</p></div>
-                                            <div className="col-span-2 pt-2"><div className="flex justify-between items-center bg-white/5 p-2 rounded"><div><span className="text-[10px] text-muted-foreground block">TOTAL PAID</span><span className="font-bold text-emerald-400">{formatNumber(p.paid)}</span></div><Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-7 text-xs" onClick={() => setActiveHistory(p)}><ScrollText className="h-3 w-3 mr-1" /> Manage Payments</Button></div></div>
-                                            <div className="space-y-1 mt-1 col-span-2"><div className="flex justify-between items-center bg-pink-950/30 p-2 rounded border border-pink-500/10"><span className="text-xs text-pink-200">Next Installment</span><div className="flex items-center gap-2"><span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded border border-pink-500/30">{formattedDueDate}</span>{isEditing ? <GlassInput type="number" className="w-24 text-right" defaultValue={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)} /> : <span className="font-mono font-bold text-pink-400">{formatNumber(p.amount)}</span>}</div></div></div>
+                                            <div className="col-span-2 pt-2"><div className="flex justify-between items-center bg-white/5 p-2 rounded"><div><span className="text-[10px] text-muted-foreground block">TOTAL PAID</span>{isEditing ? <GlassInput type="number" className="w-24 mt-1" value={p.paid} onChange={(e: any) => handleInstallmentChange(p.id, 'paid', e.target.value)} /> : <span className="font-bold text-emerald-400">{formatNumber(p.paid)}</span>}</div>{!isEditing && <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-7 text-xs" onClick={() => setActiveHistory(p)}><ScrollText className="h-3 w-3 mr-1" /> Manage Payments</Button>}</div></div>
+                                            <div className="space-y-1 mt-1 col-span-2"><div className="flex justify-between items-center bg-pink-950/30 p-2 rounded border border-pink-500/10"><span className="text-xs text-pink-200">Next Installment</span><div className="flex items-center gap-2"><span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded border border-pink-500/30">{formattedDueDate}</span>{isEditing ? <GlassInput type="number" className="w-24 text-right" value={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)} /> : <span className="font-mono font-bold text-pink-400">{formatNumber(p.amount)}</span>}</div></div></div>
                                             {(p.notes || isEditing) && (<div className="col-span-2 bg-pink-500/10 p-2 rounded border border-pink-500/20 mt-2"><label className="text-[10px] text-pink-400 flex items-center gap-1"><StickyNote className="h-3 w-3" /> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={p.notes || ""} onChange={(e) => handleInstallmentChange(p.id, 'notes', e.target.value)} placeholder="Add private notes..." /> : <p className="text-xs text-slate-300 italic">{p.notes}</p>}</div>)}
                                         </div>
                                         {isEditing && <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'installment', id: p.id })}><Trash2 className="h-4 w-4" /></Button>}

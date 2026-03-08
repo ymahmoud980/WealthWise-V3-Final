@@ -56,7 +56,7 @@ export default function BreakdownPage() {
             <Row label="Cash & Bank" value={metrics.assets.cash} isTotal format={format} />
             {(data.assets.cash || []).map(a => <Row key={a.id} label={a.location} value={convert(a.amount, a.currency, currency, rates)} isSub format={format} />)}
 
-            <Row label="Gold & Silver" value={metrics.assets.gold + metrics.assets.silver} isTotal format={format} />
+            <Row label="Gold, Silver & Platinum" value={metrics.assets.gold + metrics.assets.silver + (metrics.assets.platinum || 0)} isTotal format={format} />
 
             <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
             {(data.assets.otherAssets || []).map(a => <Row key={a.id} label={a.description} value={convert(a.value, a.currency, currency, rates)} isSub format={format} />)}

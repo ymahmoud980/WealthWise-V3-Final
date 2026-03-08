@@ -37,7 +37,25 @@ export default function AssetsPage() {
     useEffect(() => { if (isEditing) setEditableData(JSON.parse(JSON.stringify(data))); }, [isEditing, data]);
 
     const handleEditClick = () => setIsEditing(true);
-    const handleSaveClick = () => { setData(editableData); setIsEditing(false); };
+    const handleSaveClick = () => {
+        const cleanedData = JSON.parse(JSON.stringify(editableData));
+        const stringFields = ['id', 'name', 'description', 'location', 'currency', 'rentFrequency', 'notes', 'nextRentDueDate', 'linkedInstallmentId', 'date', 'url', 'rentCurrency'];
+
+        Object.keys(cleanedData.assets).forEach(section => {
+            if (Array.isArray(cleanedData.assets[section])) {
+                cleanedData.assets[section].forEach((item: any) => {
+                    Object.keys(item).forEach(key => {
+                        if (!stringFields.includes(key) && key !== 'documents') {
+                            cleanedData.assets[section][cleanedData.assets[section].indexOf(item)][key] = parseFloat(item[key]) || 0;
+                        }
+                    });
+                });
+            }
+        });
+
+        setData(cleanedData);
+        setIsEditing(false);
+    };
     const handleCancelClick = () => setIsEditing(false);
 
     const handleUploadClick = () => attachmentInputRef.current?.click();
@@ -99,8 +117,14 @@ export default function AssetsPage() {
                 currency: newAsset.currency, frequency: newAsset.paymentFrequency || 'Quarterly',
                 paymentHistory: []
             });
-        } else if (['gold', 'silver', 'cash'].includes(type)) {
-            const assetKey = type as 'gold' | 'silver' | 'cash';
+        } else if (['gold', 'silver', 'platinum', 'cash'].includes(type)) {
+            const assetKey = type as 'gold' | 'silver' | 'platinum' | 'cash';
+
+            // Defensively initialize the array if it's missing (e.g. from older saved data)
+            if (!updatedData.assets[assetKey]) {
+                updatedData.assets[assetKey] = [];
+            }
+
             const existing = updatedData.assets[assetKey].find((a: any) => a.location === newAsset.location);
             if (existing) {
                 if (type === 'cash') {
@@ -120,7 +144,14 @@ export default function AssetsPage() {
         if (!deleteTarget) return;
         const updatedData = JSON.parse(JSON.stringify(data));
         const key = deleteTarget.type === 'other' ? 'otherAssets' : deleteTarget.type as keyof FinancialData['assets'];
-        if (updatedData.assets[key]) updatedData.assets[key] = updatedData.assets[key].filter((item: any) => item.id !== deleteTarget.id);
+
+        // Ensure array exists before filtering
+        if (!updatedData.assets[key]) {
+            updatedData.assets[key] = [];
+        }
+
+        updatedData.assets[key] = updatedData.assets[key].filter((item: any) => item.id !== deleteTarget.id);
+
         if (deleteTarget.type === 'underDevelopment') {
             const asset = data.assets.underDevelopment.find(a => a.id === deleteTarget.id);
             if (asset?.linkedInstallmentId) updatedData.liabilities.installments = updatedData.liabilities.installments.filter((i: any) => i.id !== asset.linkedInstallmentId);
@@ -131,7 +162,7 @@ export default function AssetsPage() {
 
     const formatNumber = (num: number) => num.toLocaleString();
     const currentData = isEditing ? editableData : data;
-    const { realEstate, underDevelopment, cash, gold, silver, otherAssets } = currentData.assets;
+    const { realEstate, underDevelopment, cash, gold, silver, platinum, otherAssets } = currentData.assets;
 
     // FIX: Added missing installments destructuring
     const { installments } = currentData.liabilities;
@@ -141,8 +172,8 @@ export default function AssetsPage() {
             const list = (prev.assets as any)[section];
             const idx = list.findIndex((item: any) => item.id === id);
             if (idx > -1) {
-                const isString = ['name', 'description', 'location', 'currency', 'rentFrequency', 'notes', 'nextRentDueDate'].includes(field);
-                list[idx][field] = isString ? val : (parseFloat(val) || 0);
+                const isString = ['name', 'description', 'location', 'currency', 'rentFrequency', 'notes', 'nextRentDueDate', 'rentCurrency'].includes(field);
+                list[idx][field] = isString ? val : val;
             }
             return { ...prev };
         });
@@ -198,7 +229,7 @@ export default function AssetsPage() {
                         <Wallet className="w-4 h-4 text-blue-300" />
                         <InfoTooltip label="Liquid Reserves" explanation={<>Strictly <strong>Cash + Gold + Silver</strong>.</>} className="text-xs uppercase tracking-wider text-blue-300 font-semibold" />
                     </div>
-                    <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.cash || 0) + (metrics?.assets?.gold || 0) + (metrics?.assets?.silver || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
+                    <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.cash || 0) + (metrics?.assets?.gold || 0) + (metrics?.assets?.silver || 0) + (metrics?.assets?.platinum || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
             </div>
 
@@ -299,7 +330,49 @@ export default function AssetsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6 border-t border-white/10">
                 <div className="space-y-4 shadow-lg"><div className="flex items-center gap-2 text-lg font-semibold text-blue-400"><Wallet className="h-5 w-5" /> Liquid Cash</div><div className="glass-panel p-1 rounded-xl space-y-1 border border-blue-500/30 bg-gradient-to-br from-blue-950/20 to-black/40">{(cash || []).map(item => (<div key={item.id} className="p-4 flex justify-between items-center hover:bg-white/5 rounded-lg transition-colors"><div className="flex-1">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('cash', item.id, 'location', e.target.value)} className="w-full" placeholder="Bank Name" /> : <span className="font-medium text-slate-200">{item.location}</span>}</div><div className="text-right flex items-center gap-2">{isEditing ? <><GlassInput type="number" value={item.amount} className="w-24 text-right" onChange={(e: any) => handleAssetChange('cash', item.id, 'amount', e.target.value)} /><GlassInput value={item.currency} className="w-14" onChange={(e: any) => handleAssetChange('cash', item.id, 'currency', e.target.value)} /></> : <span className="font-mono font-bold text-blue-400">{formatNumber(item.amount)} {item.currency}</span>}</div>{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive ml-2" onClick={() => setDeleteTarget({ type: 'cash', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div>))}</div></div>
-                <div className="lg:col-span-2 space-y-4"><div className="flex items-center gap-2 text-lg font-semibold text-amber-400"><Gem className="h-5 w-5" /> Precious Metals</div><div className="grid md:grid-cols-2 gap-4"><div className="glass-panel p-5 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-black/40 shadow-lg"><h4 className="text-amber-500 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Gold Holdings</h4>{(gold || []).map(item => (<div key={item.id} className="flex justify-between items-center p-2 border-b border-amber-500/10 hover:bg-amber-500/5 rounded transition-colors">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('gold', item.id, 'location', e.target.value)} /> : <span className="text-amber-100/80">{item.location}</span>}<div className="flex items-center gap-2">{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-amber-400 text-lg">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div></div>))}</div><div className="glass-panel p-5 rounded-xl border border-slate-400/30 bg-gradient-to-br from-slate-800/20 to-black/40 shadow-lg"><h4 className="text-slate-300 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Silver Holdings</h4>{(silver || []).map(item => (<div key={item.id} className="flex justify-between items-center p-2 border-b border-slate-500/10 hover:bg-slate-500/5 rounded transition-colors">{isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('silver', item.id, 'location', e.target.value)} /> : <span className="text-slate-300/80">{item.location}</span>}<div className="flex items-center gap-2">{isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-slate-300 text-lg">{item.grams}g</span>}{isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}</div></div>))}</div></div></div>
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center gap-2 text-lg font-semibold text-amber-400">
+                        <Gem className="h-5 w-5" /> Precious Metals
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-4">
+                        <div className="glass-panel p-5 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-black/40 shadow-lg">
+                            <h4 className="text-amber-500 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Gold Holdings</h4>
+                            {(gold || []).map(item => (
+                                <div key={item.id} className="flex justify-between items-center p-2 border-b border-amber-500/10 hover:bg-amber-500/5 rounded transition-colors">
+                                    {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('gold', item.id, 'location', e.target.value)} /> : <span className="text-amber-100/80">{item.location}</span>}
+                                    <div className="flex items-center gap-2">
+                                        {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('gold', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-amber-400 text-lg">{item.grams}g</span>}
+                                        {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'gold', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="glass-panel p-5 rounded-xl border border-slate-400/30 bg-gradient-to-br from-slate-800/20 to-black/40 shadow-lg">
+                            <h4 className="text-slate-300 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Silver Holdings</h4>
+                            {(silver || []).map(item => (
+                                <div key={item.id} className="flex justify-between items-center p-2 border-b border-slate-500/10 hover:bg-slate-500/5 rounded transition-colors">
+                                    {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('silver', item.id, 'location', e.target.value)} /> : <span className="text-slate-300/80">{item.location}</span>}
+                                    <div className="flex items-center gap-2">
+                                        {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('silver', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-slate-300 text-lg">{item.grams}g</span>}
+                                        {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'silver', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="glass-panel p-5 rounded-xl border border-slate-300/30 bg-gradient-to-br from-slate-700/20 to-black/40 shadow-lg">
+                            <h4 className="text-slate-100 font-bold mb-3 uppercase tracking-wider text-sm flex items-center gap-2">Platinum Holdings</h4>
+                            {(platinum || []).map(item => (
+                                <div key={item.id} className="flex justify-between items-center p-2 border-b border-slate-400/10 hover:bg-slate-400/5 rounded transition-colors">
+                                    {isEditing ? <GlassInput value={item.location} onChange={(e: any) => handleAssetChange('platinum', item.id, 'location', e.target.value)} /> : <span className="text-slate-100/80">{item.location}</span>}
+                                    <div className="flex items-center gap-2">
+                                        {isEditing ? <GlassInput type="number" className="w-20" value={item.grams} onChange={(e: any) => handleAssetChange('platinum', item.id, 'grams', e.target.value)} /> : <span className="font-mono font-bold text-slate-100 text-lg">{item.grams}g</span>}
+                                        {isEditing && <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: 'platinum', id: item.id })}><Trash2 className="h-3 w-3" /></Button>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {otherAssets.length > 0 && (

@@ -21,6 +21,10 @@ export const convert = (
     const pricePerGram = (rates.Silver || 0) / GRAMS_PER_OUNCE;
     return convert(safeAmount * pricePerGram, 'USD', to, rates);
   }
+  if (from === 'PLATINUM_GRAM') {
+    const pricePerGram = (rates.Platinum || 0) / GRAMS_PER_OUNCE;
+    return convert(safeAmount * pricePerGram, 'USD', to, rates);
+  }
 
   const fromRate = Number(rates[from]) || 1;
   const toRate = Number(rates[to]) || 1;
@@ -33,7 +37,7 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
     return {
       netWorth: 0, totalAssets: 0, totalLiabilities: 0, netCashFlow: 0, operatingCashFlow: 0,
       totalIncome: 0, totalExpenses: 0,
-      assets: { existingRealEstate: 0, offPlanRealEstate: 0, cash: 0, gold: 0, silver: 0, other: 0 },
+      assets: { existingRealEstate: 0, offPlanRealEstate: 0, cash: 0, gold: 0, silver: 0, platinum: 0, other: 0 },
       liabilities: { loans: 0, installments: 0 },
       income: { salary: 0, rent: 0 },
       expenses: { loans: 0, household: 0, installmentsAvg: 0 }
@@ -48,9 +52,10 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
   const cashValue = (assets.cash || []).reduce((acc, a) => acc + convert(a.amount, a.currency, displayCurrency, rates), 0);
   const goldValue = (assets.gold || []).reduce((acc, a) => acc + convert(a.grams, 'GOLD_GRAM', displayCurrency, rates), 0);
   const silverValue = (assets.silver || []).reduce((acc, a) => acc + convert(a.grams, 'SILVER_GRAM', displayCurrency, rates), 0);
+  const platinumValue = (assets.platinum || []).reduce((acc, a) => acc + convert(a.grams, 'PLATINUM_GRAM', displayCurrency, rates), 0);
   const otherAssetsValue = (assets.otherAssets || []).reduce((acc, a) => acc + convert(a.value, a.currency, displayCurrency, rates), 0);
 
-  const totalAssets = realEstateValue + underDevelopmentValue + cashValue + goldValue + silverValue + otherAssetsValue;
+  const totalAssets = realEstateValue + underDevelopmentValue + cashValue + goldValue + silverValue + platinumValue + otherAssetsValue;
 
   // --- LIABILITIES ---
   const loansValue = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.remaining, l.currency, displayCurrency, rates), 0);
@@ -116,14 +121,14 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
   const leverageRatio = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0;
 
   // Calculate liquid assets
-  const liquidAssets = cashValue + goldValue + silverValue;
+  const liquidAssets = cashValue + goldValue + silverValue + platinumValue;
   // How many months can user survive on liquid assets paying base household expenses?
   const liquidityMonths = householdExpenses > 0 ? (liquidAssets / householdExpenses) : 0;
 
   return {
     netWorth, totalAssets, totalLiabilities, netCashFlow, operatingCashFlow,
     totalIncome, totalExpenses,
-    assets: { existingRealEstate: realEstateValue, offPlanRealEstate: underDevelopmentValue, cash: cashValue, gold: goldValue, silver: silverValue, other: otherAssetsValue },
+    assets: { existingRealEstate: realEstateValue, offPlanRealEstate: underDevelopmentValue, cash: cashValue, gold: goldValue, silver: silverValue, platinum: platinumValue, other: otherAssetsValue },
     liabilities: { loans: loansValue, installments: installmentsValue },
     income: { salary: salaryIncome, rent: rentIncome },
     expenses: { loans: loanExpenses, household: householdExpenses, installmentsAvg: installmentsAvgExpense },

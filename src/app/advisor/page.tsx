@@ -59,6 +59,7 @@ export default function AdvisorPage() {
             ${(data.assets?.cash || []).map(c => `   * Cash (${c.location}): ${Number(c.amount).toLocaleString()} ${c.currency}`).join('\n')}
             ${(data.assets?.gold || []).map(g => `   * Gold: ${g.grams}g (${g.location})`).join('\n')}
             ${(data.assets?.silver || []).map(s => `   * Silver: ${s.grams}g (${s.location})`).join('\n')}
+            ${(data.assets?.platinum || []).map(p => `   * Platinum: ${p.grams}g (${p.location})`).join('\n')}
             - Other Assets:
             ${(data.assets?.otherAssets || []).map(o => `   * ${o.description}: ${Number(o.value).toLocaleString()} ${o.currency}`).join('\n')}
             

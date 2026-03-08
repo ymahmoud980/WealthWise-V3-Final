@@ -16,7 +16,7 @@ interface AddAssetDialogProps {
 
 export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogProps) {
   const [activeTab, setActiveTab] = useState("realEstate");
-  
+
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -24,7 +24,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     value: "", // Current Market Value
     cost: "",  // Base Purchase Price
     currency: "USD",
-    
+
     // Rental Props
     monthlyRent: "",
     rentFrequency: "monthly",
@@ -35,7 +35,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     parkingCost: "",
     maintenanceDate: "",
     paymentFrequency: "Quarterly", // For the linked liability
-    
+
     // Metals/Cash
     grams: "",
     amount: ""
@@ -49,42 +49,42 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     let newAsset: any = {};
 
     if (activeTab === 'realEstate') {
-       newAsset = {
-         name: formData.name,
-         location: formData.location,
-         currentValue: parseFloat(formData.value) || 0,
-         purchasePrice: parseFloat(formData.cost) || 0,
-         currency: formData.currency,
-         monthlyRent: parseFloat(formData.monthlyRent) || 0,
-         rentFrequency: formData.rentFrequency,
-         nextRentDueDate: formData.nextRentDate || new Date().toISOString().split('T')[0]
-       };
-    } 
-    else if (activeTab === 'underDevelopment') {
-       newAsset = {
-         name: formData.name,
-         location: formData.location,
-         currentValue: parseFloat(formData.value) || 0,
-         purchasePrice: parseFloat(formData.cost) || 0,
-         currency: formData.currency,
-         maintenanceCost: parseFloat(formData.maintenanceCost) || 0,
-         parkingCost: parseFloat(formData.parkingCost) || 0,
-         maintenanceDueDate: formData.maintenanceDate,
-         paymentFrequency: formData.paymentFrequency 
-       };
+      newAsset = {
+        name: formData.name,
+        location: formData.location,
+        currentValue: parseFloat(formData.value) || 0,
+        purchasePrice: parseFloat(formData.cost) || 0,
+        currency: formData.currency,
+        monthlyRent: parseFloat(formData.monthlyRent) || 0,
+        rentFrequency: formData.rentFrequency,
+        nextRentDueDate: formData.nextRentDate || new Date().toISOString().split('T')[0]
+      };
     }
-    else if (['gold', 'silver', 'cash', 'other'].includes(activeTab)) {
-        if (activeTab === 'cash') {
-            newAsset = { location: formData.name, amount: parseFloat(formData.amount) || 0, currency: formData.currency };
-        } else if (activeTab === 'other') {
-            newAsset = { description: formData.name, value: parseFloat(formData.value) || 0, currency: formData.currency };
-        } else {
-            newAsset = { location: formData.location, grams: parseFloat(formData.grams) || 0 };
-        }
+    else if (activeTab === 'underDevelopment') {
+      newAsset = {
+        name: formData.name,
+        location: formData.location,
+        currentValue: parseFloat(formData.value) || 0,
+        purchasePrice: parseFloat(formData.cost) || 0,
+        currency: formData.currency,
+        maintenanceCost: parseFloat(formData.maintenanceCost) || 0,
+        parkingCost: parseFloat(formData.parkingCost) || 0,
+        maintenanceDueDate: formData.maintenanceDate,
+        paymentFrequency: formData.paymentFrequency
+      };
+    }
+    else if (['gold', 'silver', 'platinum', 'cash', 'other'].includes(activeTab)) {
+      if (activeTab === 'cash') {
+        newAsset = { location: formData.name, amount: parseFloat(formData.amount) || 0, currency: formData.currency };
+      } else if (activeTab === 'other') {
+        newAsset = { description: formData.name, value: parseFloat(formData.value) || 0, currency: formData.currency };
+      } else {
+        newAsset = { location: formData.location, grams: parseFloat(formData.grams) || 0 };
+      }
     }
 
     onAddAsset(newAsset, activeTab);
-    
+
     // Reset
     setFormData({ name: "", location: "", value: "", cost: "", currency: "USD", monthlyRent: "", rentFrequency: "monthly", nextRentDate: "", maintenanceCost: "", parkingCost: "", maintenanceDate: "", paymentFrequency: "Quarterly", grams: "", amount: "" });
   };
@@ -109,88 +109,89 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
           {/* --- READY PROPERTY --- */}
           <TabsContent value="realEstate" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Property Name</Label><Input className={inputClass} placeholder="e.g. Gardenia Apt 1" value={formData.name} onChange={e => handleChange('name', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Location</Label><Input className={inputClass} placeholder="City/Building" value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Property Name</Label><Input className={inputClass} placeholder="e.g. Gardenia Apt 1" value={formData.name} onChange={e => handleChange('name', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Location</Label><Input className={inputClass} placeholder="City/Building" value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Current Market Value</Label><Input type="number" className={inputClass} value={formData.value} onChange={e => handleChange('value', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Currency</Label><Select value={formData.currency} onValueChange={v => handleChange('currency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="USD">USD</SelectItem><SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem><SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem></SelectContent></Select></div>
+              <div className="space-y-2"><Label>Current Market Value</Label><Input type="number" className={inputClass} value={formData.value} onChange={e => handleChange('value', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Currency</Label><Select value={formData.currency} onValueChange={v => handleChange('currency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="USD">USD</SelectItem><SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem><SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem></SelectContent></Select></div>
             </div>
             <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
-                <div className="space-y-2"><Label>Monthly Rent</Label><Input type="number" className={inputClass} value={formData.monthlyRent} onChange={e => handleChange('monthlyRent', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Next Rent Date</Label><Input type="date" className={inputClass} value={formData.nextRentDate} onChange={e => handleChange('nextRentDate', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Monthly Rent</Label><Input type="number" className={inputClass} value={formData.monthlyRent} onChange={e => handleChange('monthlyRent', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Next Rent Date</Label><Input type="date" className={inputClass} value={formData.nextRentDate} onChange={e => handleChange('nextRentDate', e.target.value)} /></div>
             </div>
           </TabsContent>
 
           {/* --- OFF PLAN --- */}
           <TabsContent value="underDevelopment" className="space-y-4 py-4">
-             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Project Name</Label><Input className={inputClass} placeholder="e.g. Nile Admin" value={formData.name} onChange={e => handleChange('name', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Location</Label><Input className={inputClass} placeholder="Area" value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Project Name</Label><Input className={inputClass} placeholder="e.g. Nile Admin" value={formData.name} onChange={e => handleChange('name', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Location</Label><Input className={inputClass} placeholder="Area" value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-2"><Label>Unit Base Price</Label><Input type="number" className={inputClass} value={formData.cost} onChange={e => handleChange('cost', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Current Market Value</Label><Input type="number" className={inputClass} value={formData.value} onChange={e => handleChange('value', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Currency</Label><Select value={formData.currency} onValueChange={v => handleChange('currency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="USD">USD</SelectItem><SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem><SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem></SelectContent></Select></div>
+              <div className="space-y-2"><Label>Unit Base Price</Label><Input type="number" className={inputClass} value={formData.cost} onChange={e => handleChange('cost', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Current Market Value</Label><Input type="number" className={inputClass} value={formData.value} onChange={e => handleChange('value', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Currency</Label><Select value={formData.currency} onValueChange={v => handleChange('currency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="USD">USD</SelectItem><SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem><SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem></SelectContent></Select></div>
             </div>
             <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
-                <div className="space-y-2"><Label>Maintenance Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.maintenanceCost} onChange={e => handleChange('maintenanceCost', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Parking Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.parkingCost} onChange={e => handleChange('parkingCost', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Maintenance Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.maintenanceCost} onChange={e => handleChange('maintenanceCost', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Parking Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.parkingCost} onChange={e => handleChange('parkingCost', e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Maint. Due Date</Label><Input type="date" className={inputClass} value={formData.maintenanceDate} onChange={e => handleChange('maintenanceDate', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Installment Freq.</Label><Select value={formData.paymentFrequency} onValueChange={v => handleChange('paymentFrequency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Monthly">Monthly</SelectItem><SelectItem value="Quarterly">Quarterly</SelectItem><SelectItem value="Semi-Annual">Semi-Annual</SelectItem><SelectItem value="Annual">Annual</SelectItem></SelectContent></Select></div>
+              <div className="space-y-2"><Label>Maint. Due Date</Label><Input type="date" className={inputClass} value={formData.maintenanceDate} onChange={e => handleChange('maintenanceDate', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Installment Freq.</Label><Select value={formData.paymentFrequency} onValueChange={v => handleChange('paymentFrequency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Monthly">Monthly</SelectItem><SelectItem value="Quarterly">Quarterly</SelectItem><SelectItem value="Semi-Annual">Semi-Annual</SelectItem><SelectItem value="Annual">Annual</SelectItem></SelectContent></Select></div>
             </div>
           </TabsContent>
 
           {/* --- OTHER / CASH / METALS (FIXED) --- */}
           <TabsContent value="other" className="space-y-4 py-4">
-             <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                     <Label>Asset Type</Label>
-                     <Select onValueChange={setActiveTab}>
-                        <SelectTrigger className={inputClass}><SelectValue placeholder="Select Type" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="other">Other Asset / Loan</SelectItem>
-                            <SelectItem value="cash">Cash / Bank</SelectItem>
-                            <SelectItem value="gold">Gold</SelectItem>
-                            <SelectItem value="silver">Silver</SelectItem>
-                        </SelectContent>
-                     </Select>
-                 </div>
-                 
-                 {/* AMOUNT INPUT */}
-                 <div className="space-y-2">
-                     <Label>{(activeTab === 'cash' || activeTab === 'other') ? 'Value' : 'Weight (Grams)'}</Label>
-                     <Input type="number" className={inputClass} value={activeTab === 'cash' ? formData.amount : activeTab === 'other' ? formData.value : formData.grams} onChange={e => handleChange(activeTab === 'cash' ? 'amount' : activeTab === 'other' ? 'value' : 'grams', e.target.value)} />
-                 </div>
-             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Asset Type</Label>
+                <Select onValueChange={setActiveTab}>
+                  <SelectTrigger className={inputClass}><SelectValue placeholder="Select Type" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="other">Other Asset / Loan</SelectItem>
+                    <SelectItem value="cash">Cash / Bank</SelectItem>
+                    <SelectItem value="gold">Gold</SelectItem>
+                    <SelectItem value="silver">Silver</SelectItem>
+                    <SelectItem value="platinum">Platinum</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-             {/* DESCRIPTION INPUT */}
-             {(activeTab === 'cash' || activeTab === 'other') && (
-                 <div className="space-y-2">
-                    <Label>{activeTab === 'cash' ? 'Bank Name' : 'Description (e.g. Loan to Mahmoud)'}</Label>
-                    <Input className={inputClass} value={formData.name} onChange={e => handleChange('name', e.target.value)} />
-                 </div>
-             )}
-             {(activeTab === 'gold' || activeTab === 'silver') && (
-                 <div className="space-y-2"><Label>Storage Location</Label><Input className={inputClass} value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
-             )}
+              {/* AMOUNT INPUT */}
+              <div className="space-y-2">
+                <Label>{(activeTab === 'cash' || activeTab === 'other') ? 'Value' : 'Weight (Grams)'}</Label>
+                <Input type="number" className={inputClass} value={activeTab === 'cash' ? formData.amount : activeTab === 'other' ? formData.value : formData.grams} onChange={e => handleChange(activeTab === 'cash' ? 'amount' : activeTab === 'other' ? 'value' : 'grams', e.target.value)} />
+              </div>
+            </div>
 
-             {/* CURRENCY INPUT (ADDED FOR OTHER/CASH) */}
-             {(activeTab === 'cash' || activeTab === 'other') && (
-                 <div className="space-y-2">
-                    <Label>Currency</Label>
-                    <Select value={formData.currency} onValueChange={v => handleChange('currency', v)}>
-                        <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem>
-                            <SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem>
-                        </SelectContent>
-                    </Select>
-                 </div>
-             )}
+            {/* DESCRIPTION INPUT */}
+            {(activeTab === 'cash' || activeTab === 'other') && (
+              <div className="space-y-2">
+                <Label>{activeTab === 'cash' ? 'Bank Name' : 'Description (e.g. Loan to Mahmoud)'}</Label>
+                <Input className={inputClass} value={formData.name} onChange={e => handleChange('name', e.target.value)} />
+              </div>
+            )}
+            {(activeTab === 'gold' || activeTab === 'silver' || activeTab === 'platinum') && (
+              <div className="space-y-2"><Label>Storage Location</Label><Input className={inputClass} value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
+            )}
+
+            {/* CURRENCY INPUT (ADDED FOR OTHER/CASH) */}
+            {(activeTab === 'cash' || activeTab === 'other') && (
+              <div className="space-y-2">
+                <Label>Currency</Label>
+                <Select value={formData.currency} onValueChange={v => handleChange('currency', v)}>
+                  <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem>
+                    <SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </TabsContent>
 
         </Tabs>

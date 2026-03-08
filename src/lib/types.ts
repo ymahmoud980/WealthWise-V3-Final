@@ -17,7 +17,7 @@ export interface Installment {
   nextDueDate: string;
   currency: Currency;
   frequency: 'Monthly' | 'Quarterly' | 'Semi-Annual' | 'Annual' | 'One-Time';
-  
+
   paymentHistory?: PaymentRecord[]; // Past
   schedule?: PaymentRecord[];       // Full Plan (Past + Future)
   notes?: string;
@@ -86,6 +86,13 @@ export interface SilverAsset {
   notes?: string;
 }
 
+export interface PlatinumAsset {
+  id: string;
+  location: string;
+  grams: number;
+  notes?: string;
+}
+
 export interface OtherAsset {
   id: string;
   description: string;
@@ -114,6 +121,7 @@ export interface FinancialData {
     cash: CashAsset[];
     gold: GoldAsset[];
     silver: SilverAsset[];
+    platinum: PlatinumAsset[];
     otherAssets: OtherAsset[];
     salary: { amount: number; currency: Currency };
   };

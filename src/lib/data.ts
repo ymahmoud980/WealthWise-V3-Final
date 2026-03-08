@@ -16,10 +16,10 @@ export const initialFinancialData: FinancialData = {
             { id: 're4', name: "Miami Apt.", location: "Alexandria", currentValue: 3000000, currency: "EGP", monthlyRent: 8000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
             { id: 're5', name: "City Light Apt. 1", location: "Alexandria", currentValue: 2270000, currency: "EGP", monthlyRent: 6000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
             { id: 're6', name: "City Light Apt. 2", location: "Alexandria", currentValue: 1650000, currency: "EGP", monthlyRent: 6000, rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01', rentCurrency: 'EGP' },
-            { id: 're8', name: "Neurol Park Apt.", location: "Turkey", currentValue: 154000, currency: "USD", monthlyRent: 138000, rentCurrency: "TRY", rentDueDay: 1, rentFrequency: 'semi-annual', nextRentDueDate: '2026-01-01'},
-            { id: 're9', name: "Adres Atakent Apt.", location: "Turkey", currentValue: 196000, currency: "USD", monthlyRent: 29000, rentCurrency: "TRY", rentDueDay: 8, rentFrequency: 'monthly', nextRentDueDate: '2025-08-08'},
-            { id: 're10', name: "Innovia Apt. 1 (Mr. Ali)", location: "Turkey", currentValue: 95000, currency: "USD", monthlyRent: 13000, rentCurrency: "TRY", rentDueDay: 20, rentFrequency: 'monthly', nextRentDueDate: '2025-08-20'},
-            { id: 're11', name: "Innovia Apt. 2", location: "Turkey", currentValue: 60000, currency: "USD", monthlyRent: 20000, rentCurrency: "TRY", rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01'},
+            { id: 're8', name: "Neurol Park Apt.", location: "Turkey", currentValue: 154000, currency: "USD", monthlyRent: 138000, rentCurrency: "TRY", rentDueDay: 1, rentFrequency: 'semi-annual', nextRentDueDate: '2026-01-01' },
+            { id: 're9', name: "Adres Atakent Apt.", location: "Turkey", currentValue: 196000, currency: "USD", monthlyRent: 29000, rentCurrency: "TRY", rentDueDay: 8, rentFrequency: 'monthly', nextRentDueDate: '2025-08-08' },
+            { id: 're10', name: "Innovia Apt. 1 (Mr. Ali)", location: "Turkey", currentValue: 95000, currency: "USD", monthlyRent: 13000, rentCurrency: "TRY", rentDueDay: 20, rentFrequency: 'monthly', nextRentDueDate: '2025-08-20' },
+            { id: 're11', name: "Innovia Apt. 2", location: "Turkey", currentValue: 60000, currency: "USD", monthlyRent: 20000, rentCurrency: "TRY", rentDueDay: 1, rentFrequency: 'monthly', nextRentDueDate: '2025-09-01' },
         ],
         underDevelopment: [
             { id: 'ud1', name: 'Nile Admin (A4719)', location: 'New Capital', purchasePrice: 2414450, currentValue: 3621675, currency: 'EGP', linkedInstallmentId: 'i1' },
@@ -34,14 +34,15 @@ export const initialFinancialData: FinancialData = {
             { id: 'c2', location: "Kuwait", amount: 11622, currency: "KWD" },
             { id: 'c3', location: "Turkey", amount: 115924, currency: "TRY" },
         ],
-        gold: [ 
+        gold: [
             { id: 'g1', location: "Egypt", grams: 450 },
             { id: 'g2', location: "Kuwait", grams: 1050 },
             { id: 'g3', location: "Turkey", grams: 92 },
         ],
-        silver: [ 
-            { id: 's1', location: "Egypt", grams: 1000 } 
+        silver: [
+            { id: 's1', location: "Egypt", grams: 1000 }
         ],
+        platinum: [],
         otherAssets: [
             { id: 'oa1', description: "End of Service Allowance (KOC)", value: 82000, currency: "KWD" },
             { id: 'oa2', description: "Loan to Mahmoud (Receivable)", value: 677, currency: "KWD" },
@@ -83,6 +84,7 @@ export const emptyFinancialData: FinancialData = {
         cash: [],
         gold: [],
         silver: [],
+        platinum: [],
         otherAssets: [],
         salary: { id: 's1', amount: 0, currency: "USD" }
     },
@@ -97,7 +99,7 @@ export const emptyFinancialData: FinancialData = {
     lastUpdated: new Date().toISOString()
 };
 
-    
-    
 
-    
+
+
+

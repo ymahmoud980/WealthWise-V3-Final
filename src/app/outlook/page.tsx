@@ -26,8 +26,8 @@ export default function OutlookPage() {
     }, [data, rates]);
 
     // 2. STATE in KWD
-    const [projectBudgetInKWD, setProjectBudgetInKWD] = useState(0);
-    const [startingCashInKWD, setStartingCashInKWD] = useState(0);
+    const [projectBudgetInKWD, setProjectBudgetInKWD] = useState<number | string>(0);
+    const [startingCashInKWD, setStartingCashInKWD] = useState<number | string>(0);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // 3. LOAD STRATEGY (Runs on mount or when underlying data changes)
@@ -46,13 +46,13 @@ export default function OutlookPage() {
     }, [realLiquidCashInKWD, totalMonthlyFreeInKWD]);
 
     // 4. SAVE HANDLERS (using KWD)
-    const handleCashChange = (val: number) => {
+    const handleCashChange = (val: number | string) => {
         setStartingCashInKWD(val);
         localStorage.setItem("strategy_starting_cash_kwd", val.toString());
     };
 
-    const handleBudgetChange = (val: number) => {
-        const safeVal = Math.max(0, val);
+    const handleBudgetChange = (val: number | string) => {
+        const safeVal = Math.max(0, Number(val) || 0);
         setProjectBudgetInKWD(safeVal);
         localStorage.setItem("strategy_project_budget_kwd", safeVal.toString());
     };
@@ -66,7 +66,7 @@ export default function OutlookPage() {
         }
     };
 
-    const duplexBudgetInKWD = totalMonthlyFreeInKWD - projectBudgetInKWD;
+    const duplexBudgetInKWD = totalMonthlyFreeInKWD - (Number(projectBudgetInKWD) || 0);
 
     // Helper to display KWD values in the globally selected currency
     const formatForDisplay = (kwdValue: number) => {
@@ -97,8 +97,8 @@ export default function OutlookPage() {
     // --- 6. RUN SIMULATION (in KWD) ---
     const monthlyAnalysis = [];
 
-    let runningBalanceInKWD = isLoaded ? startingCashInKWD : realLiquidCashInKWD;
-    const budgetToUseInKWD = isLoaded ? projectBudgetInKWD : totalMonthlyFreeInKWD;
+    let runningBalanceInKWD = isLoaded ? (Number(startingCashInKWD) || 0) : realLiquidCashInKWD;
+    const budgetToUseInKWD = isLoaded ? (Number(projectBudgetInKWD) || 0) : totalMonthlyFreeInKWD;
 
     let cursor = startOfMonth(today);
 
@@ -175,8 +175,8 @@ export default function OutlookPage() {
                         <div className="relative">
                             <Input
                                 type="number"
-                                value={Math.round(startingCashInKWD) || 0}
-                                onChange={(e) => handleCashChange(parseFloat(e.target.value) || 0)}
+                                value={startingCashInKWD}
+                                onChange={(e) => handleCashChange(e.target.value)}
                                 className="bg-black/40 border-slate-600 text-2xl font-mono text-white h-12 pr-12"
                             />
                             <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">KWD</span>
@@ -190,14 +190,14 @@ export default function OutlookPage() {
                         <div className="relative">
                             <Input
                                 type="number"
-                                value={Math.round(projectBudgetInKWD) || 0}
-                                onChange={(e) => handleBudgetChange(parseFloat(e.target.value))}
+                                value={projectBudgetInKWD}
+                                onChange={(e) => handleBudgetChange(e.target.value)}
                                 className="bg-black/40 border-blue-500/50 text-2xl font-mono text-white h-12 pr-12"
                             />
                             <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">KWD</span>
                         </div>
                         <div className="space-y-2 pt-2">
-                            <Slider value={[projectBudgetInKWD || 0]} max={totalMonthlyFreeInKWD * 1.5} step={100} onValueChange={(val) => handleBudgetChange(val[0])} className="cursor-pointer" />
+                            <Slider value={[Number(projectBudgetInKWD) || 0]} max={totalMonthlyFreeInKWD * 1.5} step={100} onValueChange={(val) => handleBudgetChange(val[0])} className="cursor-pointer" />
                             <p className="text-[10px] text-blue-300/70 text-center">Drag to adjust allocation</p>
                         </div>
                     </div>
