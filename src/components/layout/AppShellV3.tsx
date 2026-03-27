@@ -19,7 +19,8 @@ import {
     TrendingUp,
     Banknote,
     Zap,
-    BookOpen
+    BookOpen,
+    StickyNote
 } from "lucide-react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useCurrency } from "@/hooks/use-currency";
@@ -58,6 +59,7 @@ export function AppShellV3({ children }: { children: React.ReactNode }) {
         { name: "Simulators", href: "/calculator", icon: <Calculator className="h-5 w-5" /> },
         { name: "AI Advisor", href: "/advisor", icon: <Zap className="h-5 w-5" /> },
         { name: "Guide", href: "/guide", icon: <BookOpen className="h-5 w-5" /> },
+        { name: "Notes", href: "/notes", icon: <StickyNote className="h-5 w-5" /> },
     ];
 
     return (

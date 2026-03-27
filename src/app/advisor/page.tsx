@@ -6,7 +6,7 @@ import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useCurrency } from "@/hooks/use-currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BrainCircuit, Send, User, Bot, Loader2 } from "lucide-react";
+import { BrainCircuit, Send, User, Bot, Loader2, XCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { advisorChat } from "@/ai/flows/advisor-chat";
 
@@ -19,6 +19,7 @@ export default function AdvisorPage() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,8 +46,12 @@ export default function AdvisorPage() {
             - Total Debt: ${format(metrics.totalLiabilities)}
             - Monthly Free Cash: ${format(metrics.operatingCashFlow)}
 
-            LIVE EXCHANGE RATES (Respect to USD):
+            LIVE EXCHANGE RATES (1 USD equals):
             ${Object.entries(rates || {}).map(([c, r]) => `- ${c}: ${r}`).join('\n')}
+            
+            CURRENCY MATH RULE:
+            - To convert FROM USD to another currency (e.g., KWD), MULTIPLY the USD amount by the rate (e.g., $1000 USD * 0.308 = 308 KWD).
+            - To convert FROM another currency to USD, DIVIDE the amount by the rate.
 
             ASSETS:
             - Monthly Salary & Income:
@@ -76,9 +81,13 @@ export default function AdvisorPage() {
         return `   * ${i.project} (${i.developer}): Owe ${Number(i.total - i.paid).toLocaleString()} ${i.currency}. Next payments: ${next3.map((p: any) => `${p.date}: ${Number(p.amount).toLocaleString()} ${i.currency}`).join(", ")}`;
       }).join('\n')}
 
+
+            CONVERSATION HISTORY:
+            ${messages.slice(-6).map(m => `${m.role === 'user' ? 'CLIENT' : 'ADVISOR'}: ${m.text}`).join('\n')}
+
             USER QUESTION: "${userMsg}"
             
-            INSTRUCTIONS: Answer as a financial advisor. Be concise. Use bold for numbers.
+            INSTRUCTIONS: Answer as a financial advisor. Be concise. Use bold for numbers. Refer to previous parts of the conversation if relevant.
         `;
 
       // 2. USE GENKIT FLOW
@@ -99,7 +108,20 @@ export default function AdvisorPage() {
     <div className="flex flex-col h-screen max-h-screen bg-[#020817] text-white p-4 md:p-6 pb-20">
       <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10 shrink-0">
         <div className="p-2 bg-pink-600/20 rounded-lg"><BrainCircuit className="h-6 w-6 text-pink-500" /></div>
-        <div><h1 className="text-xl font-bold">AI Wealth Advisor</h1><p className="text-xs text-muted-foreground">Powered by Genkit &amp; Gemini</p></div>
+        <div className="flex-1">
+          <h1 className="text-xl font-bold">AI Wealth Advisor</h1>
+          <p className="text-xs text-muted-foreground">Powered by Genkit & Gemini • Fully Contextual Memory</p>
+        </div>
+        {isLoading && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => { setIsLoading(false); setInput(""); }} 
+            className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+          >
+            <XCircle className="h-4 w-4 mr-2" /> Stop
+          </Button>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
         {messages.map((msg, i) => (

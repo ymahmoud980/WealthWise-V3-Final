@@ -22,6 +22,7 @@ import {
   HeartPulse,
   AreaChart,
   BookOpen,
+  StickyNote,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -36,6 +37,7 @@ const navItems = [
   { href: "/report", label: "Financial Report", icon: <BookOpen /> },
   { href: "/advisor", label: "AI Advisor", icon: <BrainCircuit /> },
   { href: "/calculator", label: "Currency Calculator", icon: <Calculator /> },
+  { href: "/notes", label: "Executive Notes", icon: <StickyNote /> },
 ];
 
 export function AppSidebar() {

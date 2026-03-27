@@ -18,7 +18,8 @@ import {
     FileText,
     CalendarClock,
     HeartPulse,
-    Banknote
+    Banknote,
+    StickyNote
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,7 +34,7 @@ interface SidebarProps {
 
 export function Sidebar({ className, onClose }: SidebarProps) {
     const pathname = usePathname();
-    const { user, logOut } = useAuth();
+    const { user, logout } = useAuth();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -61,6 +62,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
         { name: "Health", href: "/health", icon: <HeartPulse className="h-5 w-5" /> },
         { name: "Trends", href: "/trends", icon: <TrendingUp className="h-5 w-5" /> },
         { name: "Cash Flow", href: "/cashflow", icon: <Banknote className="h-5 w-5" /> },
+        { name: "Executive Notes", href: "/notes", icon: <StickyNote className="h-5 w-5" /> },
     ];
 
     const userImage = user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.email || 'guest'}`;
@@ -133,7 +135,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                     </div>
                 )}
                 {!isCollapsed && (
-                    <button onClick={logOut} className="mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 border border-transparent hover:border-rose-500/20 transition-all">
+                    <button onClick={logout} className="mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 border border-transparent hover:border-rose-500/20 transition-all">
                         <LogOut className="h-4 w-4" /> Sign Out
                     </button>
                 )}
