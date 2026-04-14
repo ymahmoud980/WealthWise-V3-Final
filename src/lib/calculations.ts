@@ -48,7 +48,16 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
 
   // --- ASSETS ---
   const realEstateValue = (assets.realEstate || []).reduce((acc, a) => acc + convert(a.currentValue, a.currency, displayCurrency, rates), 0);
-  const underDevelopmentValue = (assets.underDevelopment || []).reduce((acc, a) => acc + convert(a.currentValue, a.currency, displayCurrency, rates), 0);
+  
+  // USER REQUEST: Use "Paid Amount" as asset value for Off-Plan to track equity growth.
+  const underDevelopmentValue = (assets.underDevelopment || []).reduce((acc, a) => {
+    const linkedInst = (liabilities.installments || []).find(i => i.id === a.linkedInstallmentId);
+    // If we have a linked installment, use what's actually been paid. 
+    // Fallback to the 'paidToDate' field we just added, or 0.
+    const paidAmount = linkedInst ? linkedInst.paid : (a as any).paidToDate || 0;
+    return acc + convert(paidAmount, a.currency, displayCurrency, rates);
+  }, 0);
+
   const cashValue = (assets.cash || []).reduce((acc, a) => acc + convert(a.amount, a.currency, displayCurrency, rates), 0);
   const goldValue = (assets.gold || []).reduce((acc, a) => acc + convert(a.grams, 'GOLD_GRAM', displayCurrency, rates), 0);
   const silverValue = (assets.silver || []).reduce((acc, a) => acc + convert(a.grams, 'SILVER_GRAM', displayCurrency, rates), 0);
@@ -59,10 +68,17 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
 
   // --- LIABILITIES ---
   const loansValue = (liabilities.loans || []).reduce((acc, l) => acc + convert(l.remaining, l.currency, displayCurrency, rates), 0);
-  const installmentsValue = (liabilities.installments || []).reduce((acc, i) => acc + convert(i.total - i.paid, i.currency, displayCurrency, rates), 0);
-  const totalLiabilities = loansValue + installmentsValue;
-
-  const netWorth = totalAssets - totalLiabilities;
+  
+  // The ACTUAL remaining debt on all installments
+  const actualInstallmentsDebt = (liabilities.installments || []).reduce((acc, i) => acc + convert(i.total - i.paid, i.currency, displayCurrency, rates), 0);
+  
+  // USER REQUEST: To avoid negative net worth shock from total contract price, 
+  // we count paid amount as Asset, and therefore ignore the "future" debt in the Net Worth calculation.
+  // This ensures as they pay installments, Net Worth Velocity is POSITIVE (Equity increases).
+  const netWorth = totalAssets - loansValue; 
+  
+  // For the dashboard, totalLiabilities includes everything.
+  const totalLiabilities = loansValue + actualInstallmentsDebt;
 
   // --- INCOME ---
   const salaryIncome = convert(assets.salary.amount, assets.salary.currency, displayCurrency, rates);
@@ -125,11 +141,66 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
   // How many months can user survive on liquid assets paying base household expenses?
   const liquidityMonths = householdExpenses > 0 ? (liquidAssets / householdExpenses) : 0;
 
+  // --- TIMING METRICS (User Request) ---
+  let maxInstallmentDate: Date | null = null;
+  (liabilities.installments || []).forEach(inst => {
+    if (inst.schedule && inst.schedule.length > 0) {
+      inst.schedule.forEach(s => {
+        const d = new Date(s.date);
+        if (!maxInstallmentDate || d > maxInstallmentDate) maxInstallmentDate = d;
+      });
+    } else if (inst.nextDueDate) {
+      const d = new Date(inst.nextDueDate);
+      if (!maxInstallmentDate || d > maxInstallmentDate) maxInstallmentDate = d;
+    }
+  });
+
+  let maxLoanDate: Date | null = null;
+  (liabilities.loans || []).forEach(l => {
+    if (l.finalPayment) {
+      const d = new Date(l.finalPayment);
+      if (!maxLoanDate || d > maxLoanDate) maxLoanDate = d;
+    } else if (l.remaining > 0 && l.monthlyPayment > 0) {
+      const monthsLeft = Math.ceil(l.remaining / l.monthlyPayment);
+      const d = new Date();
+      d.setMonth(d.getMonth() + monthsLeft);
+      if (!maxLoanDate || d > maxLoanDate) maxLoanDate = d;
+    }
+  });
+
+  const actualWealth = realEstateValue + underDevelopmentValue; 
+  
+  const totalOffPlanContractValue = (assets.underDevelopment || []).reduce((acc, a) => acc + convert(a.purchasePrice, a.currency, displayCurrency, rates), 0);
+  
+  const grossPortfolioValue = realEstateValue + totalOffPlanContractValue + cashValue + goldValue + silverValue + platinumValue + otherAssetsValue;
+
+  const totalFutureAssetValue = realEstateValue + 
+    (assets.underDevelopment || []).reduce((acc, a) => acc + convert(a.currentValue, a.currency, displayCurrency, rates), 0) + 
+    cashValue + goldValue + silverValue + platinumValue + otherAssetsValue;
+  
+  const futureNetWorthCalculated = totalFutureAssetValue - loansValue;
+
   return {
-    netWorth, totalAssets, totalLiabilities, netCashFlow, operatingCashFlow,
-    totalIncome, totalExpenses,
+    // Net Worth is Equity-based (Assets - Bank Loans), where Assets include Paid-to-date Off-plan equity.
+    netWorth, 
+    totalAssets, 
+    actualWealth,
+    totalOffPlanContractValue,
+    grossPortfolioValue,
+    futureNetWorth: futureNetWorthCalculated,
+    offPlanCompletionDate: maxInstallmentDate ? (maxInstallmentDate as Date).toISOString() : null,
+    loansCompletionDate: maxLoanDate ? (maxLoanDate as Date).toISOString() : null,
+    debtFreeDate: (maxInstallmentDate || maxLoanDate) ? 
+      new Date(Math.max((maxInstallmentDate as any || 0), (maxLoanDate as any || 0))).toISOString() : null,
+    
+    // totalLiabilities returned here is the ACTUAL total (Loans + Remaining Installments) for the UI dashboard.
+    totalLiabilities: loansValue + actualInstallmentsDebt, 
+    netCashFlow, 
+    operatingCashFlow,
+    totalIncome, 
+    totalExpenses,
     assets: { existingRealEstate: realEstateValue, offPlanRealEstate: underDevelopmentValue, cash: cashValue, gold: goldValue, silver: silverValue, platinum: platinumValue, other: otherAssetsValue },
-    liabilities: { loans: loansValue, installments: installmentsValue },
+    liabilities: { loans: loansValue, installments: actualInstallmentsDebt },
     income: { salary: salaryIncome, rent: rentIncome },
     expenses: { loans: loanExpenses, household: householdExpenses, installmentsAvg: installmentsAvgExpense },
     professional: { leverageRatio, liquidityMonths, liquidAssets }

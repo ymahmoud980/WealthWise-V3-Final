@@ -8,9 +8,15 @@ interface InfoTooltipProps {
     label: string;
     explanation: React.ReactNode;
     className?: string;
+    side?: "top" | "bottom";
 }
 
-export function InfoTooltip({ label, explanation, className = "text-xs font-medium text-slate-400 uppercase tracking-wider" }: InfoTooltipProps) {
+export function InfoTooltip({ 
+    label, 
+    explanation, 
+    className = "text-xs font-medium text-slate-400 uppercase tracking-wider",
+    side = "top"
+}: InfoTooltipProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -28,7 +34,8 @@ export function InfoTooltip({ label, explanation, className = "text-xs font-medi
             {/* Tooltip Popup */}
             <div
                 className={cn(
-                    "absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800 border border-slate-600 text-slate-200 text-[10px] shadow-2xl rounded-md transition-all duration-200 z-[100] pointer-events-none",
+                    "absolute left-0 w-64 p-3 bg-slate-800 border border-slate-600 text-slate-200 text-[10px] shadow-2xl rounded-md transition-all duration-200 z-[100] pointer-events-none",
+                    side === "top" ? "bottom-full mb-2" : "top-full mt-2",
                     isOpen ? "opacity-100 translate-y-0 visible" : "opacity-0 translate-y-1 invisible"
                 )}
             >

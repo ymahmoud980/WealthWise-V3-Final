@@ -31,6 +31,8 @@ export interface Loan {
   monthlyPayment: number;
   currency: Currency;
   notes?: string;
+  lastDeductionMonth?: string; // Format: "YYYY-MM"
+  finalPayment?: string; // Format: "YYYY-MM-DD"
 }
 
 export interface RealEstateAsset {
@@ -56,6 +58,7 @@ export interface UnderDevelopmentAsset {
   currentValue: number;
   currency: Currency;
   linkedInstallmentId?: string;
+  paidToDate?: number;
   maintenanceCost?: number;
   maintenanceDueDate?: string;
   parkingCost?: number;

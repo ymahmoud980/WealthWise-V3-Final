@@ -149,6 +149,45 @@ export function FinancialDataProvider({ children }: { children: React.ReactNode 
 
   }, [metrics.netWorth, currency, isDataLoaded, user]);
 
+  // 6. Automatic Bank Loan Deduction on the 20th
+  useEffect(() => {
+    if (!isDataLoaded || !user || !data.liabilities.loans.length) return;
+
+    const now = new Date();
+    const currentDay = now.getDate();
+    const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    let hasChanges = false;
+    const updatedLoans = data.liabilities.loans.map(loan => {
+      // If it's already the 20th or later, AND we haven't deducted for this month yet.
+      if (currentDay >= 20 && loan.lastDeductionMonth !== currentMonthStr) {
+        hasChanges = true;
+        
+        // If the lastDeductionMonth is completely missing, 
+        // we assume the user has already manually handled the current month (as of March 29)
+        // or we just initialize it to the current month without deduction to start from next month.
+        const shouldDeduct = !!loan.lastDeductionMonth; 
+        
+        return {
+          ...loan,
+          remaining: shouldDeduct ? Math.max(0, loan.remaining - loan.monthlyPayment) : loan.remaining,
+          lastDeductionMonth: currentMonthStr
+        };
+      }
+      return loan;
+    });
+
+    if (hasChanges) {
+      setData(prev => ({
+        ...prev,
+        liabilities: {
+          ...prev.liabilities,
+          loans: updatedLoans
+        }
+      }));
+    }
+  }, [isDataLoaded, user, data.liabilities.loans.length, setData]); // Dependency on loans.length so it runs if list changes.
+
   // Loading Screen
   if (authLoading) return <div className="flex h-screen w-full items-center justify-center bg-[#020817] text-white"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
   if (!user) return <>{children}</>;
