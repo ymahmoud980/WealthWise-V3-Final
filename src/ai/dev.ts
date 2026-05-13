@@ -9,3 +9,4 @@ import '@/ai/flows/get-financial-health-analysis.ts';
 import '@/ai/flows/generate-financial-report.ts';
 
 import '@/ai/flows/advisor-chat.ts';
+import '@/ai/flows/analyze-bank-statement.ts';

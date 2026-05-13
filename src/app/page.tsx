@@ -9,6 +9,7 @@ import { convert } from "@/lib/calculations";
 import { UpcomingPayments } from "@/components/dashboard/UpcomingPayments";
 import { UpcomingRents } from "@/components/dashboard/UpcomingRents";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import Link from "next/link";
 import {
   TrendingUp,
   TrendingDown,
@@ -17,12 +18,14 @@ import {
   ShieldCheck,
   Zap,
   ArrowUpRight,
-  Info
+  Info,
+  AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, Tooltip, YAxis, XAxis } from "recharts";
 
 export default function V3Dashboard() {
-  const { data, metrics, isLoading, rates } = useFinancialData();
+  const { data, metrics, loading: isLoading, rates } = useFinancialData();
   const { format, currency, setCurrency } = useCurrency();
   const { user } = useAuth();
 
@@ -39,6 +42,11 @@ export default function V3Dashboard() {
   const debt = metrics?.totalLiabilities || 0;
   const cashFlow = metrics?.operatingCashFlow || 0;
   const liquidity = metrics?.professional?.liquidAssets || 0;
+  const emergency = metrics?.emergency;
+  const runwayMonths = emergency?.runwayCashMonths || 0;
+  const emergencyPct = emergency?.progressPct || 0;
+  const monthlyBurn = emergency?.monthlyBurn || 0;
+  const savingsRate = metrics?.professional?.savingsRate ?? 0;
 
   const history = data?.history || [];
 
@@ -111,6 +119,28 @@ export default function V3Dashboard() {
           </div>
         </div>
       </motion.div>
+
+      {/* Critical-status alerts strip */}
+      {(runwayMonths < 3 || cashFlow < 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 flex flex-wrap items-center gap-3"
+        >
+          <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-sm font-semibold text-rose-200">
+              {cashFlow < 0
+                ? "Your monthly cash flow is negative — you are spending more than you earn."
+                : `You only have ${runwayMonths.toFixed(1)} months of cash runway. The safe baseline is 6 months.`}
+            </p>
+            <p className="text-xs text-rose-100/70 mt-0.5">
+              Open the <Link href="/statement" className="underline">Statement X-Ray</Link> to identify drains, or go to the{" "}
+              <Link href="/emergency" className="underline">Emergency Plan</Link> to build the cushion.
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       {/* V3 Asymmetrical Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
@@ -250,6 +280,73 @@ export default function V3Dashboard() {
           </div>
         </motion.div>
 
+        {/* Emergency Fund Progress (Spans 2 cols, 1 row) */}
+        <Link href="/emergency" className="md:col-span-2 group">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.6 }}
+            className="bento-card p-6 h-full flex flex-col justify-between cursor-pointer hover:border-emerald-500/30"
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                <InfoTooltip
+                  label="2-Year Emergency Fund"
+                  explanation={<>Goal: cash reserve that covers <strong>24 months of essential burn</strong>. Industry baseline is 6, but 24 buys real optionality.</>}
+                />
+              </div>
+              <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full">
+                {runwayMonths.toFixed(1)} mo runway
+              </span>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-slate-400 mb-2">
+                <span className="text-white font-mono text-sm">{emergencyPct.toFixed(1)}%</span>
+                <span>target {format(emergency?.target24mo || 0)}</span>
+              </div>
+              <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, emergencyPct)}%` }}
+                  transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+                  className="bg-gradient-to-r from-emerald-500 to-cyan-400 h-2 rounded-full"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Burn: <span className="text-slate-200 font-mono">{format(monthlyBurn)}/mo</span> · Shortfall:{" "}
+                <span className={`font-mono ${(emergency?.shortfall24mo ?? 0) > 0 ? "text-rose-300" : "text-emerald-300"}`}>
+                  {format(emergency?.shortfall24mo || 0)}
+                </span>
+              </p>
+            </div>
+          </motion.div>
+        </Link>
+
+        {/* Savings Rate */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.7 }}
+          className="bento-card p-6 flex flex-col justify-between"
+        >
+          <div className="flex justify-between items-start">
+            <Sparkles className="text-amber-400 h-6 w-6" />
+            <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              savingsRate >= 20 ? "bg-emerald-500/20 text-emerald-300" :
+              savingsRate >= 5  ? "bg-amber-500/20 text-amber-300" :
+                                  "bg-rose-500/20 text-rose-300"
+            }`}>
+              {savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Adequate" : "Critical"}
+            </div>
+          </div>
+          <div>
+            <InfoTooltip
+              label="Savings Rate"
+              explanation={<>Operating cash flow as % of total income. Aim for <strong>≥ 20%</strong>.</>}
+            />
+            <h3 className="text-3xl font-bold text-amber-300">
+              {savingsRate.toFixed(1)}%
+            </h3>
+          </div>
+        </motion.div>
+
       </div>
 
       {/* Upcoming Obligations & Real Estate Rents */}
@@ -260,6 +357,34 @@ export default function V3Dashboard() {
         <div className="bento-card p-6 min-h-[400px]">
           <UpcomingRents rents={data?.assets?.realEstate || []} />
         </div>
+      </div>
+
+      {/* Quick-action strip */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <Link href="/statement" className="bento-card p-6 group hover:border-emerald-500/30 transition-all cursor-pointer">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-semibold">Run a Statement X-Ray</p>
+              <p className="text-xs text-slate-400">Upload a bank statement and let AI find your money drains.</p>
+            </div>
+            <ArrowUpRight className="h-5 w-5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+          </div>
+        </Link>
+        <Link href="/emergency" className="bento-card p-6 group hover:border-cyan-500/30 transition-all cursor-pointer">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+              <ShieldCheck className="h-6 w-6 text-cyan-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-semibold">Plan your 2-Year Emergency Fund</p>
+              <p className="text-xs text-slate-400">5-tier ladder + projected completion date at your current savings rate.</p>
+            </div>
+            <ArrowUpRight className="h-5 w-5 text-slate-500 group-hover:text-cyan-400 transition-colors" />
+          </div>
+        </Link>
       </div>
 
     </div>

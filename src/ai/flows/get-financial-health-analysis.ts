@@ -12,13 +12,16 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { calculateMetrics } from '@/lib/calculations';
+import { initialRates } from '@/lib/marketPrices';
 import type { FinancialData } from '@/lib/types';
+import type { ExchangeRates } from '@/lib/types';
 
 
 // The input now takes the pre-calculated metrics.
 export type GetFinancialHealthAnalysisInput = {
   financialData: FinancialData,
   displayCurrency: string,
+  rates?: ExchangeRates,
 };
 
 const FinancialHealthAnalysisOutputSchema = z.object({
@@ -33,11 +36,16 @@ export type GetFinancialHealthAnalysisOutput = z.infer<typeof FinancialHealthAna
 
 export async function getFinancialHealthAnalysis(input: GetFinancialHealthAnalysisInput): Promise<GetFinancialHealthAnalysisOutput> {
   // Pre-calculate all financial metrics here on the server.
-  const metrics = calculateMetrics(input.financialData, input.displayCurrency);
-  
-  // Pass the calculated metrics to the flow.
+  // BUGFIX: calculateMetrics requires `rates` as the 3rd arg – missing it
+  // produced zeroed-out figures in the previous version of this file.
+  const metrics = calculateMetrics(
+    input.financialData,
+    input.displayCurrency,
+    input.rates ?? initialRates
+  );
+
   return getFinancialHealthAnalysisFlow({
-    metrics: metrics,
+    metrics,
     displayCurrency: input.displayCurrency,
   });
 }

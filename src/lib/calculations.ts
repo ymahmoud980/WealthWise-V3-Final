@@ -119,19 +119,64 @@ export const calculateMetrics = (data: FinancialData, displayCurrency: Currency,
 
   // --- PROFESSIONAL METRICS ---
   const leverageRatio = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0;
+  const debtToIncomeRatio = totalIncome > 0 ? ((loanExpenses + installmentsAvgExpense) / totalIncome) * 100 : 0;
+  const savingsRate = totalIncome > 0 ? (operatingCashFlow / totalIncome) * 100 : 0;
 
-  // Calculate liquid assets
+  // Calculate liquid assets (cash + bullion that can be sold quickly)
   const liquidAssets = cashValue + goldValue + silverValue + platinumValue;
-  // How many months can user survive on liquid assets paying base household expenses?
-  const liquidityMonths = householdExpenses > 0 ? (liquidAssets / householdExpenses) : 0;
+  // CASH-only emergency runway (excludes bullion, which may not be instantly liquid)
+  const trueCashOnly = cashValue;
+
+  // ---- EMERGENCY RUNWAY (core wealth-protection metric) -----------------
+  // Monthly burn = the minimum a user must pay each month even with zero income.
+  // We include: household expenses + loan payments + average installment burden.
+  const monthlyBurn = householdExpenses + loanExpenses + installmentsAvgExpense;
+
+  // Runway in months under three scenarios:
+  //   1. Cash-only (strictest – what most planners use)
+  //   2. Cash + Bullion (achievable in days)
+  //   3. Full liquid + ability to sell off-plan deposits (worst case)
+  const runwayCashMonths     = monthlyBurn > 0 ? trueCashOnly / monthlyBurn : 0;
+  const runwayLiquidMonths   = monthlyBurn > 0 ? liquidAssets / monthlyBurn : 0;
+  const runwayLiquidPlusOff  = monthlyBurn > 0 ? (liquidAssets + underDevelopmentValue) / monthlyBurn : 0;
+
+  // Recommended emergency fund target (industry standard: 6 months for two-income
+  // households, 12+ months for single-income / variable-income, and 24 months for
+  // anyone supporting dependents in inflationary economies).  We expose a "two-year"
+  // target as the headline figure because that's what the user explicitly asked for.
+  const emergencyTarget6mo  = monthlyBurn * 6;
+  const emergencyTarget12mo = monthlyBurn * 12;
+  const emergencyTarget24mo = monthlyBurn * 24;
+
+  const emergencyProgressPct = emergencyTarget24mo > 0
+    ? Math.min(100, (trueCashOnly / emergencyTarget24mo) * 100)
+    : 0;
+
+  // Liquidity (legacy field name kept for backwards compatibility)
+  const liquidityMonths = monthlyBurn > 0 ? (liquidAssets / monthlyBurn) : 0;
 
   return {
     netWorth, totalAssets, totalLiabilities, netCashFlow, operatingCashFlow,
-    totalIncome, totalExpenses,
+    totalIncome, totalExpenses, monthlyBurn,
     assets: { existingRealEstate: realEstateValue, offPlanRealEstate: underDevelopmentValue, cash: cashValue, gold: goldValue, silver: silverValue, platinum: platinumValue, other: otherAssetsValue },
     liabilities: { loans: loansValue, installments: installmentsValue },
     income: { salary: salaryIncome, rent: rentIncome },
     expenses: { loans: loanExpenses, household: householdExpenses, installmentsAvg: installmentsAvgExpense },
-    professional: { leverageRatio, liquidityMonths, liquidAssets }
+    professional: {
+      leverageRatio, liquidityMonths, liquidAssets,
+      debtToIncomeRatio, savingsRate,
+    },
+    emergency: {
+      monthlyBurn,
+      cashOnRunway: trueCashOnly,
+      runwayCashMonths,
+      runwayLiquidMonths,
+      runwayLiquidPlusOff,
+      target6mo: emergencyTarget6mo,
+      target12mo: emergencyTarget12mo,
+      target24mo: emergencyTarget24mo,
+      progressPct: emergencyProgressPct,
+      shortfall24mo: Math.max(0, emergencyTarget24mo - trueCashOnly),
+    },
   };
 };

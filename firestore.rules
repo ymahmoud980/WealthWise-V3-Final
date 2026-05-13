@@ -1,9 +1,54 @@
 rules_version = '2';
 
+// =============================================================================
+// WealthWise V3 - Hardened Firestore Rules
+// -----------------------------------------------------------------------------
+// Principles:
+//   1. Default DENY for any path not explicitly allowed.
+//   2. A user can only read / write their OWN /users/{uid} document AND its
+//      sub-collections (statements, plans, audit logs, etc.).
+//   3. Hard size limit on individual documents to prevent abuse / cost runaway.
+//   4. Restrict the `history` array to a reasonable length (no unbounded growth).
+//   5. Bank-statement uploads & emergency-plan documents are nested under the
+//      user so the same single rule protects them all.
+// =============================================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---- Helpers ---------------------------------------------------------
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function notTooLarge() {
+      // ~900 KB hard ceiling (Firestore doc max is 1 MB).
+      return request.resource.size() < 900000;
+    }
+
+    function historyBounded() {
+      // Block users (or bugs) from writing more than 2,000 daily snapshots.
+      return !('history' in request.resource.data)
+          || request.resource.data.history.size() < 2000;
+    }
+
+    // ---- Main user document --------------------------------------------
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+                            && notTooLarge()
+                            && historyBounded();
+      allow delete: if isOwner(userId);
+
+      // ---- All sub-collections (statements, plans, goals, audit, ...) ----
+      match /{document=**} {
+        allow read, write: if isOwner(userId) && notTooLarge();
+      }
+    }
+
+    // ---- Anything else: explicit DENY ----------------------------------
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
