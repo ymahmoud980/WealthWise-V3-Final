@@ -207,9 +207,28 @@ export default function LiabilitiesPage() {
                                             <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Total Cost</label><p className="font-mono text-white opacity-80">{formatNumber(calculatedTotal)} {p.currency}</p></div>
                                             <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Outstanding</label><p className="font-mono font-bold text-rose-400">{formatNumber(remaining)}</p></div>
                                             <div className="col-span-2 pt-2"><div className="flex justify-between items-center bg-white/5 p-2 rounded"><div><span className="text-[10px] text-muted-foreground block">TOTAL PAID</span>{isEditing ? <GlassInput type="number" className="w-24 mt-1" value={p.paid} onChange={(e: any) => handleInstallmentChange(p.id, 'paid', e.target.value)} /> : <span className="font-bold text-emerald-400">{formatNumber(p.paid)}</span>}</div>{!isEditing && <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-7 text-xs" onClick={() => setActiveHistory(p)}><ScrollText className="h-3 w-3 mr-1" /> Manage Payments</Button>}</div></div>
-                                            <div className="space-y-1 mt-1 col-span-2"><div className="flex justify-between items-center bg-pink-950/30 p-2 rounded border border-pink-500/10"><span className="text-xs text-pink-200">Next Installment</span><div className="flex items-center gap-2"><span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded border border-pink-500/30">{formattedDueDate}</span>{isEditing ? <GlassInput type="number" className="w-24 text-right" value={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)} /> : <span className="font-mono font-bold text-pink-400">{formatNumber(p.amount)}</span>}</div></div></div>
-                                            {(p.notes || isEditing) && (<div className="col-span-2 bg-pink-500/10 p-2 rounded border border-pink-500/20 mt-2"><label className="text-[10px] text-pink-400 flex items-center gap-1"><StickyNote className="h-3 w-3" /> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={p.notes || ""} onChange={(e) => handleInstallmentChange(p.id, 'notes', e.target.value)} placeholder="Add private notes..." /> : <p className="text-xs text-slate-300 italic">{p.notes}</p>}</div>)}
-                                        </div>
+                                                <div className="space-y-1 mt-1 col-span-2">
+                                                    <div className="flex justify-between items-center bg-pink-950/30 p-2 rounded border border-pink-500/10 mb-2">
+                                                        <span className="text-xs text-pink-200">Next Installment</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded border border-pink-500/30">{formattedDueDate}</span>
+                                                            {isEditing ? <GlassInput type="number" className="w-24 text-right" value={p.amount} onChange={(e: any) => handleInstallmentChange(p.id, 'amount', e.target.value)} /> : <span className="font-mono font-bold text-pink-400">{formatNumber(p.amount)}</span>}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {p.schedule && p.schedule.length > 0 && (
+                                                        <div className="flex justify-between items-center bg-emerald-950/20 p-2 rounded border border-emerald-500/10">
+                                                            <span className="text-[10px] uppercase text-emerald-400 font-bold tracking-wider flex items-center gap-1">
+                                                                <CalendarClock className="h-3 w-3" /> Full Ownership Date
+                                                            </span>
+                                                            <span className="text-xs font-bold text-emerald-400">
+                                                                {format(new Date(Math.max(...p.schedule.map(s => new Date(s.date).getTime()))), 'MMM yyyy')}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {(p.notes || isEditing) && (<div className="col-span-2 bg-pink-500/10 p-2 rounded border border-pink-500/20 mt-2"><label className="text-[10px] text-pink-400 flex items-center gap-1"><StickyNote className="h-3 w-3" /> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={p.notes || ""} onChange={(e) => handleInstallmentChange(p.id, 'notes', e.target.value)} placeholder="Add private notes..." /> : <p className="text-xs text-slate-300 italic">{p.notes}</p>}</div>)}
+                                            </div>
                                         {isEditing && <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'installment', id: p.id })}><Trash2 className="h-4 w-4" /></Button>}
                                     </div>)
                             })}
@@ -220,24 +239,66 @@ export default function LiabilitiesPage() {
                 <div className="space-y-6">
                     <div className="flex justify-between items-center border-b border-white/10 pb-2"><h3 className="text-xl font-semibold flex items-center gap-2 text-white"><Landmark className="text-amber-500 h-5 w-5" /> Bank Loans</h3><Button variant="ghost" size="sm" className="text-amber-500 hover:bg-amber-500/10" onClick={() => setIsAddLoanDialogOpen(true)}>+ Add</Button></div>
                     <div className="space-y-4">
-                        {loans.map(l => (
-                            <div key={l.id} className="glass-panel p-5 rounded-xl relative border border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-black/40 shadow-lg hover:border-amber-500/50 transition-all duration-300 group">
-                                <div className="flex justify-between items-center mb-4"><p className="font-bold text-lg text-white group-hover:text-amber-100 transition-colors">{l.lender}</p><span className="text-xs font-mono font-bold bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full border border-amber-500/30">Active Loan</span></div>
-                                <div className="grid grid-cols-2 gap-4 text-sm mt-2">
-                                    <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Original Loan</label>{isEditing ? <GlassInput type="number" defaultValue={l.initial} onChange={(e: any) => handleLoanChange(l.id, 'initial', e.target.value)} /> : <p className="font-mono text-slate-300">{formatNumber(l.initial)} {l.currency}</p>}</div>
-                                    <div className="space-y-1"><label className="text-[10px] uppercase text-muted-foreground">Remaining Debt</label>{isEditing ? <GlassInput type="number" defaultValue={l.remaining} onChange={(e: any) => handleLoanChange(l.id, 'remaining', e.target.value)} /> : <p className="font-mono font-bold text-rose-400 text-lg">{formatNumber(l.remaining)}</p>}</div>
-
-                                    {/* FIX: ADDED MONTHLY PAYMENT DISPLAY */}
-                                    <div className="col-span-2 pt-2 border-t border-amber-500/10 flex justify-between items-center bg-amber-950/20 p-2 rounded">
-                                        <span className="text-xs text-amber-200">Monthly Payment</span>
-                                        {isEditing ? <GlassInput className="w-32 text-right" type="number" defaultValue={l.monthlyPayment} onChange={(e: any) => handleLoanChange(l.id, 'monthlyPayment', e.target.value)} /> : <p className="font-mono font-bold text-amber-400">-{l.monthlyPayment.toLocaleString()} <span className="text-xs font-normal text-amber-500/80">{l.currency}</span></p>}
+                        {loans.map(l => {
+                            const progress = l.initial > 0 ? ((l.initial - l.remaining) / l.initial) * 100 : 0;
+                            return (
+                                <div key={l.id} className="glass-panel p-5 rounded-xl relative border border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-black/40 shadow-lg hover:border-amber-500/50 transition-all duration-300 group">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div>
+                                            <p className="font-bold text-lg text-white group-hover:text-amber-100 transition-colors uppercase tracking-tight">{l.lender}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Paid</div>
+                                            <div className="font-mono font-black text-amber-400 text-lg">{progress.toFixed(1)}%</div>
+                                        </div>
                                     </div>
 
-                                    {(l.notes || isEditing) && <div className="col-span-2 bg-amber-500/10 p-2 rounded border border-amber-500/20"><label className="text-[10px] text-amber-400 flex items-center gap-1"><StickyNote className="h-3 w-3" /> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={l.notes || ""} onChange={(e) => handleLoanChange(l.id, 'notes', e.target.value)} /> : <p className="text-xs text-slate-300 italic">{l.notes}</p>}</div>}
+                                    <Progress value={progress} className="h-2 bg-amber-950 border border-amber-500/20 mb-6" />
+
+                                    <div className="grid grid-cols-2 gap-4 text-sm mt-2">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">Original Loan</label>
+                                            {isEditing ? <GlassInput type="number" defaultValue={l.initial} onChange={(e: any) => handleLoanChange(l.id, 'initial', e.target.value)} /> : <p className="font-mono text-slate-300">{formatNumber(l.initial)} {l.currency}</p>}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">Remaining Debt</label>
+                                            {isEditing ? <GlassInput type="number" defaultValue={l.remaining} onChange={(e: any) => handleLoanChange(l.id, 'remaining', e.target.value)} /> : <p className="font-mono font-black text-rose-400 text-lg leading-none">{formatNumber(l.remaining)}</p>}
+                                        </div>
+
+                                        <div className="col-span-2 pt-2 border-t border-amber-500/10 space-y-2">
+                                            <div className="flex justify-between items-center bg-amber-950/20 p-2 rounded">
+                                                <span className="text-xs text-amber-200">Monthly Payment (Auto-Deducts on 20th)</span>
+                                                {isEditing ? <GlassInput className="w-32 text-right" type="number" defaultValue={l.monthlyPayment} onChange={(e: any) => handleLoanChange(l.id, 'monthlyPayment', e.target.value)} /> : <p className="font-mono font-bold text-amber-400">-{l.monthlyPayment.toLocaleString()} <span className="text-xs font-normal text-amber-500/80">{l.currency}</span></p>}
+                                            </div>
+                                            
+                                            <div className="flex justify-between items-center bg-emerald-950/20 p-2 rounded border border-emerald-500/10">
+                                                <span className="text-[10px] uppercase text-emerald-400 font-bold tracking-wider flex items-center gap-1">
+                                                    <CalendarClock className="h-3 w-3" /> {l.finalPayment ? 'Exact Maturity Date' : 'Estimated Debt-Free Date'}
+                                                </span>
+                                                <div className="text-xs font-bold text-emerald-400">
+                                                    {isEditing ? (
+                                                        <GlassInput type="date" className="h-7 w-36 text-xs text-right" defaultValue={l.finalPayment || ""} onChange={(e: any) => handleLoanChange(l.id, 'finalPayment', e.target.value)} />
+                                                    ) : (
+                                                        l.finalPayment ? format(new Date(l.finalPayment), 'dd MMM yyyy') : (() => {
+                                                            if (l.monthlyPayment > 0 && l.remaining > 0) {
+                                                                const monthsLeft = Math.ceil(l.remaining / l.monthlyPayment);
+                                                                const compDate = new Date();
+                                                                compDate.setMonth(compDate.getMonth() + monthsLeft);
+                                                                return format(compDate, 'MMM yyyy');
+                                                            }
+                                                            return 'N/A';
+                                                        })()
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {(l.notes || isEditing) && <div className="col-span-2 bg-amber-500/10 p-2 rounded border border-amber-500/20"><label className="text-[10px] text-amber-400 flex items-center gap-1"><StickyNote className="h-3 w-3" /> Notes</label>{isEditing ? <textarea className="w-full bg-transparent text-xs text-white border-0 focus:ring-0 p-0" rows={2} value={l.notes || ""} onChange={(e) => handleLoanChange(l.id, 'notes', e.target.value)} /> : <p className="text-xs text-slate-300 italic">{l.notes}</p>}</div>}
+                                    </div>
+                                    {isEditing && <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'loan', id: l.id })}><Trash2 className="h-4 w-4" /></Button>}
                                 </div>
-                                {isEditing && <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: 'loan', id: l.id })}><Trash2 className="h-4 w-4" /></Button>}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </div>

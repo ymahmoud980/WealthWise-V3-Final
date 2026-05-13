@@ -50,8 +50,29 @@ export default function BreakdownPage() {
             <Row label="Ready Properties" value={metrics.assets.existingRealEstate} isTotal format={format} />
             {(data.assets.realEstate || []).map(a => <Row key={a.id} label={a.name} value={convert(a.currentValue, a.currency, currency, rates)} isSub format={format} />)}
 
-            <Row label="Off-Plan Projects" value={metrics.assets.offPlanRealEstate} isTotal format={format} />
-            {(data.assets.underDevelopment || []).map(a => <Row key={a.id} label={a.name} value={convert(a.currentValue, a.currency, currency, rates)} isSub format={format} />)}
+            <div className="flex justify-between items-center py-2 mt-4 border-t border-white/10 font-bold text-sm bg-white/5 px-4 -mx-4">
+                <span className="text-foreground uppercase tracking-wider">Off-Plan Projects</span>
+                <div className="flex items-baseline gap-3">
+                    <span className="text-emerald-400 font-mono text-base">{format(metrics.assets.offPlanRealEstate)}</span>
+                    <span className="text-indigo-300 font-mono text-[10px] opacity-70">of {format(metrics.totalOffPlanContractValue)}</span>
+                </div>
+            </div>
+
+            {(data.assets.underDevelopment || []).map(a => {
+                const linkedInst = (data.liabilities.installments || []).find(i => i.id === a.linkedInstallmentId);
+                const paidAmount = linkedInst ? linkedInst.paid : (a as any).paidToDate || 0;
+                const totalAmount = linkedInst ? linkedInst.total : a.purchasePrice;
+              
+                return (
+                    <div key={a.id} className="pl-6 py-2 border-l-2 border-emerald-500/30 ml-1 flex justify-between items-center hover:bg-white/5 transition-colors rounded-r-lg group">
+                        <span className="text-xs text-slate-300 group-hover:text-white transition-colors">{a.name}</span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-black font-mono text-emerald-400">{format(convert(paidAmount, a.currency, currency, rates))}</span>
+                            <span className="text-xs font-bold font-mono text-indigo-200/50 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/10">Full Price: {format(convert(totalAmount, a.currency, currency, rates))}</span>
+                        </div>
+                    </div>
+                );
+            })}
 
             <Row label="Cash & Bank" value={metrics.assets.cash} isTotal format={format} />
             {(data.assets.cash || []).map(a => <Row key={a.id} label={a.location} value={convert(a.amount, a.currency, currency, rates)} isSub format={format} />)}
@@ -61,7 +82,23 @@ export default function BreakdownPage() {
             <Row label="Other Assets" value={metrics.assets.other} isTotal format={format} />
             {(data.assets.otherAssets || []).map(a => <Row key={a.id} label={a.description} value={convert(a.value, a.currency, currency, rates)} isSub format={format} />)}
 
-            <Row label="TOTAL ASSETS" value={metrics.totalAssets} isGrandTotal={true} format={format} />
+            <div className="pt-6 mt-4 border-t-2 border-white/20 space-y-2 bg-white/5 -mx-6 px-6">
+                <div className="flex justify-between items-center group">
+                    <div>
+                        <span className="text-lg font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">TOTAL ASSETS (Equity Basis)</span>
+                        <p className="text-[10px] text-muted-foreground uppercase opacity-50 tracking-widest font-mono">Current capital holdings only</p>
+                    </div>
+                    <span className="text-2xl font-black font-mono text-emerald-400">{format(metrics.totalAssets)}</span>
+                </div>
+                
+                <div className="flex justify-between items-center group opacity-80 hover:opacity-100 transition-opacity pb-4">
+                    <div>
+                        <span className="text-sm font-bold text-slate-300 group-hover:text-indigo-300 transition-colors tracking-tight uppercase">Gross Portfolio Value</span>
+                        <p className="text-[10px] text-muted-foreground uppercase opacity-50 tracking-widest font-mono">Total commitment value (All assets at full price)</p>
+                    </div>
+                    <span className="text-xl font-bold font-mono text-indigo-300">{format(metrics.grossPortfolioValue)}</span>
+                </div>
+            </div>
           </div>
         </div>
 

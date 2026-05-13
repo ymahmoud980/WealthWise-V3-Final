@@ -35,6 +35,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     parkingCost: "",
     maintenanceDate: "",
     paymentFrequency: "Quarterly", // For the linked liability
+    paidToDate: "", // New field for user request
 
     // Metals/Cash
     grams: "",
@@ -66,6 +67,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
         location: formData.location,
         currentValue: parseFloat(formData.value) || 0,
         purchasePrice: parseFloat(formData.cost) || 0,
+        paidToDate: parseFloat(formData.paidToDate) || 0, // Track paid amount
         currency: formData.currency,
         maintenanceCost: parseFloat(formData.maintenanceCost) || 0,
         parkingCost: parseFloat(formData.parkingCost) || 0,
@@ -86,7 +88,7 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
     onAddAsset(newAsset, activeTab);
 
     // Reset
-    setFormData({ name: "", location: "", value: "", cost: "", currency: "USD", monthlyRent: "", rentFrequency: "monthly", nextRentDate: "", maintenanceCost: "", parkingCost: "", maintenanceDate: "", paymentFrequency: "Quarterly", grams: "", amount: "" });
+    setFormData({ name: "", location: "", value: "", cost: "", currency: "USD", monthlyRent: "", rentFrequency: "monthly", nextRentDate: "", maintenanceCost: "", parkingCost: "", maintenanceDate: "", paymentFrequency: "Quarterly", paidToDate: "", grams: "", amount: "" });
   };
 
   const inputClass = "bg-black/20 border-white/10 text-white";
@@ -128,13 +130,37 @@ export function AddAssetDialog({ isOpen, onClose, onAddAsset }: AddAssetDialogPr
               <div className="space-y-2"><Label>Project Name</Label><Input className={inputClass} placeholder="e.g. Nile Admin" value={formData.name} onChange={e => handleChange('name', e.target.value)} /></div>
               <div className="space-y-2"><Label>Location</Label><Input className={inputClass} placeholder="Area" value={formData.location} onChange={e => handleChange('location', e.target.value)} /></div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="space-y-2"><Label>Unit Base Price</Label><Input type="number" className={inputClass} value={formData.cost} onChange={e => handleChange('cost', e.target.value)} /></div>
-              <div className="space-y-2"><Label>Current Market Value</Label><Input type="number" className={inputClass} value={formData.value} onChange={e => handleChange('value', e.target.value)} /></div>
-              <div className="space-y-2"><Label>Currency</Label><Select value={formData.currency} onValueChange={v => handleChange('currency', v)}><SelectTrigger className={inputClass}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="USD">USD</SelectItem><SelectItem value="EGP">EGP</SelectItem><SelectItem value="KWD">KWD</SelectItem><SelectItem value="TRY">TRY</SelectItem><SelectItem value="EUR">EUR</SelectItem></SelectContent></Select></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Total Contract Price</Label>
+                <Input type="number" className={inputClass} value={formData.cost} onChange={e => handleChange('cost', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Current Paid to Date <span className="text-[10px] text-emerald-400 font-bold">(Key Asset Value)</span></Label>
+                <Input type="number" className={inputClass} placeholder="Amount already paid" value={formData.paidToDate} onChange={e => handleChange('paidToDate', e.target.value)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Current Market Value</Label>
+                <Input type="number" className={inputClass} placeholder="Market price if completed" value={formData.value} onChange={e => handleChange('value', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Currency</Label>
+                <Select value={formData.currency} onValueChange={v => handleChange('currency', v)}>
+                  <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EGP">EGP</SelectItem>
+                    <SelectItem value="KWD">KWD</SelectItem>
+                    <SelectItem value="TRY">TRY</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
-              <div className="space-y-2"><Label>Maintenance Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.maintenanceCost} onChange={e => handleChange('maintenanceCost', e.target.value)} /></div>
+              <div className="space-y-2"><Label>Extra Maint. Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.maintenanceCost} onChange={e => handleChange('maintenanceCost', e.target.value)} /></div>
               <div className="space-y-2"><Label>Parking Cost</Label><Input type="number" className={inputClass} placeholder="0" value={formData.parkingCost} onChange={e => handleChange('parkingCost', e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">

@@ -25,11 +25,11 @@ import {
 import { ResponsiveContainer, AreaChart, Area, Tooltip, YAxis, XAxis } from "recharts";
 
 export default function V3Dashboard() {
-  const { data, metrics, loading: isLoading, rates } = useFinancialData();
+  const { data, metrics, loading, rates } = useFinancialData();
   const { format, currency, setCurrency } = useCurrency();
   const { user } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
@@ -145,29 +145,55 @@ export default function V3Dashboard() {
       {/* V3 Asymmetrical Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
 
-        {/* Core Engine: Net Worth (Spans 2 cols, 2 rows) */}
+        {/* Core Engine: Actual Total Assets (Spans 2 cols, 2 rows) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}
-          className="bento-card md:col-span-2 md:row-span-2 p-8 flex flex-col justify-between group"
+          className="bento-card md:col-span-2 md:row-span-2 p-8 flex flex-col justify-between group overflow-hidden"
         >
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start relative z-10">
             <div>
-              <InfoTooltip
-                label="Global Net Worth"
-                explanation={<>Basis: <strong>Total Assets &minus; Total Liabilities</strong></>}
-                className="text-sm font-bold tracking-widest text-slate-400 uppercase"
-              />
-              <h2 className="text-5xl md:text-7xl font-black text-white mt-2 tracking-tighter">
-                {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : ''}
-                <CountUp end={netWorth} separator="," duration={2.5} />
+              <div className="flex items-center gap-2">
+                <InfoTooltip
+                  label="ACTUAL TOTAL ASSETS"
+                  side="bottom"
+                  explanation="Sum of Real Estate Equity + Cash + Bank + Metals + Other Assets."
+                  className="text-sm font-bold tracking-widest text-emerald-400 uppercase"
+                />
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black text-white mt-1 tracking-tighter flex flex-wrap items-baseline gap-4">
+                <span>
+                    {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : ''}
+                    <CountUp end={assets || 0} separator="," duration={2.5} />
+                </span>
+                <span className="text-sm md:text-lg font-medium text-slate-400 tracking-normal block md:inline-block mt-2 md:mt-0">
+                    ({format(metrics?.actualWealth || 0)} Real Estate + {format(assets - (metrics?.actualWealth || 0))} Non-Real Estate)
+                </span>
               </h2>
+              
+              <div className="mt-4 flex items-center gap-3">
+                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg">
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Future Global Net Worth</p>
+                  <p className="text-lg font-bold text-slate-300">
+                    {format(metrics?.futureNetWorth || 0)}
+                  </p>
+                </div>
+                {metrics?.offPlanCompletionDate && (
+                  <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                    <p className="text-[10px] text-emerald-500/70 uppercase font-bold tracking-wider">Full Ownership</p>
+                    <p className="text-lg font-bold text-emerald-400">
+                      {new Date(metrics.offPlanCompletionDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-400 backdrop-blur-md">
-              <Wallet className="w-6 h-6" />
+              <Activity className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="h-[120px] w-full -mx-4 -mb-8 mt-4">
+          <div className="h-[120px] w-full -mx-4 -mb-8 mt-4 relative z-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklineData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                 <defs>
@@ -179,12 +205,7 @@ export default function V3Dashboard() {
                 <XAxis dataKey="date" hide />
                 <YAxis
                   domain={['auto', 'auto']}
-                  hide={false}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 10 }}
-                  tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
-                  width={40}
+                  hide={true}
                 />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
@@ -212,6 +233,7 @@ export default function V3Dashboard() {
           <div>
             <InfoTooltip
               label="Cash Flow"
+              side="bottom"
               explanation={<>Basis: <strong>Salary &minus; (Loan Payments + Household)</strong></>}
             />
             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-500">
@@ -220,21 +242,22 @@ export default function V3Dashboard() {
           </div>
         </motion.div>
 
-        {/* Total Assets (Spans 1 col, 1 row) */}
+        {/* Actual Wealth (Real Estate) (Spans 1 col, 1 row) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3 }}
-          className="bento-card p-6 flex flex-col justify-between group"
+          className="bento-card p-6 flex flex-col justify-between group overflow-hidden"
         >
           <div className="flex justify-between items-start">
             <TrendingUp className="text-emerald-400 h-6 w-6" />
           </div>
           <div>
             <InfoTooltip
-              label="Total Assets"
-              explanation="Gross value of all holdings, including real estate."
+              label="ACTUAL WEALTH (REAL ESTATE)"
+              side="bottom"
+              explanation={<>Basis: <strong>Ready Properties + Paid Off-Plan installment equity.</strong> This is what you truly own today.</>}
             />
-            <h3 className="text-3xl font-bold text-white">
-              {format(assets)}
+            <h3 className="text-2xl font-bold text-white tracking-tight">
+              {format(metrics?.actualWealth || 0)}
             </h3>
           </div>
         </motion.div>
@@ -250,6 +273,7 @@ export default function V3Dashboard() {
           <div>
             <InfoTooltip
               label="Liquid Capital"
+              side="bottom"
               explanation={<><strong>Cash + Gold + Silver</strong><br />Excludes hard assets like Real Estate.</>}
             />
             <h3 className="text-3xl font-bold text-white">
@@ -270,13 +294,25 @@ export default function V3Dashboard() {
             </div>
           </div>
           <div>
-            <InfoTooltip
-              label="Total Debt"
-              explanation="Remaining bank loans and unpaid installments."
-            />
-            <h3 className="text-3xl font-bold text-rose-400">
-              {format(debt)}
-            </h3>
+            <div className="flex justify-between items-end">
+                <div>
+                    <InfoTooltip
+                        label="Total Debt"
+                        explanation="Remaining bank loans and unpaid installments."
+                    />
+                    <h3 className="text-3xl font-bold text-rose-400">
+                        {format(debt)}
+                    </h3>
+                </div>
+                {metrics?.debtFreeDate && (
+                    <div className="text-right">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">Debt Free</p>
+                        <p className="text-xs font-bold text-rose-400/80">
+                            {new Date(metrics.debtFreeDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                        </p>
+                    </div>
+                )}
+            </div>
           </div>
         </motion.div>
 

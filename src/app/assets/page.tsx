@@ -107,15 +107,21 @@ export default function AssetsPage() {
             const basePrice = Number(newAsset.purchasePrice) || 0;
             const maint = Number(newAsset.maintenanceCost) || 0;
             const park = Number(newAsset.parkingCost) || 0;
+            const initialPaid = Number(newAsset.paidToDate) || 0;
             const totalContractPrice = basePrice + maint + park;
 
-            updatedData.assets.underDevelopment.push({ ...newAsset, id: assetId, linkedInstallmentId: installmentId });
+            updatedData.assets.underDevelopment.push({ 
+                ...newAsset, 
+                id: assetId, 
+                linkedInstallmentId: installmentId,
+                purchasePrice: totalContractPrice // Include maintenance/parking in the base contract price for the ledger
+            });
             updatedData.liabilities.installments.push({
                 id: installmentId, project: newAsset.name, developer: newAsset.location,
-                total: totalContractPrice, paid: 0, amount: 0,
+                total: totalContractPrice, paid: initialPaid, amount: 0,
                 nextDueDate: newAsset.maintenanceDueDate || new Date().toISOString().split('T')[0],
                 currency: newAsset.currency, frequency: newAsset.paymentFrequency || 'Quarterly',
-                paymentHistory: []
+                paymentHistory: initialPaid > 0 ? [{ id: `pay${timestamp}`, date: new Date().toISOString().split('T')[0], amount: initialPaid, description: "Initial Payment" }] : []
             });
         } else if (['gold', 'silver', 'platinum', 'cash'].includes(type)) {
             const assetKey = type as 'gold' | 'silver' | 'platinum' | 'cash';
@@ -211,7 +217,7 @@ export default function AssetsPage() {
                     <div className="absolute -right-4 -top-4 opacity-10 text-indigo-500"><Landmark className="w-24 h-24" /></div>
                     <div className="flex items-center gap-2 mb-1">
                         <Package className="w-4 h-4 text-indigo-300" />
-                        <InfoTooltip label="Total Asset Value" explanation="Sum of all properties, cash, metals, and other holdings." className="text-xs uppercase tracking-wider text-indigo-300 font-semibold" />
+                        <InfoTooltip label="Total Asset Value" explanation="Sum of all properties (Full Value), Liquid Assets, and Off-Plan Equity (Amount Paid to Date)." className="text-xs uppercase tracking-wider text-indigo-300 font-semibold" />
                     </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber(metrics?.totalAssets || 0)} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
@@ -219,7 +225,7 @@ export default function AssetsPage() {
                     <div className="absolute -right-4 -top-4 opacity-10 text-emerald-500"><Building2 className="w-24 h-24" /></div>
                     <div className="flex items-center gap-2 mb-1">
                         <MapPin className="w-4 h-4 text-emerald-300" />
-                        <InfoTooltip label="Total Real Estate" explanation="Combined value of both Ready Properties and Off-Plan Projects." className="text-xs uppercase tracking-wider text-emerald-300 font-semibold" />
+                        <InfoTooltip label="Total Real Estate" explanation="Ready Properties (Full Market Value) + Off-Plan Projects (Equity Paid to Date)." className="text-xs uppercase tracking-wider text-emerald-300 font-semibold" />
                     </div>
                     <p className="text-3xl font-bold font-mono text-white tracking-tight">{formatNumber((metrics?.assets?.existingRealEstate || 0) + (metrics?.assets?.offPlanRealEstate || 0))} <span className="text-sm font-normal text-muted-foreground">{currency}</span></p>
                 </div>
