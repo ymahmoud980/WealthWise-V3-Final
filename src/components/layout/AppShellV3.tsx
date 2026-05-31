@@ -23,6 +23,9 @@ import {
     StickyNote,
     ShieldCheck,
     Sparkles,
+    Upload,
+    Download,
+    Save,
 } from "lucide-react";
 import { useFinancialData } from "@/contexts/FinancialDataContext";
 import { useCurrency } from "@/hooks/use-currency";
@@ -33,17 +36,69 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { Currency } from "@/lib/types";
+import type { Currency, FinancialData, HistoryEntry } from "@/lib/types";
+import { useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 export function AppShellV3({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const { user, logout, loading: authLoading } = useAuth();
     const { currency, setCurrency } = useCurrency();
+    const { data, setData, metrics } = useFinancialData();
+    const { toast } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleExport = () => {
+        const jsonData = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonData], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `wealthwise-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Data Exported", description: "Your financial data has been saved." });
+    };
+
+    const handleImportClick = () => fileInputRef.current?.click();
+
+    const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const text = e.target?.result;
+                if (typeof text !== 'string') throw new Error("Invalid file");
+                const importedData = JSON.parse(text);
+                if (!importedData.history) importedData.history = [];
+                setData(importedData as FinancialData);
+                toast({ title: "Import Successful", description: "Your financial data has been loaded." });
+            } catch {
+                toast({ title: "Import Failed", description: "The file is not valid JSON.", variant: "destructive" });
+            }
+        };
+        reader.readAsText(file);
+        if (event.target) event.target.value = '';
+    };
+
+    const handleSaveSnapshot = () => {
+        const newSnapshot: HistoryEntry = {
+            date: new Date().toISOString(),
+            netWorth: metrics.netWorth,
+            totalAssets: metrics.totalAssets,
+            totalLiabilities: metrics.totalLiabilities,
+            netCashFlow: metrics.netCashFlow,
+        };
+        setData({ ...data, history: [...(data.history || []), newSnapshot] });
+        toast({ title: "Snapshot Saved", description: `Snapshot for ${new Date().toLocaleDateString()} saved.` });
+    };
 
     // Dynamic color shift based on wealth data
     let netWorth = 0;
     try {
-        const data = useFinancialData();
-        netWorth = data.metrics?.netWorth || 0;
+        netWorth = metrics?.netWorth || 0;
     } catch (e) { }
 
     const navItems = [
@@ -94,7 +149,17 @@ export function AppShellV3({ children }: { children: React.ReactNode }) {
 
             {/* Top Right Controls */}
             {user && !authLoading && pathname !== '/signin' && pathname !== '/signup' && (
-                <div className="fixed top-6 right-6 z-50 flex items-center">
+                <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
+                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileImport} accept="application/json" />
+                    <button onClick={handleSaveSnapshot} title="Save Snapshot" className="flex items-center gap-1.5 px-3 h-10 rounded-full bg-black/40 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all text-xs font-medium">
+                        <Save className="h-3.5 w-3.5" /> Snapshot
+                    </button>
+                    <button onClick={handleImportClick} title="Import Data" className="flex items-center gap-1.5 px-3 h-10 rounded-full bg-black/40 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all text-xs font-medium">
+                        <Upload className="h-3.5 w-3.5" /> Import
+                    </button>
+                    <button onClick={handleExport} title="Export Data" className="flex items-center gap-1.5 px-3 h-10 rounded-full bg-black/40 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all text-xs font-medium">
+                        <Download className="h-3.5 w-3.5" /> Export
+                    </button>
                     <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
                         <SelectTrigger className="w-[100px] h-10 bg-black/40 border-white/10 text-white backdrop-blur-md hover:bg-white/10 transition-colors focus:ring-1 focus:ring-emerald-500 rounded-full pl-4">
                             <SelectValue placeholder="Currency" />
